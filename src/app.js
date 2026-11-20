@@ -1,17 +1,75 @@
 /**
  * SpecKit Task & Notes Manager - Core Application Logic
  * Cumple con los requisitos funcionales FR-001 a FR-005.
+ * Diseñado para ejecutarse directamente tanto en local (file://) como en servidor web.
  */
 
-import { StorageService } from './storage.js';
+// --- Capa de Almacenamiento (Storage Service) ---
+const STORAGE_KEY = 'speckit_notes_data_v1';
 
+const INITIAL_SEED_NOTES = [
+  {
+    id: 'seed-01',
+    title: 'Definir especificaciones con Spec Kit',
+    content: 'Revisar la metodología SDD y estructurar el proyecto en fases: spec, plan, tasks e implement.',
+    category: 'Trabajo',
+    is_completed: true,
+    created_at: new Date(Date.now() - 3600000 * 4).toISOString()
+  },
+  {
+    id: 'seed-02',
+    title: 'Revisar entrega de arquitectura',
+    content: 'Validar criterios de aceptación SC-001 a SC-003 antes de pasar a producción.',
+    category: 'Urgente',
+    is_completed: false,
+    created_at: new Date(Date.now() - 3600000 * 2).toISOString()
+  },
+  {
+    id: 'seed-03',
+    title: 'Comprar café y organizar el escritorio',
+    content: 'Despejar el espacio de trabajo para la sesión de desarrollo.',
+    category: 'Personal',
+    is_completed: false,
+    created_at: new Date(Date.now() - 3600000).toISOString()
+  }
+];
+
+class StorageService {
+  static loadNotes() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      if (!data) {
+        this.saveNotes(INITIAL_SEED_NOTES);
+        return [...INITIAL_SEED_NOTES];
+      }
+      return JSON.parse(data);
+    } catch (err) {
+      console.warn('Error accediendo a localStorage. Usando datos en memoria.', err);
+      return [...INITIAL_SEED_NOTES];
+    }
+  }
+
+  static saveNotes(notes) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+    } catch (err) {
+      console.error('Error al persistir notas en localStorage:', err);
+    }
+  }
+
+  static clearAll() {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+}
+
+// --- Aplicación Principal ---
 class NotesApp {
   constructor() {
     this.notes = StorageService.loadNotes();
     this.activeFilter = 'all';
     this.searchQuery = '';
 
-    // Cache DOM Elements
+    // Referencias del DOM
     this.notesGrid = document.getElementById('notesGrid');
     this.newNoteForm = document.getElementById('newNoteForm');
     this.noteTitleInput = document.getElementById('noteTitle');
@@ -20,7 +78,7 @@ class NotesApp {
     this.searchInput = document.getElementById('searchInput');
     this.filterPills = document.querySelectorAll('.pill');
 
-    // Stats Elements
+    // Elementos de Estadísticas
     this.totalNotesEl = document.getElementById('totalNotes');
     this.pendingNotesEl = document.getElementById('pendingNotes');
     this.completedNotesEl = document.getElementById('completedNotes');
@@ -30,13 +88,13 @@ class NotesApp {
   }
 
   bindEvents() {
-    // Form submission
+    // Envío del formulario
     this.newNoteForm.addEventListener('submit', (e) => {
       e.preventDefault();
       this.handleAddNote();
     });
 
-    // Search input (reactivo en tiempo real)
+    // Búsqueda en tiempo real
     this.searchInput.addEventListener('input', (e) => {
       this.searchQuery = e.target.value.toLowerCase().trim();
       this.render();
@@ -75,7 +133,7 @@ class NotesApp {
     this.notes.unshift(newNote);
     StorageService.saveNotes(this.notes);
 
-    // Reset form
+    // Limpiar formulario y repintar
     this.newNoteForm.reset();
     this.render();
   }
@@ -90,7 +148,7 @@ class NotesApp {
   }
 
   deleteNote(noteId) {
-    if (confirm('¿Estás seguro de que deseas eliminar esta nota?')) {
+    if (confirm('¿Deseas eliminar esta nota?')) {
       this.notes = this.notes.filter((n) => n.id !== noteId);
       StorageService.saveNotes(this.notes);
       this.render();
@@ -155,7 +213,7 @@ class NotesApp {
       this.notesGrid.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">📋</div>
-          <p>No hay notas que coincidan con el filtro actual.</p>
+          <p>No se encontraron notas para el filtro actual.</p>
         </div>
       `;
       return;
@@ -193,7 +251,7 @@ class NotesApp {
       })
       .join('');
 
-    // Attach dynamic listeners to cards
+    // Listeners interactivos para cada tarjeta
     this.notesGrid.querySelectorAll('.note-card').forEach((card) => {
       const noteId = card.dataset.id;
       const checkbox = card.querySelector('.note-checkbox');
