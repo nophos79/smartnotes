@@ -187,6 +187,38 @@
     </main>
   </div>
 
+  <!-- Modal para Conectar Archivo Físico (Sin consumir el gesto de usuario) -->
+  <div class="modal-overlay" id="connectModal">
+    <div class="modal-box" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3>📁 Conectar Archivo Físico</h3>
+        <button class="btn-action" id="closeConnectModalBtn">✕</button>
+      </div>
+      <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;">
+        Selecciona cómo deseas vincular tus notas con tu disco o carpeta sincronizada:
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem; margin: 0.5rem 0;">
+        <button id="pickExistingFileBtn" class="btn" style="width: 100%; justify-content: flex-start; padding: 0.85rem 1rem;">
+          <span style="font-size: 1.2rem;">📂</span>
+          <div style="text-align: left;">
+            <div style="font-weight: 600;">Abrir archivo existente</div>
+            <div style="font-size: 0.75rem; opacity: 0.85;">Si ya tienes un smartnotes.json guardado</div>
+          </div>
+        </button>
+        <button id="pickNewFileBtn" class="btn-secondary" style="width: 100%; justify-content: flex-start; padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.75rem;">
+          <span style="font-size: 1.2rem;">📄</span>
+          <div style="text-align: left;">
+            <div style="font-weight: 600; color: var(--text-main);">Crear archivo nuevo</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Crea un nuevo smartnotes.json en la carpeta que elijas</div>
+          </div>
+        </button>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" id="cancelConnectBtn">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal de Detalle de Nota (Lectura Completa) -->
   <div class="modal-overlay" id="detailModal">
     <div class="modal-box" style="max-width: 600px;">

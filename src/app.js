@@ -153,6 +153,13 @@ class NotesApp {
     this.editFromDetailBtn = document.getElementById('editFromDetailBtn');
     this.currentDetailNoteId = null;
 
+    // Modal Conectar Archivo
+    this.connectModal = document.getElementById('connectModal');
+    this.closeConnectModalBtn = document.getElementById('closeConnectModalBtn');
+    this.cancelConnectBtn = document.getElementById('cancelConnectBtn');
+    this.pickExistingFileBtn = document.getElementById('pickExistingFileBtn');
+    this.pickNewFileBtn = document.getElementById('pickNewFileBtn');
+
     // Modales Editar y Categoría
     this.editModal = document.getElementById('editModal');
     this.editNoteForm = document.getElementById('editNoteForm');
@@ -419,8 +426,12 @@ class NotesApp {
     this.importJsonBtn.addEventListener('click', () => this.importFileInput.click());
     this.importFileInput.addEventListener('change', (e) => this.importBackup(e));
 
-    // Conexión con OneDrive / Archivo Físico
-    this.connectFileBtn.addEventListener('click', () => this.handleConnectPhysicalFile());
+    // Conexión con Archivo Físico
+    this.connectFileBtn.addEventListener('click', () => this.openConnectModal());
+    this.closeConnectModalBtn.addEventListener('click', () => this.closeConnectModal());
+    this.cancelConnectBtn.addEventListener('click', () => this.closeConnectModal());
+    this.pickExistingFileBtn.addEventListener('click', () => this.pickFile(true));
+    this.pickNewFileBtn.addEventListener('click', () => this.pickFile(false));
     this.disconnectFileBtn.addEventListener('click', () => this.disconnectPhysicalFile());
   }
 
@@ -594,22 +605,27 @@ class NotesApp {
   }
 
   // --- Sincronización con Archivo Físico / Carpeta Sincronizada (File System Access API) ---
-  async handleConnectPhysicalFile() {
+  openConnectModal() {
     if (!('showOpenFilePicker' in window)) {
       alert(
         'Tu navegador actual no soporta la File System Access API nativa. Se recomienda usar Microsoft Edge o Google Chrome para vincular archivos físicos directamente.'
       );
       return;
     }
+    this.connectModal.classList.add('active');
+  }
+
+  closeConnectModal() {
+    this.connectModal.classList.remove('active');
+  }
+
+  async pickFile(isExisting) {
+    this.closeConnectModal();
 
     try {
-      const mode = confirm(
-        '¿Deseas abrir un archivo smartnotes.json ya existente?\n\n• [Aceptar] = Abrir archivo existente.\n• [Cancelar] = Crear un archivo nuevo en la carpeta que elijas.'
-      );
-
       let handle;
-      if (mode) {
-        // Abrir existente
+      if (isExisting) {
+        // Abrir existente directamente desde el evento de clic del usuario
         [handle] = await window.showOpenFilePicker({
           types: [
             {
@@ -620,7 +636,7 @@ class NotesApp {
           multiple: false
         });
       } else {
-        // Crear o guardar nuevo
+        // Crear nuevo directamente desde el evento de clic del usuario
         handle = await window.showSaveFilePicker({
           suggestedName: 'smartnotes.json',
           types: [
@@ -635,7 +651,7 @@ class NotesApp {
       if (!handle) return;
       this.fileHandle = handle;
 
-      // Leer contenido inicial del archivo
+      // Leer contenido inicial si ya tenía datos
       const file = await this.fileHandle.getFile();
       const text = await file.text();
 
