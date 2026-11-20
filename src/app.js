@@ -593,18 +593,18 @@ class NotesApp {
     }
   }
 
-  // --- Sincronización con OneDrive / Archivo Físico (File System Access API) ---
+  // --- Sincronización con Archivo Físico / Carpeta Sincronizada (File System Access API) ---
   async handleConnectPhysicalFile() {
     if (!('showOpenFilePicker' in window)) {
       alert(
-        'Tu navegador actual no soporta la File System Access API nativa. Se recomienda usar Microsoft Edge o Google Chrome para vincular carpetas de OneDrive directamente.'
+        'Tu navegador actual no soporta la File System Access API nativa. Se recomienda usar Microsoft Edge o Google Chrome para vincular archivos físicos directamente.'
       );
       return;
     }
 
     try {
       const mode = confirm(
-        '¿Deseas abrir un archivo smartnotes.json ya existente en tu OneDrive?\n\n• [Aceptar] = Abrir archivo existente.\n• [Cancelar] = Crear un archivo nuevo en la carpeta que elijas.'
+        '¿Deseas abrir un archivo smartnotes.json ya existente?\n\n• [Aceptar] = Abrir archivo existente.\n• [Cancelar] = Crear un archivo nuevo en la carpeta que elijas.'
       );
 
       let handle;
@@ -662,13 +662,13 @@ class NotesApp {
 
       // Actualizar estado en interfaz
       this.syncDot.classList.add('connected');
-      this.syncStatusText.textContent = 'OneDrive Activo';
+      this.syncStatusText.textContent = 'Archivo Vinculado';
       this.syncFilenameText.textContent = this.fileHandle.name;
       this.connectBtnLabel.textContent = 'Cambiar Archivo';
       this.disconnectFileBtn.style.display = 'block';
 
       this.render();
-      alert(`¡Conectado con éxito a "${this.fileHandle.name}"!\nCada cambio se guardará automáticamente en este archivo de OneDrive.`);
+      alert(`¡Conectado con éxito a "${this.fileHandle.name}"!\nCada cambio se guardará automáticamente en este archivo.`);
     } catch (err) {
       if (err.name !== 'AbortError') {
         console.error('Error conectando con archivo físico:', err);
@@ -682,7 +682,7 @@ class NotesApp {
     this.syncDot.classList.remove('connected');
     this.syncStatusText.textContent = 'Sin vincular';
     this.syncFilenameText.textContent = 'Guardando en navegador';
-    this.connectBtnLabel.textContent = 'Conectar OneDrive';
+    this.connectBtnLabel.textContent = 'Conectar Archivo';
     this.disconnectFileBtn.style.display = 'none';
   }
 

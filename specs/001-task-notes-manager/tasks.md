@@ -24,7 +24,7 @@
 
 ---
 
-## Phase 11: Sincronización con OneDrive / File System Access API v5 (Completado)
+## Phase 11: Sincronización de Archivo Físico / Carpeta Sincronizada v5 (Completado)
 - [x] **T25**: Crear el servicio `FileSystemService` para abrir/guardar archivo físico y escribir atómicamente.
-- [x] **T26**: Añadir tarjeta de estado de sincronización en el Sidebar (Conectar OneDrive / Desconectar).
+- [x] **T26**: Añadir tarjeta de estado de sincronización en el Sidebar (Conectar Archivo / Desconectar).
 - [x] **T27**: Vincular todas las operaciones de guardado para escribir en el archivo físico automáticamente.
