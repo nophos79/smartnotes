@@ -155,24 +155,37 @@
     </div>
   </div>
 
-  <!-- Modal para Añadir Categoría Personalizada -->
+  <!-- Modal para Gestión y Eliminación de Categorías -->
   <div class="modal-overlay" id="categoryModal">
     <div class="modal-box">
       <div class="modal-header">
-        <h3>🏷️ Crear Nueva Categoría</h3>
+        <h3>🏷️ Gestionar Categorías</h3>
         <button class="btn-action" id="closeCategoryModalBtn">✕</button>
       </div>
+
+      <!-- Lista de Categorías Existentes con Borrado -->
+      <div>
+        <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; display: block;">
+          Categorías existentes:
+        </label>
+        <div class="category-list-container" id="categoryListContainer">
+          <!-- Se puebla dinámicamente con botones de eliminar -->
+        </div>
+      </div>
+
+      <!-- Formulario para Añadir Nueva Categoría -->
       <form id="newCategoryForm">
+        <h4 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem;">➕ Añadir Nueva Categoría</h4>
         <div>
-          <label>Nombre de la Categoría:</label>
-          <input type="text" id="newCategoryName" placeholder="Ej: Universidad, Gimnasio..." required style="width: 100%;">
+          <label>Nombre:</label>
+          <input type="text" id="newCategoryName" placeholder="Ej: Gimnasio, Finanzas, Estudio..." required style="width: 100%;">
         </div>
         <div>
           <label>Color distintivo:</label>
-          <input type="color" id="newCategoryColor" value="#38bdf8" style="height: 40px; width: 100%; cursor: pointer;">
+          <input type="color" id="newCategoryColor" value="#38bdf8" style="height: 38px; width: 100%; cursor: pointer;">
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn-secondary" id="cancelCategoryBtn">Cancelar</button>
+          <button type="button" class="btn-secondary" id="cancelCategoryBtn">Cerrar</button>
           <button type="submit" class="btn">Crear Categoría</button>
         </div>
       </form>

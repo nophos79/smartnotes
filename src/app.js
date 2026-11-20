@@ -146,6 +146,7 @@ class NotesApp {
     this.cancelEditBtn = document.getElementById('cancelEditBtn');
 
     this.categoryModal = document.getElementById('categoryModal');
+    this.categoryListContainer = document.getElementById('categoryListContainer');
     this.newCategoryForm = document.getElementById('newCategoryForm');
     this.newCategoryName = document.getElementById('newCategoryName');
     this.newCategoryColor = document.getElementById('newCategoryColor');
@@ -346,8 +347,84 @@ class NotesApp {
   }
 
   openCategoryModal() {
+    this.renderCategoryList();
     this.categoryModal.classList.add('active');
     this.newCategoryName.focus();
+  }
+
+  renderCategoryList() {
+    if (!this.categoryListContainer) return;
+    this.categoryListContainer.innerHTML = this.categories
+      .map(
+        (c) => `
+        <div class="category-item-row">
+          <div class="category-info">
+            <span class="color-dot" style="background: ${c.color};"></span>
+            <strong>${this.escapeHTML(c.name)}</strong>
+          </div>
+          ${
+            this.categories.length > 1
+              ? `<button class="btn-delete-cat" data-id="${c.id}" title="Eliminar categoría">🗑️</button>`
+              : '<span style="font-size:0.75rem; color:var(--text-muted);">(Única)</span>'
+          }
+        </div>
+      `
+      )
+      .join('');
+
+    this.categoryListContainer.querySelectorAll('.btn-delete-cat').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        this.deleteCategory(btn.dataset.id);
+      });
+    });
+  }
+
+  deleteCategory(catId) {
+    const cat = this.categories.find((c) => c.id === catId);
+    if (!cat) return;
+
+    if (this.categories.length <= 1) {
+      alert('Debe existir al menos una categoría en el sistema.');
+      return;
+    }
+
+    const countNotes = this.notes.filter(
+      (n) => n.category.toLowerCase() === cat.name.toLowerCase()
+    ).length;
+
+    const msg = countNotes > 0
+      ? `¿Eliminar la categoría "${cat.name}"? ${countNotes} nota(s) asociada(s) se reasignarán automáticamente a la categoría general.`
+      : `¿Eliminar la categoría "${cat.name}"?`;
+
+    if (confirm(msg)) {
+      // Remover categoría
+      this.categories = this.categories.filter((c) => c.id !== catId);
+
+      // Determinar categoría de reemplazo
+      const fallbackCat = this.categories.find((c) => c.name.toLowerCase() === 'general') || this.categories[0];
+
+      // Reasignar notas afectadas
+      this.notes.forEach((n) => {
+        if (n.category.toLowerCase() === cat.name.toLowerCase()) {
+          n.category = fallbackCat.name;
+        }
+      });
+
+      // Si el filtro activo era esta categoría, resetear a 'all'
+      if (this.activeFilter.toLowerCase() === cat.name.toLowerCase()) {
+        this.activeFilter = 'all';
+      }
+
+      // Persistir cambios
+      StorageService.saveCategories(this.categories);
+      StorageService.saveNotes(this.notes);
+
+      // Actualizar interfaz
+      this.populateCategoryOptions();
+      this.renderCategoryPills();
+      this.renderCategoryList();
+      this.render();
+    }
   }
 
   closeCategoryModal() {
@@ -378,6 +455,7 @@ class NotesApp {
 
     this.populateCategoryOptions();
     this.renderCategoryPills();
+    this.renderCategoryList();
     this.closeCategoryModal();
     this.render();
   }
