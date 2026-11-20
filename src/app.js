@@ -1,10 +1,12 @@
 /**
- * SmartNotes - Spec-Driven Development (v2)
- * Soporta edición, fechas límite, categorías dinámicas, ordenación,
- * modo claro/oscuro y copias de seguridad JSON.
+ * SmartNotes - Spec-Driven Development (v3)
+ * Soporta:
+ * - Formulario colapsable bajo demanda
+ * - Métricas superiores clicables que filtran la lista
+ * - Marcado de tareas evidente mediante botón check y clic en título
+ * - Edición, fechas límite, ordenación, categorías personalizadas, temas y backups
  */
 
-// --- Almacenamiento y Servicios ---
 const STORAGE_KEY_NOTES = 'speckit_notes_data_v1';
 const STORAGE_KEY_CATS = 'speckit_categories_v1';
 const STORAGE_KEY_THEME = 'speckit_theme_v1';
@@ -95,7 +97,8 @@ class NotesApp {
   constructor() {
     this.notes = StorageService.loadNotes();
     this.categories = StorageService.loadCategories();
-    this.activeFilter = 'all';
+    this.activeFilter = 'all'; // filtro de categoría
+    this.statusFilter = 'all'; // filtro de estado: all, pending, completed, overdue
     this.searchQuery = '';
     this.currentSort = 'newest';
 
@@ -109,6 +112,9 @@ class NotesApp {
 
   cacheElements() {
     this.notesGrid = document.getElementById('notesGrid');
+    this.newNoteSection = document.getElementById('newNoteSection');
+    this.toggleFormBtn = document.getElementById('toggleFormBtn');
+    this.closeFormBtn = document.getElementById('closeFormBtn');
     this.newNoteForm = document.getElementById('newNoteForm');
     this.noteTitleInput = document.getElementById('noteTitle');
     this.noteContentInput = document.getElementById('noteContent');
@@ -118,7 +124,8 @@ class NotesApp {
     this.sortSelect = document.getElementById('sortSelect');
     this.categoryPillsContainer = document.getElementById('categoryPills');
 
-    // Stats
+    // Tarjetas de Métricas (Filtros clicables)
+    this.statCards = document.querySelectorAll('.stat-card');
     this.totalNotesEl = document.getElementById('totalNotes');
     this.pendingNotesEl = document.getElementById('pendingNotes');
     this.completedNotesEl = document.getElementById('completedNotes');
@@ -170,6 +177,18 @@ class NotesApp {
     this.themeToggleBtn.textContent = isLight ? '☀️ Modo Claro' : '🌙 Modo Oscuro';
   }
 
+  toggleForm(forceState = null) {
+    const isOpen = forceState !== null ? forceState : !this.newNoteSection.classList.contains('open');
+    if (isOpen) {
+      this.newNoteSection.classList.add('open');
+      this.toggleFormBtn.textContent = '✕ Cerrar Formulario';
+      this.noteTitleInput.focus();
+    } else {
+      this.newNoteSection.classList.remove('open');
+      this.toggleFormBtn.textContent = '➕ Nueva Nota';
+    }
+  }
+
   populateCategoryOptions() {
     const createOptions = () =>
       this.categories
@@ -211,6 +230,20 @@ class NotesApp {
   }
 
   bindEvents() {
+    // Alternar visibilidad del formulario
+    this.toggleFormBtn.addEventListener('click', () => this.toggleForm());
+    this.closeFormBtn.addEventListener('click', () => this.toggleForm(false));
+
+    // Filtros clicables en las tarjetas de estadísticas
+    this.statCards.forEach((card) => {
+      card.addEventListener('click', () => {
+        this.statCards.forEach((c) => c.classList.remove('active'));
+        card.classList.add('active');
+        this.statusFilter = card.dataset.statusFilter;
+        this.render();
+      });
+    });
+
     // Tema
     this.themeToggleBtn.addEventListener('click', () => this.toggleTheme());
 
@@ -249,7 +282,7 @@ class NotesApp {
       this.handleAddCategory();
     });
 
-    // Backup Export / Import
+    // Backup
     this.exportJsonBtn.addEventListener('click', () => this.exportBackup());
     this.importJsonBtn.addEventListener('click', () => this.importFileInput.click());
     this.importFileInput.addEventListener('change', (e) => this.importBackup(e));
@@ -276,6 +309,7 @@ class NotesApp {
     this.notes.unshift(newNote);
     StorageService.saveNotes(this.notes);
     this.newNoteForm.reset();
+    this.toggleForm(false); // Ocultar formulario tras guardar
     this.render();
   }
 
@@ -417,21 +451,33 @@ class NotesApp {
   getFilteredAndSortedNotes() {
     const todayStr = new Date().toISOString().split('T')[0];
 
-    // Filtrado
+    // 1. Filtrado combinado (Categoría + Estado superior + Búsqueda de texto)
     let result = this.notes.filter((note) => {
+      // Filtro de categoría
       const matchesCategory =
         this.activeFilter === 'all' ||
         note.category.toLowerCase() === this.activeFilter.toLowerCase();
 
+      // Filtro de estado por tarjetas superiores
+      let matchesStatus = true;
+      if (this.statusFilter === 'pending') {
+        matchesStatus = !note.is_completed;
+      } else if (this.statusFilter === 'completed') {
+        matchesStatus = note.is_completed;
+      } else if (this.statusFilter === 'overdue') {
+        matchesStatus = !note.is_completed && note.due_date && note.due_date < todayStr;
+      }
+
+      // Filtro de búsqueda
       const matchesSearch =
         !this.searchQuery ||
         note.title.toLowerCase().includes(this.searchQuery) ||
         (note.content && note.content.toLowerCase().includes(this.searchQuery));
 
-      return matchesCategory && matchesSearch;
+      return matchesCategory && matchesStatus && matchesSearch;
     });
 
-    // Ordenación
+    // 2. Ordenación
     result.sort((a, b) => {
       if (this.currentSort === 'newest') {
         return new Date(b.created_at) - new Date(a.created_at);
@@ -507,10 +553,15 @@ class NotesApp {
     const todayStr = new Date().toISOString().split('T')[0];
 
     if (filtered.length === 0) {
+      let msg = 'No se encontraron notas con el filtro o búsqueda actual.';
+      if (this.statusFilter === 'pending') msg = '¡Genial! No tienes tareas pendientes.';
+      if (this.statusFilter === 'completed') msg = 'Aún no has completado ninguna tarea.';
+      if (this.statusFilter === 'overdue') msg = '¡Perfecto! No tienes tareas vencidas.';
+
       this.notesGrid.innerHTML = `
         <div class="empty-state">
           <div class="empty-state-icon">📋</div>
-          <p>No se encontraron notas con el filtro o búsqueda actual.</p>
+          <p>${msg}</p>
         </div>
       `;
       return;
@@ -542,13 +593,14 @@ class NotesApp {
           <div class="note-card ${completedClass}" data-id="${note.id}">
             <div class="note-header">
               <div class="note-title-wrap">
-                <input 
-                  type="checkbox" 
-                  class="note-checkbox" 
-                  ${note.is_completed ? 'checked' : ''} 
-                  title="Marcar como completada"
-                />
-                <h3 class="note-title">${this.escapeHTML(note.title)}</h3>
+                <!-- Botón de Checkbox táctil y visible -->
+                <button 
+                  class="status-checkbox-btn" 
+                  title="${note.is_completed ? 'Marcar como pendiente' : 'Marcar como completada'}"
+                >
+                  ✓
+                </button>
+                <h3 class="note-title" title="Haz clic para alternar estado">${this.escapeHTML(note.title)}</h3>
               </div>
               <div class="card-actions">
                 <button class="btn-action btn-edit" title="Editar nota">✏️</button>
@@ -577,9 +629,25 @@ class NotesApp {
     // Listeners interactivos
     this.notesGrid.querySelectorAll('.note-card').forEach((card) => {
       const noteId = card.dataset.id;
-      card.querySelector('.note-checkbox').addEventListener('change', () => this.toggleNoteStatus(noteId));
-      card.querySelector('.btn-edit').addEventListener('click', () => this.openEditModal(noteId));
-      card.querySelector('.btn-delete').addEventListener('click', () => this.deleteNote(noteId));
+      // Clic en el botón verde de check
+      card.querySelector('.status-checkbox-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.toggleNoteStatus(noteId);
+      });
+      // Clic directo en el título para marcar como completada
+      card.querySelector('.note-title').addEventListener('click', () => {
+        this.toggleNoteStatus(noteId);
+      });
+      // Botón editar
+      card.querySelector('.btn-edit').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.openEditModal(noteId);
+      });
+      // Botón eliminar
+      card.querySelector('.btn-delete').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.deleteNote(noteId);
+      });
     });
   }
 }

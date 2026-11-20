@@ -18,8 +18,9 @@
         </div>
       </div>
 
-      <!-- Acciones de Cabecera (Tema, Categorías, Backup) -->
+      <!-- Acciones de Cabecera (Botón Nueva Nota, Tema, Categorías, Backup) -->
       <div class="header-actions">
+        <button id="toggleFormBtn" class="btn-primary-action">➕ Nueva Nota</button>
         <button id="themeToggleBtn" class="btn-icon" title="Cambiar Tema">🌙 Modo Oscuro</button>
         <button id="openCategoryModalBtn" class="btn-icon" title="Nueva Categoría">🏷️ + Categoría</button>
         <button id="exportJsonBtn" class="btn-icon" title="Exportar Backup">💾 Exportar</button>
@@ -28,56 +29,61 @@
       </div>
     </header>
 
-    <!-- Estadísticas en Tiempo Real -->
+    <!-- Estadísticas Clicables (Filtros por Estado) -->
     <section class="stats-grid">
-      <div class="stat-card">
-        <span class="stat-label">Total Notas</span>
+      <div class="stat-card active" data-status-filter="all" title="Ver todas las notas">
+        <span class="stat-label">Total Notas <span class="stat-hint">(Ver todas)</span></span>
         <span class="stat-value" id="totalNotes">0</span>
       </div>
-      <div class="stat-card">
-        <span class="stat-label">Pendientes</span>
+      <div class="stat-card" data-status-filter="pending" title="Filtrar por notas pendientes">
+        <span class="stat-label">Pendientes <span class="stat-hint">(Filtrar)</span></span>
         <span class="stat-value" id="pendingNotes">0</span>
       </div>
-      <div class="stat-card">
-        <span class="stat-label">Completadas</span>
+      <div class="stat-card" data-status-filter="completed" title="Filtrar por notas completadas">
+        <span class="stat-label">Completadas <span class="stat-hint">(Filtrar)</span></span>
         <span class="stat-value" id="completedNotes">0</span>
       </div>
-      <div class="stat-card">
-        <span class="stat-label">Vencidas</span>
+      <div class="stat-card" data-status-filter="overdue" title="Filtrar por notas vencidas">
+        <span class="stat-label">Vencidas <span class="stat-hint">(Filtrar)</span></span>
         <span class="stat-value" id="overdueNotes" style="color: #f87171;">0</span>
       </div>
     </section>
 
-    <!-- Formulario para Añadir Nota -->
-    <section class="card">
-      <h2 class="form-title">➕ Nueva Nota o Tarea</h2>
-      <form id="newNoteForm">
-        <div class="input-row">
-          <input 
-            type="text" 
-            id="noteTitle" 
-            class="flex-1" 
-            placeholder="¿Qué necesitas hacer o recordar? (Obligatorio)" 
-            required 
-            autocomplete="off"
-          />
-          <select id="noteCategory">
-            <!-- Se puebla dinámicamente -->
-          </select>
-          <input 
-            type="date" 
-            id="noteDueDate" 
-            title="Fecha límite (opcional)"
-          />
+    <!-- Formulario Plegable para Añadir Nota -->
+    <section class="collapsible-section" id="newNoteSection">
+      <div class="card">
+        <div class="form-header-bar">
+          <h2 class="form-title">➕ Crear Nueva Nota o Tarea</h2>
+          <button type="button" class="btn-action" id="closeFormBtn" title="Ocultar formulario">✕ Ocultar</button>
         </div>
-        <textarea 
-          id="noteContent" 
-          placeholder="Detalles adicionales, enlaces o notas..."
-        ></textarea>
-        <div>
-          <button type="submit" class="btn">Guardar Nota</button>
-        </div>
-      </form>
+        <form id="newNoteForm">
+          <div class="input-row">
+            <input 
+              type="text" 
+              id="noteTitle" 
+              class="flex-1" 
+              placeholder="¿Qué necesitas hacer o recordar? (Obligatorio)" 
+              required 
+              autocomplete="off"
+            />
+            <select id="noteCategory">
+              <!-- Se puebla dinámicamente -->
+            </select>
+            <input 
+              type="date" 
+              id="noteDueDate" 
+              title="Fecha límite (opcional)"
+            />
+          </div>
+          <textarea 
+            id="noteContent" 
+            placeholder="Detalles adicionales, enlaces o descripción..."
+          ></textarea>
+          <div>
+            <button type="submit" class="btn">Guardar Nota</button>
+          </div>
+        </form>
+      </div>
     </section>
 
     <!-- Barra de Filtros, Búsqueda y Ordenación -->

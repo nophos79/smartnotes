@@ -136,7 +136,27 @@ h1 {
   background: var(--bg-card-hover);
 }
 
-/* Métricas */
+.btn-primary-action {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.btn-primary-action:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+/* Métricas Clicables (Filtros por Estado) */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -151,6 +171,22 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  user-select: none;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.active {
+  border-color: var(--accent);
+  background-color: var(--bg-card-hover);
+  box-shadow: 0 0 0 2px var(--accent);
 }
 
 .stat-label {
@@ -158,6 +194,15 @@ h1 {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-hint {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  text-transform: none;
 }
 
 .stat-value {
@@ -166,7 +211,27 @@ h1 {
   color: var(--accent);
 }
 
-/* Formulario */
+/* Formulario Plegable */
+.collapsible-section {
+  display: none;
+  animation: slideDown 0.25s ease-out;
+}
+
+.collapsible-section.open {
+  display: block;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .card {
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -174,9 +239,15 @@ h1 {
   padding: 1.5rem;
 }
 
+.form-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
 .form-title {
   font-size: 1.1rem;
-  margin-bottom: 1rem;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -343,22 +414,45 @@ textarea {
 .note-title-wrap {
   display: flex;
   align-items: flex-start;
-  gap: 0.6rem;
+  gap: 0.75rem;
   flex: 1;
 }
 
-.note-checkbox {
-  margin-top: 0.25rem;
+/* Botón de Checkbox de Completado Mejorado */
+.status-checkbox-btn {
+  background: var(--input-bg);
+  border: 2px solid var(--border-color);
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  accent-color: var(--accent);
-  width: 18px;
-  height: 18px;
+  font-size: 0.85rem;
+  color: transparent;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  transition: all 0.2s;
+}
+
+.status-checkbox-btn:hover {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.note-card.completed .status-checkbox-btn {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
 }
 
 .note-title {
   font-size: 1.05rem;
   font-weight: 600;
   line-height: 1.3;
+  cursor: pointer;
 }
 
 .note-content {
@@ -424,30 +518,6 @@ textarea {
   border-radius: 6px;
   letter-spacing: 0.04em;
   border: 1px solid transparent;
-}
-
-.badge-urgente {
-  background-color: var(--cat-urgente-bg);
-  color: var(--cat-urgente-text);
-  border-color: var(--cat-urgente-border);
-}
-
-.badge-trabajo {
-  background-color: var(--cat-trabajo-bg);
-  color: var(--cat-trabajo-text);
-  border-color: var(--cat-trabajo-border);
-}
-
-.badge-personal {
-  background-color: var(--cat-personal-bg);
-  color: var(--cat-personal-text);
-  border-color: var(--cat-personal-border);
-}
-
-.badge-general {
-  background-color: var(--cat-general-bg);
-  color: var(--cat-general-text);
-  border-color: var(--cat-general-border);
 }
 
 /* Badges de Fecha Límite */

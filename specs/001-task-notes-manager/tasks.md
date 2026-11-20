@@ -16,10 +16,17 @@
 
 ---
 
-## Phase 5: Expansión de Funcionalidades (v2)
-- [x] **T10**: Implementar el soporte para Modo Claro / Modo Oscuro con botón toggle y persistencia.
-- [x] **T11**: Añadir selector de fecha límite (`due_date`) y cálculo visual de vencimiento (Vencida / En plazo).
-- [x] **T12**: Crear modal interactivo para editar notas existentes (título, contenido, categoría, fecha).
-- [x] **T13**: Añadir desplegable de ordenación (Más recientes, Más antiguas, A-Z, Urgencia, Fecha límite).
-- [x] **T14**: Implementar gestión de categorías personalizadas (añadir nueva categoría con color personalizado).
-- [x] **T15**: Implementar exportación a archivo JSON y carga/restauración de copias de seguridad.
+## Phase 5: Expansión de Funcionalidades v2 (Completado)
+- [x] **T10**: Modo Claro / Modo Oscuro con botón toggle y persistencia.
+- [x] **T11**: Selector de fecha límite y cálculo visual de vencimiento.
+- [x] **T12**: Modal interactivo para editar notas existentes.
+- [x] **T13**: Desplegable de ordenación (Recientes, Antiguas, A-Z, Urgencia, Fecha).
+- [x] **T14**: Categorías personalizadas con selector de color.
+- [x] **T15**: Exportación e importación de copias de seguridad en JSON.
+
+---
+
+## Phase 6: Refinamientos de UX y Filtros v3 (Completado)
+- [x] **T16**: Botón para mostrar / ocultar el formulario de nueva nota para ahorrar espacio.
+- [x] **T17**: Convertir las 4 tarjetas de estadísticas superiores en filtros clicables e interactivos (Total, Pendientes, Completadas, Vencidas).
+- [x] **T18**: Rediseñar el control de marcado de completada para que sea más visible y evidente.
