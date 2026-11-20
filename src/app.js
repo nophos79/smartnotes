@@ -252,7 +252,18 @@ class NotesApp {
   renderSidebarCategories() {
     if (!this.sidebarCategoryList) return;
 
-    this.sidebarCategoryList.innerHTML = this.categories
+    const isAllActive = this.activeCategoryFilter === 'all';
+    const allItem = `
+      <button class="cat-item ${isAllActive ? 'active' : ''}" data-category="all" title="Ver todas las categorías">
+        <span class="nav-label-wrap">
+          <span>📁</span>
+          <span>Todas las categorías</span>
+        </span>
+        <span class="nav-badge">${this.notes.length}</span>
+      </button>
+    `;
+
+    const catItems = this.categories
       .map((c) => {
         const count = this.notes.filter((n) => n.category.toLowerCase() === c.name.toLowerCase()).length;
         const isActive = this.activeCategoryFilter.toLowerCase() === c.name.toLowerCase() ? 'active' : '';
@@ -268,11 +279,12 @@ class NotesApp {
       })
       .join('');
 
+    this.sidebarCategoryList.innerHTML = allItem + catItems;
+
     this.sidebarCategoryList.querySelectorAll('.cat-item').forEach((item) => {
       item.addEventListener('click', () => {
         const catName = item.dataset.category;
-        // Si ya estaba activa, se desactiva hacia 'all'
-        if (this.activeCategoryFilter.toLowerCase() === catName.toLowerCase()) {
+        if (catName === 'all' || this.activeCategoryFilter.toLowerCase() === catName.toLowerCase()) {
           this.activeCategoryFilter = 'all';
         } else {
           this.activeCategoryFilter = catName;
@@ -872,18 +884,54 @@ class NotesApp {
     const filtered = this.getFilteredAndSortedNotes();
     const todayStr = new Date().toISOString().split('T')[0];
 
-    // Actualizar barra de título de filtro activo
+    // Actualizar barra de título de filtro activo y chips interactivos
     let filterName = 'Todas las notas';
-    if (this.statusFilter === 'pending') filterName = 'Notas Pendientes';
-    if (this.statusFilter === 'completed') filterName = 'Notas Completadas';
-    if (this.statusFilter === 'overdue') filterName = 'Notas Vencidas';
+    let statusLabel = '';
+    if (this.statusFilter === 'pending') { filterName = 'Notas Pendientes'; statusLabel = 'Pendientes'; }
+    if (this.statusFilter === 'completed') { filterName = 'Notas Completadas'; statusLabel = 'Completadas'; }
+    if (this.statusFilter === 'overdue') { filterName = 'Notas Vencidas'; statusLabel = 'Vencidas'; }
 
+    let chipsHtml = '';
+    if (this.statusFilter !== 'all') {
+      chipsHtml += `
+        <span class="active-chip">
+          Vista: ${statusLabel}
+          <button class="btn-remove-chip" id="clearStatusChip" title="Ver todas las notas">✕</button>
+        </span>
+      `;
+    }
     if (this.activeCategoryFilter !== 'all') {
-      filterName += ` • Categoría: ${this.activeCategoryFilter}`;
+      chipsHtml += `
+        <span class="active-chip">
+          🏷️ ${this.escapeHTML(this.activeCategoryFilter)}
+          <button class="btn-remove-chip" id="clearCatChip" title="Quitar filtro de categoría">✕</button>
+        </span>
+      `;
     }
 
-    this.currentFilterTitle.textContent = filterName;
+    this.currentFilterTitle.innerHTML = `<span>${filterName}</span> ${chipsHtml}`;
     this.currentFilterCount.textContent = `(${filtered.length} ${filtered.length === 1 ? 'nota' : 'notas'})`;
+
+    // Listeners para quitar chips de filtros
+    const clearCatBtn = document.getElementById('clearCatChip');
+    if (clearCatBtn) {
+      clearCatBtn.addEventListener('click', () => {
+        this.activeCategoryFilter = 'all';
+        this.renderSidebarCategories();
+        this.render();
+      });
+    }
+
+    const clearStatusBtn = document.getElementById('clearStatusChip');
+    if (clearStatusBtn) {
+      clearStatusBtn.addEventListener('click', () => {
+        this.statusFilter = 'all';
+        this.navItems.forEach((n) => n.classList.remove('active'));
+        const allNav = document.querySelector('.nav-item[data-status-filter="all"]');
+        if (allNav) allNav.classList.add('active');
+        this.render();
+      });
+    }
 
     if (filtered.length === 0) {
       let msg = 'No se encontraron notas con el filtro o búsqueda actual.';
@@ -925,11 +973,12 @@ class NotesApp {
           <div class="note-card ${completedClass}" data-id="${note.id}">
             <div class="note-header">
               <div class="note-title-wrap">
+                <!-- Checkbox circular estilizado tipo Apple Reminders -->
                 <button 
-                  class="status-checkbox-btn" 
+                  class="circle-check-btn" 
                   title="${note.is_completed ? 'Marcar como pendiente' : 'Marcar como completada'}"
                 >
-                  ✓
+                  <span>✓</span>
                 </button>
                 <h3 class="note-title" title="${this.escapeHTML(note.title)}">${this.escapeHTML(note.title)}</h3>
               </div>
@@ -959,7 +1008,7 @@ class NotesApp {
     // Listeners interactivos
     this.notesGrid.querySelectorAll('.note-card').forEach((card) => {
       const noteId = card.dataset.id;
-      card.querySelector('.status-checkbox-btn').addEventListener('click', (e) => {
+      card.querySelector('.circle-check-btn').addEventListener('click', (e) => {
         e.stopPropagation();
         this.toggleNoteStatus(noteId);
       });

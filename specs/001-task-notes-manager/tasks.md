@@ -22,9 +22,11 @@
 ## Phase 10: Tarjetas de Tamaño Estándar y Modal de Detalle v4.2 (Completado)
 - [x] **T24**: Fijar tamaño estándar uniforme en tarjetas (235px), truncado regular y visor modal de detalle.
 
+## Phase 11: Sincronización de Archivo Físico v5 (Completado)
+- [x] **T25 - T27**: File System Access API para guardado en disco/carpeta sincronizada.
+
 ---
 
-## Phase 11: Sincronización de Archivo Físico / Carpeta Sincronizada v5 (Completado)
-- [x] **T25**: Crear el servicio `FileSystemService` para abrir/guardar archivo físico y escribir atómicamente.
-- [x] **T26**: Añadir tarjeta de estado de sincronización en el Sidebar (Conectar Archivo / Desconectar).
-- [x] **T27**: Vincular todas las operaciones de guardado para escribir en el archivo físico automáticamente.
+## Phase 12: Deshacer Filtros & Rediseño de Completado v5.1 (Completado)
+- [x] **T28**: Añadir botón "Todas las categorías" y chip interactivo [✕] en la barra de filtros activa.
+- [x] **T29**: Rediseñar visualmente el control de completado como un anillo circular moderno con micro-animaciones (estilo Apple Reminders).

@@ -443,13 +443,46 @@ body {
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .filter-count-badge {
   font-size: 0.8rem;
   color: var(--text-muted);
   font-weight: normal;
+}
+
+.active-chip {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: var(--accent);
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.btn-remove-chip {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0 0.15rem;
+  line-height: 1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-remove-chip:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
 }
 
 /* Formulario Plegable */
@@ -595,6 +628,55 @@ textarea {
   gap: 0.65rem;
   flex: 1;
   min-width: 0;
+}
+
+/* Checkbox Circular Moderno (Estilo Apple Reminders / Things 3) */
+.circle-check-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: transparent;
+}
+
+.circle-check-btn span {
+  font-size: 0.72rem;
+  font-weight: 900;
+  line-height: 1;
+  transition: transform 0.2s, opacity 0.2s;
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.circle-check-btn:hover {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.circle-check-btn:hover span {
+  opacity: 0.8;
+  transform: scale(0.9);
+}
+
+.note-card.completed .circle-check-btn {
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.note-card.completed .circle-check-btn span {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .note-title {
