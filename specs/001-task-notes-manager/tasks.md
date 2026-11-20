@@ -17,7 +17,7 @@
 - [x] **T19**: Listado y eliminación de categorías con migración automática a General.
 
 ## Phase 8: Rediseño Full-Width, Sidebar y Ergonomía v4 (Completado)
-- [x] **T20 - T22**: Reestructurar layout a modelo Sidebar + Main Content, botón de tema aislado y responsividad.
+- [x] **T20 - T22**: Layout Full-Width con Sidebar fijo y responsividad.
 
-## Phase 9: Altura Natural e Independiente por Tarjeta v4.1 (Completado)
-- [x] **T23**: Ajustar CSS Grid con `align-items: start` y `line-clamp` para desacoplar alturas y evitar el estiramiento forzado de tarjetas.
+## Phase 10: Tarjetas de Tamaño Estándar y Modal de Detalle v4.2 (Completado)
+- [x] **T24**: Fijar tamaño estándar uniforme en tarjetas (`height: 230px`), truncado regular y visor modal de detalle (`👁️ Detalle`).

@@ -142,7 +142,18 @@ class NotesApp {
     this.themeIcon = document.getElementById('themeIcon');
     this.themeLabel = document.getElementById('themeLabel');
 
-    // Modales
+    // Modal Detalle
+    this.detailModal = document.getElementById('detailModal');
+    this.detailTitle = document.getElementById('detailTitle');
+    this.detailMetaRow = document.getElementById('detailMetaRow');
+    this.detailContent = document.getElementById('detailContent');
+    this.detailCreatedAt = document.getElementById('detailCreatedAt');
+    this.closeDetailModalBtn = document.getElementById('closeDetailModalBtn');
+    this.closeDetailBtn = document.getElementById('closeDetailBtn');
+    this.editFromDetailBtn = document.getElementById('editFromDetailBtn');
+    this.currentDetailNoteId = null;
+
+    // Modales Editar y Categoría
     this.editModal = document.getElementById('editModal');
     this.editNoteForm = document.getElementById('editNoteForm');
     this.editNoteId = document.getElementById('editNoteId');
@@ -367,6 +378,15 @@ class NotesApp {
       this.render();
     });
 
+    // Modal Detalle
+    this.closeDetailModalBtn.addEventListener('click', () => this.closeDetailModal());
+    this.closeDetailBtn.addEventListener('click', () => this.closeDetailModal());
+    this.editFromDetailBtn.addEventListener('click', () => {
+      const id = this.currentDetailNoteId;
+      this.closeDetailModal();
+      this.openEditModal(id);
+    });
+
     // Modal Editar
     this.closeEditModalBtn.addEventListener('click', () => this.closeEditModal());
     this.cancelEditBtn.addEventListener('click', () => this.closeEditModal());
@@ -414,6 +434,54 @@ class NotesApp {
     this.toggleForm(false);
     this.renderSidebarCategories();
     this.render();
+  }
+
+  openDetailModal(noteId) {
+    const note = this.notes.find((n) => n.id === noteId);
+    if (!note) return;
+
+    this.currentDetailNoteId = note.id;
+    this.detailTitle.textContent = note.title;
+    this.detailContent.textContent = note.content || 'Esta nota no tiene descripción detallada.';
+    this.detailCreatedAt.textContent = `Registrada el ${this.formatDate(note.created_at)}`;
+
+    const catColor = this.getCategoryColor(note.category);
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    let dueHtml = '';
+    if (note.due_date) {
+      let badgeClass = 'due-future';
+      let label = `📅 Fecha Límite: ${note.due_date}`;
+      if (!note.is_completed) {
+        if (note.due_date < todayStr) {
+          badgeClass = 'due-overdue';
+          label = `⚠️ Vencida (${note.due_date})`;
+        } else if (note.due_date === todayStr) {
+          badgeClass = 'due-today';
+          label = `⏰ Vence hoy`;
+        }
+      }
+      dueHtml = `<span class="due-badge ${badgeClass}">${label}</span>`;
+    }
+
+    const statusBadge = note.is_completed
+      ? '<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">✅ Completada</span>'
+      : '<span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">⏳ Pendiente</span>';
+
+    this.detailMetaRow.innerHTML = `
+      <span class="badge" style="background: ${catColor}22; color: ${catColor}; border: 1px solid ${catColor}44;">
+        🏷️ ${this.escapeHTML(note.category)}
+      </span>
+      ${statusBadge}
+      ${dueHtml}
+    `;
+
+    this.detailModal.classList.add('active');
+  }
+
+  closeDetailModal() {
+    this.detailModal.classList.remove('active');
+    this.currentDetailNoteId = null;
   }
 
   openEditModal(noteId) {
@@ -717,18 +785,17 @@ class NotesApp {
                 >
                   ✓
                 </button>
-                <h3 class="note-title" title="Haz clic para alternar estado">${this.escapeHTML(note.title)}</h3>
+                <h3 class="note-title" title="${this.escapeHTML(note.title)}">${this.escapeHTML(note.title)}</h3>
               </div>
               <div class="card-actions">
+                <button class="btn-detail" title="Ver detalle completo">👁️ Detalle</button>
                 <button class="btn-action btn-edit" title="Editar nota">✏️</button>
                 <button class="btn-action delete btn-delete" title="Eliminar nota">🗑️</button>
               </div>
             </div>
-            ${
-              note.content
-                ? `<p class="note-content">${this.escapeHTML(note.content)}</p>`
-                : ''
-            }
+            <div class="note-body" title="Haz clic para ver el detalle completo">
+              <p class="note-content">${this.escapeHTML(note.content || 'Sin descripción adicional.')}</p>
+            </div>
             <div class="note-footer">
               <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                 <span class="badge" style="background: ${catColor}22; color: ${catColor}; border: 1px solid ${catColor}44;">
@@ -750,8 +817,13 @@ class NotesApp {
         e.stopPropagation();
         this.toggleNoteStatus(noteId);
       });
-      card.querySelector('.note-title').addEventListener('click', () => {
-        this.toggleNoteStatus(noteId);
+      // Ver detalle al hacer clic en el botón o en el cuerpo de la nota
+      card.querySelector('.btn-detail').addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.openDetailModal(noteId);
+      });
+      card.querySelector('.note-body').addEventListener('click', () => {
+        this.openDetailModal(noteId);
       });
       card.querySelector('.btn-edit').addEventListener('click', (e) => {
         e.stopPropagation();

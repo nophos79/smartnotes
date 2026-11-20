@@ -169,6 +169,29 @@
     </main>
   </div>
 
+  <!-- Modal de Detalle de Nota (Lectura Completa) -->
+  <div class="modal-overlay" id="detailModal">
+    <div class="modal-box" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 id="detailTitle" style="font-size: 1.2rem; word-break: break-word;">Detalle de Nota</h3>
+        <button class="btn-action" id="closeDetailModalBtn">✕</button>
+      </div>
+      <div class="detail-meta-row" id="detailMetaRow">
+        <!-- Badges de categoría, fecha límite y estado -->
+      </div>
+      <div class="detail-content-box" id="detailContent">
+        <!-- Texto completo -->
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <span id="detailCreatedAt" style="font-size: 0.78rem; color: var(--text-muted); align-self: center;"></span>
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="button" class="btn-secondary" id="editFromDetailBtn">✏️ Editar</button>
+          <button type="button" class="btn" id="closeDetailBtn">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal para Editar Nota -->
   <div class="modal-overlay" id="editModal">
     <div class="modal-box">
