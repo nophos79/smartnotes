@@ -1,23 +1,27 @@
-# Feature Specification: Gestor de Tareas y Notas Inteligente (v4.2 - Tarjetas Uniformes & Modal Detalle)
+# Feature Specification: Gestor de Tareas y Notas Inteligente (v5 - Sincronización con OneDrive / Archivo Físico)
 
 **Feature Branch**: `001-task-notes-manager`  
 **Created**: 2026-11-20 | **Updated**: 2026-11-20  
-**Status**: In Progress (v4.2 Standard Uniform Cards & Detail Modal)  
-**Input**: Rejilla con tarjetas de tamaño estándar homogéneo (todas miden exactamente lo mismo para máxima simetría visual), texto cortado con puntos suspensivos y botón "Detalle" para consultar la nota completa en un visor dedicado.
+**Status**: In Progress (v5 Cloud Folder & File Sync)  
+**Input**: Conectar la aplicación con un archivo físico alojado en una carpeta sincronizada (ej: OneDrive, Google Drive o cualquier carpeta del disco) mediante la File System Access API nativa. De este modo, los cambios se guardan directamente en el disco duro, se comparten entre navegadores y se sincronizan automáticamente con la nube para estar disponibles desde el móvil.
 
 ---
 
-## 1. User Story 16 - Cuadrícula Homogénea Simétrica y Visor de Detalle
-Como usuario con muchas notas, quiero que todas las tarjetas tengan un tamaño estándar uniforme idéntico, formando un tablero perfectamente alineado, con el contenido recortado y un botón para abrir el detalle completo cuando quiera leerlo.
+## 1. User Story 17 - Conexión con Archivo Sincronizado en OneDrive
+Como usuario que utiliza múltiples navegadores y quiere consultar sus notas desde el móvil, quiero conectar la aplicación a un archivo `.json` guardado en mi carpeta de OneDrive, para que cada cambio se guarde en tiempo real en mi disco y se suba a la nube automáticamente sin configurar servidores.
 
 * **Acceptance Criteria**:
-  - Todas las tarjetas tienen exactamente la misma altura fija estándar (230px), manteniendo una cuadrícula regular y simétrica.
-  - El texto del cuerpo se trunca automáticamente con elipsis (`...`) si excede el espacio reservado.
-  - Cada tarjeta incluye un botón **`👁️ Detalle`** (o clic para ver detalle) que abre un modal con la nota completa, su categoría, fecha de creación y estado.
+  - En el Sidebar hay un botón **`📁 Conectar Archivo / OneDrive`**.
+  - Al pulsarlo, el usuario puede seleccionar un archivo existente o crear uno nuevo (`smartnotes.json`) en su carpeta de OneDrive.
+  - Al conectarse, la aplicación carga automáticamente las notas de ese archivo.
+  - Cada vez que se crea, edita, completa o elimina una nota, la aplicación escribe automáticamente en el archivo físico en segundo plano.
+  - Un indicador visual en el Sidebar muestra el estado: **`🟢 Sincronizado con [nombre-archivo]`**.
+  - Si no hay archivo conectado o el navegador no lo soporta, la app sigue funcionando con `localStorage` sin interrupciones.
 
 ---
 
 ## 2. Requisitos Funcionales
 
-* **FR-020**: Tamaño fijo estandarizado (`height: 230px`) en `.note-card` con distribución interna homogénea (cabecera, cuerpo y pie fijos).
-* **FR-021**: Modal de detalle (`#detailModal`) con vista de lectura completa, formateo de párrafos y acceso rápido a edición.
+* **FR-022**: Implementar `FileSystemService` utilizando `window.showOpenFilePicker` y `window.showSaveFilePicker`.
+* **FR-023**: Guardado atómico formateado (JSON legible con 2 espacios) tras cualquier mutación del estado.
+* **FR-024**: Indicador de estado y botón de desconexión / cambio de archivo en la interfaz.

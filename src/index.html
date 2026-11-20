@@ -70,6 +70,24 @@
         </div>
       </div>
 
+      <!-- Sincronización con OneDrive / Archivo Físico -->
+      <div class="sidebar-section">
+        <span class="sidebar-section-title">Almacenamiento Físico</span>
+        <div class="sync-card">
+          <div class="sync-status-row">
+            <span class="sync-indicator">
+              <span class="sync-dot" id="syncDot"></span>
+              <span id="syncStatusText">Sin vincular</span>
+            </span>
+            <button class="btn-action" id="disconnectFileBtn" style="display: none; padding: 0.1rem 0.3rem;" title="Desconectar archivo">✕</button>
+          </div>
+          <div class="sync-filename" id="syncFilenameText">Guardando en navegador</div>
+          <button id="connectFileBtn" class="sync-btn" title="Vincular archivo en OneDrive o disco local">
+            <span>📁</span> <span id="connectBtnLabel">Conectar OneDrive</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Utilidades del Sistema Separadas (Modo Claro/Oscuro y Backup) -->
       <div class="sidebar-footer">
         <button id="themeToggleBtn" class="sidebar-util-btn" title="Alternar Modo Claro / Oscuro">

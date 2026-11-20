@@ -177,6 +177,15 @@ class NotesApp {
     this.exportJsonBtn = document.getElementById('exportJsonBtn');
     this.importJsonBtn = document.getElementById('importJsonBtn');
     this.importFileInput = document.getElementById('importFileInput');
+
+    // Sincronización con Archivo Físico / OneDrive
+    this.connectFileBtn = document.getElementById('connectFileBtn');
+    this.disconnectFileBtn = document.getElementById('disconnectFileBtn');
+    this.syncDot = document.getElementById('syncDot');
+    this.syncStatusText = document.getElementById('syncStatusText');
+    this.syncFilenameText = document.getElementById('syncFilenameText');
+    this.connectBtnLabel = document.getElementById('connectBtnLabel');
+    this.fileHandle = null;
   }
 
   initTheme() {
@@ -328,6 +337,7 @@ class NotesApp {
 
       StorageService.saveCategories(this.categories);
       StorageService.saveNotes(this.notes);
+      this.saveToPhysicalFile();
 
       this.populateCategoryOptions();
       this.renderSidebarCategories();
@@ -408,6 +418,10 @@ class NotesApp {
     this.exportJsonBtn.addEventListener('click', () => this.exportBackup());
     this.importJsonBtn.addEventListener('click', () => this.importFileInput.click());
     this.importFileInput.addEventListener('change', (e) => this.importBackup(e));
+
+    // Conexión con OneDrive / Archivo Físico
+    this.connectFileBtn.addEventListener('click', () => this.handleConnectPhysicalFile());
+    this.disconnectFileBtn.addEventListener('click', () => this.disconnectPhysicalFile());
   }
 
   handleAddNote() {
@@ -430,6 +444,7 @@ class NotesApp {
 
     this.notes.unshift(newNote);
     StorageService.saveNotes(this.notes);
+    this.saveToPhysicalFile();
     this.newNoteForm.reset();
     this.toggleForm(false);
     this.renderSidebarCategories();
@@ -512,6 +527,7 @@ class NotesApp {
     note.due_date = this.editNoteDueDate.value || '';
 
     StorageService.saveNotes(this.notes);
+    this.saveToPhysicalFile();
     this.closeEditModal();
     this.renderSidebarCategories();
     this.render();
@@ -548,6 +564,7 @@ class NotesApp {
 
     this.categories.push(newCat);
     StorageService.saveCategories(this.categories);
+    this.saveToPhysicalFile();
 
     this.populateCategoryOptions();
     this.renderSidebarCategories();
@@ -561,6 +578,7 @@ class NotesApp {
     if (note) {
       note.is_completed = !note.is_completed;
       StorageService.saveNotes(this.notes);
+      this.saveToPhysicalFile();
       this.render();
     }
   }
@@ -569,8 +587,120 @@ class NotesApp {
     if (confirm('¿Deseas eliminar esta nota?')) {
       this.notes = this.notes.filter((n) => n.id !== noteId);
       StorageService.saveNotes(this.notes);
+      this.saveToPhysicalFile();
       this.renderSidebarCategories();
       this.render();
+    }
+  }
+
+  // --- Sincronización con OneDrive / Archivo Físico (File System Access API) ---
+  async handleConnectPhysicalFile() {
+    if (!('showOpenFilePicker' in window)) {
+      alert(
+        'Tu navegador actual no soporta la File System Access API nativa. Se recomienda usar Microsoft Edge o Google Chrome para vincular carpetas de OneDrive directamente.'
+      );
+      return;
+    }
+
+    try {
+      const mode = confirm(
+        '¿Deseas abrir un archivo smartnotes.json ya existente en tu OneDrive?\n\n• [Aceptar] = Abrir archivo existente.\n• [Cancelar] = Crear un archivo nuevo en la carpeta que elijas.'
+      );
+
+      let handle;
+      if (mode) {
+        // Abrir existente
+        [handle] = await window.showOpenFilePicker({
+          types: [
+            {
+              description: 'Archivo de notas JSON',
+              accept: { 'application/json': ['.json'] }
+            }
+          ],
+          multiple: false
+        });
+      } else {
+        // Crear o guardar nuevo
+        handle = await window.showSaveFilePicker({
+          suggestedName: 'smartnotes.json',
+          types: [
+            {
+              description: 'Archivo de notas JSON',
+              accept: { 'application/json': ['.json'] }
+            }
+          ]
+        });
+      }
+
+      if (!handle) return;
+      this.fileHandle = handle;
+
+      // Leer contenido inicial del archivo
+      const file = await this.fileHandle.getFile();
+      const text = await file.text();
+
+      if (text.trim()) {
+        try {
+          const data = JSON.parse(text);
+          if (Array.isArray(data.notes)) {
+            this.notes = data.notes;
+            StorageService.saveNotes(this.notes);
+            if (Array.isArray(data.categories)) {
+              this.categories = data.categories;
+              StorageService.saveCategories(this.categories);
+              this.populateCategoryOptions();
+              this.renderSidebarCategories();
+            }
+          }
+        } catch {
+          console.warn('El archivo estaba vacío o no formateado. Se guardarán los datos actuales.');
+        }
+      }
+
+      // Escribir los datos actuales para asegurar sincronización
+      await this.saveToPhysicalFile();
+
+      // Actualizar estado en interfaz
+      this.syncDot.classList.add('connected');
+      this.syncStatusText.textContent = 'OneDrive Activo';
+      this.syncFilenameText.textContent = this.fileHandle.name;
+      this.connectBtnLabel.textContent = 'Cambiar Archivo';
+      this.disconnectFileBtn.style.display = 'block';
+
+      this.render();
+      alert(`¡Conectado con éxito a "${this.fileHandle.name}"!\nCada cambio se guardará automáticamente en este archivo de OneDrive.`);
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.error('Error conectando con archivo físico:', err);
+        alert('No se pudo vincular el archivo: ' + err.message);
+      }
+    }
+  }
+
+  disconnectPhysicalFile() {
+    this.fileHandle = null;
+    this.syncDot.classList.remove('connected');
+    this.syncStatusText.textContent = 'Sin vincular';
+    this.syncFilenameText.textContent = 'Guardando en navegador';
+    this.connectBtnLabel.textContent = 'Conectar OneDrive';
+    this.disconnectFileBtn.style.display = 'none';
+  }
+
+  async saveToPhysicalFile() {
+    if (!this.fileHandle) return;
+
+    try {
+      const writable = await this.fileHandle.createWritable();
+      const payload = {
+        version: 1,
+        last_synced: new Date().toISOString(),
+        notes: this.notes,
+        categories: this.categories
+      };
+      await writable.write(JSON.stringify(payload, null, 2));
+      await writable.close();
+    } catch (err) {
+      console.warn('Error al escribir en archivo físico sincronizado:', err);
     }
   }
 
