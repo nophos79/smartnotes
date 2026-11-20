@@ -5,20 +5,19 @@
 ---
 
 ## Phase 1 - 4: Core MVP (Completado)
-- [x] **T01 - T08**: Arquitectura base, almacenamiento, formularios, UI y verificaciones.
+- [x] **T01 - T08**: Arquitectura base, almacenamiento, formularios y reactividad.
 
 ## Phase 5: Expansión de Funcionalidades v2 (Completado)
-- [x] **T10 - T15**: Due dates, modal edición, ordenación, categorías personalizadas, temas y backups.
+- [x] **T10 - T15**: Due dates, modal edición, ordenación, temas y backup.
 
 ## Phase 6: Refinamientos de UX v3 (Completado)
-- [x] **T16 - T18**: Formulario colapsable, métricas clicables y botón táctil de completado.
+- [x] **T16 - T18**: Formulario plegable, métricas clicables y botón táctil de completado.
 
-## Phase 7: Gestión y Eliminación de Categorías (v3.1)
+## Phase 7: Gestión y Eliminación de Categorías v3.1 (Completado)
 - [x] **T19**: Listado y eliminación de categorías con migración automática a General.
 
----
+## Phase 8: Rediseño Full-Width, Sidebar y Ergonomía v4 (Completado)
+- [x] **T20 - T22**: Reestructurar layout a modelo Sidebar + Main Content, botón de tema aislado y responsividad.
 
-## Phase 8: Rediseño Full-Width, Sidebar y Ergonomía (v4)
-- [x] **T20**: Reestructurar layout HTML/CSS a modelo Sidebar + Main Content que aprovecha el 100% de la pantalla.
-- [x] **T21**: Mover y aislar el control de Modo Claro/Oscuro y copias de seguridad al footer del Sidebar como utilidades de sistema.
-- [x] **T22**: Añadir soporte 100% responsivo para móviles y tablets con apertura/cierre de sidebar mediante botón menú.
+## Phase 9: Altura Natural e Independiente por Tarjeta v4.1 (Completado)
+- [x] **T23**: Ajustar CSS Grid con `align-items: start` y `line-clamp` para desacoplar alturas y evitar el estiramiento forzado de tarjetas.
