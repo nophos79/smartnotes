@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SpecKit - Gestor de Tareas y Notas</title>
+  <title>SmartNotes - Spec-Driven Development</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,6 +16,15 @@
           <h1>SmartNotes</h1>
           <div class="subtitle">Metodología Spec-Driven Development (SDD)</div>
         </div>
+      </div>
+
+      <!-- Acciones de Cabecera (Tema, Categorías, Backup) -->
+      <div class="header-actions">
+        <button id="themeToggleBtn" class="btn-icon" title="Cambiar Tema">🌙 Modo Oscuro</button>
+        <button id="openCategoryModalBtn" class="btn-icon" title="Nueva Categoría">🏷️ + Categoría</button>
+        <button id="exportJsonBtn" class="btn-icon" title="Exportar Backup">💾 Exportar</button>
+        <button id="importJsonBtn" class="btn-icon" title="Importar Backup">📥 Importar</button>
+        <input type="file" id="importFileInput" accept=".json" style="display: none;">
       </div>
     </header>
 
@@ -33,6 +42,10 @@
         <span class="stat-label">Completadas</span>
         <span class="stat-value" id="completedNotes">0</span>
       </div>
+      <div class="stat-card">
+        <span class="stat-label">Vencidas</span>
+        <span class="stat-value" id="overdueNotes" style="color: #f87171;">0</span>
+      </div>
     </section>
 
     <!-- Formulario para Añadir Nota -->
@@ -49,15 +62,17 @@
             autocomplete="off"
           />
           <select id="noteCategory">
-            <option value="Trabajo">💼 Trabajo</option>
-            <option value="Urgente">🚨 Urgente</option>
-            <option value="Personal">🌱 Personal</option>
-            <option value="General">📌 General</option>
+            <!-- Se puebla dinámicamente -->
           </select>
+          <input 
+            type="date" 
+            id="noteDueDate" 
+            title="Fecha límite (opcional)"
+          />
         </div>
         <textarea 
           id="noteContent" 
-          placeholder="Detalles adicionales, enlaces o descripción..."
+          placeholder="Detalles adicionales, enlaces o notas..."
         ></textarea>
         <div>
           <button type="submit" class="btn">Guardar Nota</button>
@@ -65,30 +80,97 @@
       </form>
     </section>
 
-    <!-- Barra de Filtros y Búsqueda -->
+    <!-- Barra de Filtros, Búsqueda y Ordenación -->
     <section class="controls-bar">
       <div class="search-box">
         <span class="search-icon">🔍</span>
         <input 
           type="text" 
           id="searchInput" 
-          placeholder="Buscar notas por título o contenido..." 
+          placeholder="Buscar notas por título o texto..." 
           autocomplete="off"
         />
       </div>
-      <div class="filter-pills">
-        <button class="pill active" data-filter="all">Todas</button>
-        <button class="pill" data-filter="urgente">🚨 Urgente</button>
-        <button class="pill" data-filter="trabajo">💼 Trabajo</button>
-        <button class="pill" data-filter="personal">🌱 Personal</button>
-        <button class="pill" data-filter="general">📌 General</button>
+
+      <div class="sort-box">
+        <label for="sortSelect">Ordenar por:</label>
+        <select id="sortSelect">
+          <option value="newest">Más recientes</option>
+          <option value="oldest">Más antiguas</option>
+          <option value="az">Alfabético (A-Z)</option>
+          <option value="due_date">Fecha Límite</option>
+          <option value="urgency">Urgencia</option>
+        </select>
+      </div>
+
+      <div class="filter-pills" id="categoryPills">
+        <!-- Pestañas de categorías dinámicas -->
       </div>
     </section>
 
     <!-- Grid de Tarjetas de Notas -->
     <main class="notes-grid" id="notesGrid">
-      <!-- Se puebla dinámicamente desde app.js -->
+      <!-- Se puebla dinámicamente -->
     </main>
+  </div>
+
+  <!-- Modal para Editar Nota -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>✏️ Editar Nota</h3>
+        <button class="btn-action" id="closeEditModalBtn">✕</button>
+      </div>
+      <form id="editNoteForm">
+        <input type="hidden" id="editNoteId">
+        <div>
+          <label>Título:</label>
+          <input type="text" id="editNoteTitle" style="width: 100%;" required>
+        </div>
+        <div class="input-row">
+          <div style="flex: 1;">
+            <label>Categoría:</label>
+            <select id="editNoteCategory" style="width: 100%;"></select>
+          </div>
+          <div style="flex: 1;">
+            <label>Fecha Límite:</label>
+            <input type="date" id="editNoteDueDate" style="width: 100%;">
+          </div>
+        </div>
+        <div>
+          <label>Contenido:</label>
+          <textarea id="editNoteContent" style="width: 100%;"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelEditBtn">Cancelar</button>
+          <button type="submit" class="btn">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal para Añadir Categoría Personalizada -->
+  <div class="modal-overlay" id="categoryModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>🏷️ Crear Nueva Categoría</h3>
+        <button class="btn-action" id="closeCategoryModalBtn">✕</button>
+      </div>
+      <form id="newCategoryForm">
+        <div>
+          <label>Nombre de la Categoría:</label>
+          <input type="text" id="newCategoryName" placeholder="Ej: Universidad, Gimnasio..." required style="width: 100%;">
+        </div>
+        <div>
+          <label>Color distintivo:</label>
+          <input type="color" id="newCategoryColor" value="#38bdf8" style="height: 40px; width: 100%; cursor: pointer;">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" id="cancelCategoryBtn">Cancelar</button>
+          <button type="submit" class="btn">Crear Categoría</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script src="app.js"></script>

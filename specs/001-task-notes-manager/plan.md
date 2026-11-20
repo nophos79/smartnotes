@@ -1,42 +1,27 @@
-# Implementation Plan: Gestor de Tareas y Notas Inteligente
+# Implementation Plan: Gestor de Tareas y Notas Inteligente (v2 - Expansión)
 
 **Branch**: `001-task-notes-manager` | **Date**: 2026-11-20 | **Spec**: [spec.md](file:///D:/CBD/IA-LAB/SpecKit/specs/001-task-notes-manager/spec.md)
 
 ---
 
-## 1. Summary
-Construir una aplicación interactiva, moderna y ligera para la gestión de notas y tareas. Proporciona una interfaz limpia con categorización por insignias de colores (Urgente, Trabajo, Personal), filtrado reactivo en tiempo real y persistencia local para funcionar sin dependencias complejas.
+## 1. Summary (v2)
+Integración de las 6 funcionalidades solicitadas:
+1. Modal de edición para notas existentes.
+2. Selector de fecha límite (`due_date`) con lógica de advertencia de vencimiento.
+3. Barra de control con selector de ordenación (`SortEngine`).
+4. Sistema dinámico de categorías (`CategoryManager`) con selector de color.
+5. `ThemeService` con soporte completo para Tema Claro / Tema Oscuro mediante variables CSS.
+6. `BackupService` para exportación directa a archivo `.json` e importación mediante `FileReader`.
 
 ---
 
-## 2. Technical Context
-
-* **Architecture**: Frontend Web interactivo moderno (Single Page Application autónoma con HTML5, TailwindCSS / CSS moderno y JavaScript modular) + opción de Backend API ligero en Python (FastAPI/SQLite) si se desea sincronización servidor.
-* **Storage**: Almacenamiento local persistente (`localStorage` en navegador / `SQLite` en local).
-* **Target Platform**: Cualquier navegador moderno en Windows, macOS o Linux, ejecutable con 1 clic sin configuraciones pesadas.
-* **Performance**: Tiempo de respuesta < 20ms para filtrado y ordenación; carga instantánea.
-
----
-
-## 3. Architecture & Data Flow
+## 2. Updated Architecture & Flow
 
 ```mermaid
 flowchart TD
-    User([Usuario]) -->|Crea / Filtra / Busca| UI[Interfaz de Usuario Web]
-    UI -->|Acción Reactiva| StateManager[Gestor de Estado de Notas]
-    StateManager -->|Valida y Filtra| FilterEngine[Motor de Búsqueda y Filtros]
-    FilterEngine -->|Renderiza| NoteList[Listado de Tarjetas de Notas]
-    StateManager -->|Persiste Automáticamente| LocalStorage[(Persistencia Local)]
-```
-
----
-
-## 4. Component Structure
-
-```text
-src/
-├── index.html        # Estructura principal y controles visuales
-├── app.js            # Lógica de estado, filtros, ordenación y persistencia
-├── styles.css        # Diseño visual pulido (modo oscuro/claro, badges de color)
-└── storage.js       # Capa de almacenamiento y serialización
+    UI[Interfaz Web con Theme Claro/Oscuro] --> Modal[Modal de Edición / Categorías]
+    UI --> SortEngine[Motor de Ordenación y Filtros]
+    UI --> BackupService[Servicio de Importación/Exportación JSON]
+    SortEngine --> Store[Notes & Category Store]
+    Store <--> LocalStorage[("Persistencia Local (Notas + Categorías + Tema)")]
 ```

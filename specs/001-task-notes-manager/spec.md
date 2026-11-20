@@ -1,69 +1,62 @@
-# Feature Specification: Gestor de Tareas y Notas Inteligente
+# Feature Specification: Gestor de Tareas y Notas Inteligente (v2 - Expansión)
 
 **Feature Branch**: `001-task-notes-manager`  
-**Created**: 2026-11-20  
-**Status**: Draft  
-**Input**: Opción A: Gestor de Tareas y Notas con categorías (Urgente, Trabajo, Personal), filtros y búsqueda en tiempo real.
+**Created**: 2026-11-20 | **Updated**: 2026-11-20  
+**Status**: In Progress (v2 Expansion)  
+**Input**: Ampliación de capacidades clave solicitadas por el usuario:
+1. Edición de notas existentes.
+2. Fechas límite (Due Dates) con avisos de vencimiento.
+3. Ordenación dinámica (por fecha, alfabético, urgencia, fecha límite).
+4. Categorías personalizadas con selector de color.
+5. Modo Claro / Modo Oscuro con persistencia.
+6. Exportación e Importación de copias de seguridad en JSON.
 
 ---
 
-## 1. User Scenarios & Testing *(Prioritized User Journeys)*
+## 1. User Scenarios & Testing *(Nuevas Historias de Usuario)*
 
-### User Story 1 - Creación y visualización rápida de notas (Priority: P1)
-Como usuario, quiero crear notas con un título, contenido y una categoría para tener organizados mis pendientes diarios de forma inmediata.
+### User Story 4 - Edición de notas existentes (Priority: P1)
+Como usuario, quiero hacer clic en un botón de editar en una nota para corregir su título, descripción, categoría o fecha límite sin perder su estado.
+* **Acceptance Criteria**:
+  - Al pulsar "Editar", se abre un formulario pre-rellenado con los datos actuales.
+  - Al guardar los cambios, la tarjeta se actualiza en el listado y en el almacenamiento local.
 
-* **Why this priority**: Es la funcionalidad nuclear del producto (MVP). Sin poder crear ni ver notas, el resto del sistema no tiene sentido.
-* **Independent Test**: Se puede probar creando una nota con título "Reunión de equipo", categoría "Trabajo" y verificando que aparece en el listado principal inmediatamente.
-* **Acceptance Scenarios**:
-  1. **Given** que el usuario está en la vista principal, **When** escribe título, contenido y selecciona categoría "Trabajo" y pulsa "Guardar", **Then** la nota aparece en el listado y los campos de entrada se limpian.
-  2. **Given** que el usuario intenta guardar una nota con el título vacío, **When** pulsa "Guardar", **Then** el sistema muestra una advertencia visual y no crea la nota.
+### User Story 5 - Fechas límite y detección de tareas vencidas (Priority: P1)
+Como usuario, quiero asignar una fecha límite opcional a una tarea para saber cuándo vence y ver una alerta visual si está próxima a vencer o atrasada.
+* **Acceptance Criteria**:
+  - Cada nota puede tener un campo opcional `due_date`.
+  - Si la fecha límite ya pasó y la tarea no está completada, se muestra una insignia roja de "Vencida".
 
----
+### User Story 6 - Ordenación flexible (Priority: P2)
+Como usuario, quiero ordenar mis notas por diferentes criterios (Más recientes, Más antiguas, Alfabético A-Z, Urgencia o Fecha Límite).
+* **Acceptance Criteria**:
+  - Un desplegable de ordenación permite cambiar el orden de las notas al instante en pantalla.
 
-### User Story 2 - Filtrado por Categorías y Búsqueda en tiempo real (Priority: P2)
-Como usuario, quiero filtrar las notas por categoría (Urgente, Trabajo, Personal) y buscar por texto para encontrar rápidamente una nota específica.
+### User Story 7 - Categorías personalizadas (Priority: P2)
+Como usuario, quiero añadir nuevas categorías con nombre y color personalizado para adaptarlo a mis proyectos propios.
+* **Acceptance Criteria**:
+  - Botón "Gestionar Categorías" que permite añadir una nueva categoría con selector de color.
+  - La nueva categoría aparece inmediatamente en el formulario y en la barra de filtros.
 
-* **Why this priority**: Permite que la aplicación sea realmente útil cuando el volumen de notas crece.
-* **Independent Test**: Con 5 notas creadas de diferentes categorías, hacer clic en "Urgente" y comprobar que solo se muestran las notas marcadas como urgentes.
-* **Acceptance Scenarios**:
-  1. **Given** un listado con notas variadas, **When** el usuario hace clic en el filtro "Urgente", **Then** solo se muestran las notas con dicha categoría.
-  2. **Given** un listado de notas, **When** el usuario teclea "presupuesto" en la barra de búsqueda, **Then** el listado se filtra reactivamente mostrando solo notas que contengan esa palabra en el título o contenido.
+### User Story 8 - Tema Claro y Oscuro (Priority: P3)
+Como usuario, quiero alternar entre tema oscuro y claro mediante un botón en la cabecera.
+* **Acceptance Criteria**:
+  - Botón de alternancia de tema (☀️ / 🌙) en la esquina superior derecha.
+  - El tema preferido se guarda en `localStorage` y se recuerda en futuras sesiones.
 
----
-
-### User Story 3 - Completar y eliminar tareas (Priority: P3)
-Como usuario, quiero marcar una tarea como completada o eliminarla cuando ya no sea relevante.
-
-* **Why this priority**: Cierra el ciclo de vida de una tarea/nota.
-* **Independent Test**: Marcar el checkbox de una tarea y verificar que cambia visualmente (tachada/atenuada) y el contador de pendientes se actualiza.
-* **Acceptance Scenarios**:
-  1. **Given** una tarea pendiente, **When** el usuario marca el checkbox, **Then** la tarea se tacha visualmente y su estado cambia a "Completada".
-  2. **Given** cualquier nota, **When** el usuario pulsa el botón de eliminar, **Then** la nota desaparece del listado tras una confirmación visual.
-
----
-
-## 2. Requirements
-
-### Functional Requirements
-* **FR-001**: El sistema DEBE permitir crear notas con `título` (obligatorio), `contenido` (opcional), `categoría` (Trabajo, Personal, Urgente, General) y `estado` (Pendiente, Completada).
-* **FR-002**: El sistema DEBE persistir las notas en almacenamiento local (o base de datos ligera SQLite/JSON) para no perder datos al reiniciar.
-* **FR-003**: El sistema DEBE ofrecer una barra de búsqueda reactiva instantánea por texto.
-* **FR-004**: El sistema DEBE permitir filtrar por botones de categoría (Todas, Urgente, Trabajo, Personal).
-* **FR-005**: El sistema DEBE calcular automáticamente métricas en tiempo real: total de notas, pendientes y completadas.
-
-### Key Entities
-* **Nota/Tarea**:
-  * `id`: Identificador único (UUID o autoincremental).
-  * `title`: Texto corto representativo.
-  * `content`: Texto descriptivo detallado.
-  * `category`: Categoría asignada (`Urgente`, `Trabajo`, `Personal`, `General`).
-  * `is_completed`: Booleano (true/false).
-  * `created_at`: Fecha y hora de creación.
+### User Story 9 - Exportación e Importación de Copias de Seguridad (Priority: P3)
+Como usuario, quiero exportar todas mis notas a un archivo `.json` y poder importar un archivo de respaldo cuando lo necesite.
+* **Acceptance Criteria**:
+  - Botón "Exportar JSON" que descarga automáticamente un archivo con la fecha del día.
+  - Botón "Importar JSON" con selector de archivo que valida y restaura las notas.
 
 ---
 
-## 3. Success Criteria
+## 2. Nuevos Requisitos Funcionales
 
-* **SC-001**: El usuario puede crear una nota en menos de 5 segundos.
-* **SC-002**: El filtrado por texto o categoría responde de forma inmediata (< 50ms).
-* **SC-003**: Ningún dato se pierde al recargar o reiniciar la aplicación.
+* **FR-006**: Sistema de edición en modal con soporte para actualizar todos los campos de una nota.
+* **FR-007**: Asignación de fecha límite `due_date` y cálculo de estados: `En plazo`, `Vence hoy`, `Vencida`.
+* **FR-008**: Motor de ordenación multi-criterio.
+* **FR-009**: Almacén y gestor de categorías dinámicas en persistencia local.
+* **FR-010**: Selector de tema Claro / Oscuro con variables CSS adaptativas.
+* **FR-011**: Mecanismo de exportación e importación en formato JSON con validación de esquema.

@@ -4,19 +4,22 @@
 
 ---
 
-## Phase 1: Setup & Data Layer (Fundamentos)
-- [x] **T01**: Crear la estructura de archivos base (`src/index.html`, `src/styles.css`, `src/app.js`).
-- [x] **T02**: Implementar el módulo de almacenamiento persistente (`storage.js`) con soporte de carga/guardado de notas y datos iniciales de ejemplo.
+## Phase 1 - 4: Core MVP (Completado)
+- [x] **T01**: Crear estructura de archivos base.
+- [x] **T02**: Persistencia en almacenamiento local.
+- [x] **T03**: Formulario de entrada con validación.
+- [x] **T04**: Renderizado dinámico de tarjetas y badges.
+- [x] **T05**: Botones de filtro por categoría.
+- [x] **T06**: Motor de búsqueda reactiva por texto.
+- [x] **T07**: Acciones de completar y eliminar tarea.
+- [x] **T08**: Verificación inicial y lanzamiento.
 
-## Phase 2: Core User Journey - Creación y Listado (P1)
-- [x] **T03**: Diseñar el formulario de entrada con validación (Título obligatorio, selector de categoría, contenido).
-- [x] **T04**: Implementar el renderizado dinámico de tarjetas de notas con sus etiquetas de colores y fecha.
+---
 
-## Phase 3: Búsqueda y Filtros en Tiempo Real (P2)
-- [x] **T05**: Implementar los botones de filtro por categoría (Todas, Urgente, Trabajo, Personal) con contadores visuales.
-- [x] **T06**: Añadir la barra de búsqueda reactiva con filtrado instantáneo por texto.
-
-## Phase 4: Interacciones y Cierre de Ciclo (P3)
-- [x] **T07**: Añadir funcionalidad para marcar tareas como completadas (tachado y actualización de contadores).
-- [x] **T08**: Añadir botón de eliminación con confirmación visual.
-- [x] **T09**: Verificación final de criterios de aceptación y pulido estético.
+## Phase 5: Expansión de Funcionalidades (v2)
+- [x] **T10**: Implementar el soporte para Modo Claro / Modo Oscuro con botón toggle y persistencia.
+- [x] **T11**: Añadir selector de fecha límite (`due_date`) y cálculo visual de vencimiento (Vencida / En plazo).
+- [x] **T12**: Crear modal interactivo para editar notas existentes (título, contenido, categoría, fecha).
+- [x] **T13**: Añadir desplegable de ordenación (Más recientes, Más antiguas, A-Z, Urgencia, Fecha límite).
+- [x] **T14**: Implementar gestión de categorías personalizadas (añadir nueva categoría con color personalizado).
+- [x] **T15**: Implementar exportación a archivo JSON y carga/restauración de copias de seguridad.
