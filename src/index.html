@@ -7,116 +7,165 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="container">
-    <!-- Header -->
-    <header>
-      <div class="brand">
-        <div class="logo-icon">✓</div>
-        <div>
-          <h1>SmartNotes</h1>
-          <div class="subtitle">Metodología Spec-Driven Development (SDD)</div>
+  <div class="app-layout">
+    <!-- PANEL LATERAL (SIDEBAR) -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="logo-icon">✓</div>
+          <div class="brand-text">
+            <h1>SmartNotes</h1>
+            <span class="version-tag">SDD Full-Width</span>
+          </div>
+        </div>
+        <button class="mobile-close-btn" id="mobileCloseSidebarBtn">✕</button>
+      </div>
+
+      <!-- Acción Principal: Nueva Nota -->
+      <div class="sidebar-action">
+        <button id="toggleFormBtn" class="btn-new-note">
+          <span>➕</span> Nueva Nota
+        </button>
+      </div>
+
+      <!-- Vistas por Estado / Métricas -->
+      <div class="sidebar-section">
+        <span class="sidebar-section-title">Vistas de Tareas</span>
+        <div class="nav-list">
+          <button class="nav-item active" data-status-filter="all">
+            <span class="nav-label-wrap">
+              <span>📋</span> Todas
+            </span>
+            <span class="nav-badge" id="totalNotes">0</span>
+          </button>
+          <button class="nav-item" data-status-filter="pending">
+            <span class="nav-label-wrap">
+              <span>⏳</span> Pendientes
+            </span>
+            <span class="nav-badge" id="pendingNotes">0</span>
+          </button>
+          <button class="nav-item" data-status-filter="completed">
+            <span class="nav-label-wrap">
+              <span>✅</span> Completadas
+            </span>
+            <span class="nav-badge" id="completedNotes">0</span>
+          </button>
+          <button class="nav-item" data-status-filter="overdue">
+            <span class="nav-label-wrap">
+              <span>⚠️</span> Vencidas
+            </span>
+            <span class="nav-badge alert" id="overdueNotes">0</span>
+          </button>
         </div>
       </div>
 
-      <!-- Acciones de Cabecera (Botón Nueva Nota, Tema, Categorías, Backup) -->
-      <div class="header-actions">
-        <button id="toggleFormBtn" class="btn-primary-action">➕ Nueva Nota</button>
-        <button id="themeToggleBtn" class="btn-icon" title="Cambiar Tema">🌙 Modo Oscuro</button>
-        <button id="openCategoryModalBtn" class="btn-icon" title="Nueva Categoría">🏷️ + Categoría</button>
-        <button id="exportJsonBtn" class="btn-icon" title="Exportar Backup">💾 Exportar</button>
-        <button id="importJsonBtn" class="btn-icon" title="Importar Backup">📥 Importar</button>
-        <input type="file" id="importFileInput" accept=".json" style="display: none;">
-      </div>
-    </header>
-
-    <!-- Estadísticas Clicables (Filtros por Estado) -->
-    <section class="stats-grid">
-      <div class="stat-card active" data-status-filter="all" title="Ver todas las notas">
-        <span class="stat-label">Total Notas <span class="stat-hint">(Ver todas)</span></span>
-        <span class="stat-value" id="totalNotes">0</span>
-      </div>
-      <div class="stat-card" data-status-filter="pending" title="Filtrar por notas pendientes">
-        <span class="stat-label">Pendientes <span class="stat-hint">(Filtrar)</span></span>
-        <span class="stat-value" id="pendingNotes">0</span>
-      </div>
-      <div class="stat-card" data-status-filter="completed" title="Filtrar por notas completadas">
-        <span class="stat-label">Completadas <span class="stat-hint">(Filtrar)</span></span>
-        <span class="stat-value" id="completedNotes">0</span>
-      </div>
-      <div class="stat-card" data-status-filter="overdue" title="Filtrar por notas vencidas">
-        <span class="stat-label">Vencidas <span class="stat-hint">(Filtrar)</span></span>
-        <span class="stat-value" id="overdueNotes" style="color: #f87171;">0</span>
-      </div>
-    </section>
-
-    <!-- Formulario Plegable para Añadir Nota -->
-    <section class="collapsible-section" id="newNoteSection">
-      <div class="card">
-        <div class="form-header-bar">
-          <h2 class="form-title">➕ Crear Nueva Nota o Tarea</h2>
-          <button type="button" class="btn-action" id="closeFormBtn" title="Ocultar formulario">✕ Ocultar</button>
+      <!-- Categorías de Notas -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header">
+          <span class="sidebar-section-title">Categorías</span>
+          <button id="openCategoryModalBtn" class="btn-add-cat" title="Gestionar categorías">⚙️ Ajustes</button>
         </div>
-        <form id="newNoteForm">
-          <div class="input-row">
+        <div class="category-nav-list" id="sidebarCategoryList">
+          <!-- Se puebla dinámicamente -->
+        </div>
+      </div>
+
+      <!-- Utilidades del Sistema Separadas (Modo Claro/Oscuro y Backup) -->
+      <div class="sidebar-footer">
+        <button id="themeToggleBtn" class="sidebar-util-btn" title="Alternar Modo Claro / Oscuro">
+          <span id="themeIcon">🌙</span> <span id="themeLabel">Modo Oscuro</span>
+        </button>
+        <div class="backup-actions-row">
+          <button id="exportJsonBtn" class="sidebar-mini-btn" title="Descargar Copia de Seguridad">💾 Exportar</button>
+          <button id="importJsonBtn" class="sidebar-mini-btn" title="Restaurar Copia de Seguridad">📥 Importar</button>
+          <input type="file" id="importFileInput" accept=".json" style="display: none;">
+        </div>
+      </div>
+    </aside>
+
+    <!-- Backdrop móvil -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- ÁREA PRINCIPAL FULL-WIDTH -->
+    <main class="main-content">
+      <!-- Barra Superior (Búsqueda + Ordenación + Menú móvil) -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn" title="Abrir barra lateral">☰</button>
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
             <input 
               type="text" 
-              id="noteTitle" 
-              class="flex-1" 
-              placeholder="¿Qué necesitas hacer o recordar? (Obligatorio)" 
-              required 
+              id="searchInput" 
+              placeholder="Buscar notas por título, contenido o detalles..." 
               autocomplete="off"
             />
-            <select id="noteCategory">
-              <!-- Se puebla dinámicamente -->
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <div class="sort-box">
+            <label for="sortSelect">Ordenar por:</label>
+            <select id="sortSelect">
+              <option value="newest">Más recientes</option>
+              <option value="oldest">Más antiguas</option>
+              <option value="az">Alfabético (A-Z)</option>
+              <option value="due_date">Fecha Límite</option>
+              <option value="urgency">Urgencia</option>
             </select>
-            <input 
-              type="date" 
-              id="noteDueDate" 
-              title="Fecha límite (opcional)"
-            />
           </div>
-          <textarea 
-            id="noteContent" 
-            placeholder="Detalles adicionales, enlaces o descripción..."
-          ></textarea>
-          <div>
-            <button type="submit" class="btn">Guardar Nota</button>
+        </div>
+      </header>
+
+      <!-- Formulario Plegable para Añadir Nota -->
+      <section class="collapsible-section" id="newNoteSection">
+        <div class="card">
+          <div class="form-header-bar">
+            <h2 class="form-title">➕ Crear Nueva Nota o Tarea</h2>
+            <button type="button" class="btn-action" id="closeFormBtn" title="Ocultar formulario">✕ Ocultar</button>
           </div>
-        </form>
-      </div>
-    </section>
+          <form id="newNoteForm">
+            <div class="input-row">
+              <input 
+                type="text" 
+                id="noteTitle" 
+                class="flex-1" 
+                placeholder="¿Qué necesitas hacer o recordar? (Obligatorio)" 
+                required 
+                autocomplete="off"
+              />
+              <select id="noteCategory">
+                <!-- Se puebla dinámicamente -->
+              </select>
+              <input 
+                type="date" 
+                id="noteDueDate" 
+                title="Fecha límite (opcional)"
+              />
+            </div>
+            <textarea 
+              id="noteContent" 
+              placeholder="Detalles adicionales, enlaces o descripción..."
+            ></textarea>
+            <div>
+              <button type="submit" class="btn">Guardar Nota</button>
+            </div>
+          </form>
+        </div>
+      </section>
 
-    <!-- Barra de Filtros, Búsqueda y Ordenación -->
-    <section class="controls-bar">
-      <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input 
-          type="text" 
-          id="searchInput" 
-          placeholder="Buscar notas por título o texto..." 
-          autocomplete="off"
-        />
+      <!-- Barra de Filtro Activo y Conteo -->
+      <div class="filter-status-bar">
+        <div class="current-filter-pill">
+          <span id="currentFilterTitle">Todas las notas</span>
+          <span class="filter-count-badge" id="currentFilterCount">(3 notas)</span>
+        </div>
       </div>
 
-      <div class="sort-box">
-        <label for="sortSelect">Ordenar por:</label>
-        <select id="sortSelect">
-          <option value="newest">Más recientes</option>
-          <option value="oldest">Más antiguas</option>
-          <option value="az">Alfabético (A-Z)</option>
-          <option value="due_date">Fecha Límite</option>
-          <option value="urgency">Urgencia</option>
-        </select>
+      <!-- Rejilla Fluida que aprovecha toda la pantalla -->
+      <div class="full-width-grid" id="notesGrid">
+        <!-- Se puebla dinámicamente con app.js -->
       </div>
-
-      <div class="filter-pills" id="categoryPills">
-        <!-- Pestañas de categorías dinámicas -->
-      </div>
-    </section>
-
-    <!-- Grid de Tarjetas de Notas -->
-    <main class="notes-grid" id="notesGrid">
-      <!-- Se puebla dinámicamente -->
     </main>
   </div>
 
@@ -169,7 +218,7 @@
           Categorías existentes:
         </label>
         <div class="category-list-container" id="categoryListContainer">
-          <!-- Se puebla dinámicamente con botones de eliminar -->
+          <!-- Se puebla dinámicamente -->
         </div>
       </div>
 

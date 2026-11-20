@@ -1,10 +1,7 @@
 /**
- * SmartNotes - Spec-Driven Development (v3)
- * Soporta:
- * - Formulario colapsable bajo demanda
- * - Métricas superiores clicables que filtran la lista
- * - Marcado de tareas evidente mediante botón check y clic en título
- * - Edición, fechas límite, ordenación, categorías personalizadas, temas y backups
+ * SmartNotes - Spec-Driven Development (v4)
+ * Layout Full-Width con Sidebar, tema separado, gestión de categorías,
+ * filtros reactivos y diseño 100% responsivo.
  */
 
 const STORAGE_KEY_NOTES = 'speckit_notes_data_v1';
@@ -33,7 +30,7 @@ const INITIAL_SEED_NOTES = [
     title: 'Revisar entrega de arquitectura',
     content: 'Validar criterios de aceptación SC-001 a SC-003 antes de pasar a producción.',
     category: 'Urgente',
-    due_date: new Date(Date.now() - 86400000).toISOString().split('T')[0], // Ayer (vencida)
+    due_date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
     is_completed: false,
     created_at: new Date(Date.now() - 3600000 * 2).toISOString()
   },
@@ -97,20 +94,29 @@ class NotesApp {
   constructor() {
     this.notes = StorageService.loadNotes();
     this.categories = StorageService.loadCategories();
-    this.activeFilter = 'all'; // filtro de categoría
-    this.statusFilter = 'all'; // filtro de estado: all, pending, completed, overdue
+    this.activeCategoryFilter = 'all'; // all o nombre de la categoría
+    this.statusFilter = 'all'; // all, pending, completed, overdue
     this.searchQuery = '';
     this.currentSort = 'newest';
 
     this.cacheElements();
     this.initTheme();
     this.populateCategoryOptions();
-    this.renderCategoryPills();
+    this.renderSidebarCategories();
     this.bindEvents();
     this.render();
   }
 
   cacheElements() {
+    // Sidebar & Layout
+    this.sidebar = document.getElementById('sidebar');
+    this.sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    this.mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    this.mobileCloseSidebarBtn = document.getElementById('mobileCloseSidebarBtn');
+    this.sidebarCategoryList = document.getElementById('sidebarCategoryList');
+    this.navItems = document.querySelectorAll('.nav-item');
+
+    // Contenido Principal
     this.notesGrid = document.getElementById('notesGrid');
     this.newNoteSection = document.getElementById('newNoteSection');
     this.toggleFormBtn = document.getElementById('toggleFormBtn');
@@ -122,17 +128,19 @@ class NotesApp {
     this.noteDueDateInput = document.getElementById('noteDueDate');
     this.searchInput = document.getElementById('searchInput');
     this.sortSelect = document.getElementById('sortSelect');
-    this.categoryPillsContainer = document.getElementById('categoryPills');
+    this.currentFilterTitle = document.getElementById('currentFilterTitle');
+    this.currentFilterCount = document.getElementById('currentFilterCount');
 
-    // Tarjetas de Métricas (Filtros clicables)
-    this.statCards = document.querySelectorAll('.stat-card');
+    // Métricas
     this.totalNotesEl = document.getElementById('totalNotes');
     this.pendingNotesEl = document.getElementById('pendingNotes');
     this.completedNotesEl = document.getElementById('completedNotes');
     this.overdueNotesEl = document.getElementById('overdueNotes');
 
-    // Theme Toggle
+    // Tema
     this.themeToggleBtn = document.getElementById('themeToggleBtn');
+    this.themeIcon = document.getElementById('themeIcon');
+    this.themeLabel = document.getElementById('themeLabel');
 
     // Modales
     this.editModal = document.getElementById('editModal');
@@ -164,10 +172,12 @@ class NotesApp {
     const currentTheme = StorageService.getTheme();
     if (currentTheme === 'light') {
       document.body.classList.add('light-theme');
-      this.themeToggleBtn.textContent = '☀️ Modo Claro';
+      this.themeIcon.textContent = '☀️';
+      this.themeLabel.textContent = 'Modo Claro';
     } else {
       document.body.classList.remove('light-theme');
-      this.themeToggleBtn.textContent = '🌙 Modo Oscuro';
+      this.themeIcon.textContent = '🌙';
+      this.themeLabel.textContent = 'Modo Oscuro';
     }
   }
 
@@ -175,18 +185,30 @@ class NotesApp {
     const isLight = document.body.classList.toggle('light-theme');
     const newTheme = isLight ? 'light' : 'dark';
     StorageService.setTheme(newTheme);
-    this.themeToggleBtn.textContent = isLight ? '☀️ Modo Claro' : '🌙 Modo Oscuro';
+    this.themeIcon.textContent = isLight ? '☀️' : '🌙';
+    this.themeLabel.textContent = isLight ? 'Modo Claro' : 'Modo Oscuro';
   }
 
   toggleForm(forceState = null) {
     const isOpen = forceState !== null ? forceState : !this.newNoteSection.classList.contains('open');
     if (isOpen) {
       this.newNoteSection.classList.add('open');
-      this.toggleFormBtn.textContent = '✕ Cerrar Formulario';
+      this.toggleFormBtn.innerHTML = '<span>✕</span> Ocultar Form';
       this.noteTitleInput.focus();
     } else {
       this.newNoteSection.classList.remove('open');
-      this.toggleFormBtn.textContent = '➕ Nueva Nota';
+      this.toggleFormBtn.innerHTML = '<span>➕</span> Nueva Nota';
+    }
+  }
+
+  toggleSidebar(open = null) {
+    const shouldOpen = open !== null ? open : !this.sidebar.classList.contains('open');
+    if (shouldOpen) {
+      this.sidebar.classList.add('open');
+      this.sidebarBackdrop.classList.add('active');
+    } else {
+      this.sidebar.classList.remove('open');
+      this.sidebarBackdrop.classList.remove('active');
     }
   }
 
@@ -200,48 +222,127 @@ class NotesApp {
     this.editNoteCategory.innerHTML = createOptions();
   }
 
-  renderCategoryPills() {
-    const allPill = `
-      <button class="pill ${this.activeFilter === 'all' ? 'active' : ''}" data-filter="all">
-        Todas
-      </button>
-    `;
+  renderSidebarCategories() {
+    if (!this.sidebarCategoryList) return;
 
-    const catPills = this.categories
+    this.sidebarCategoryList.innerHTML = this.categories
       .map((c) => {
-        const isActive = this.activeFilter.toLowerCase() === c.name.toLowerCase() ? 'active' : '';
+        const count = this.notes.filter((n) => n.category.toLowerCase() === c.name.toLowerCase()).length;
+        const isActive = this.activeCategoryFilter.toLowerCase() === c.name.toLowerCase() ? 'active' : '';
         return `
-          <button class="pill ${isActive}" data-filter="${this.escapeHTML(c.name)}">
-            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${c.color}; margin-right:4px;"></span>
-            ${this.escapeHTML(c.name)}
+          <button class="cat-item ${isActive}" data-category="${this.escapeHTML(c.name)}">
+            <span class="nav-label-wrap">
+              <span class="color-dot" style="background: ${c.color};"></span>
+              <span>${this.escapeHTML(c.name)}</span>
+            </span>
+            <span class="nav-badge">${count}</span>
           </button>
         `;
       })
       .join('');
 
-    this.categoryPillsContainer.innerHTML = allPill + catPills;
-
-    this.categoryPillsContainer.querySelectorAll('.pill').forEach((pill) => {
-      pill.addEventListener('click', () => {
-        this.activeFilter = pill.dataset.filter;
-        this.renderCategoryPills();
+    this.sidebarCategoryList.querySelectorAll('.cat-item').forEach((item) => {
+      item.addEventListener('click', () => {
+        const catName = item.dataset.category;
+        // Si ya estaba activa, se desactiva hacia 'all'
+        if (this.activeCategoryFilter.toLowerCase() === catName.toLowerCase()) {
+          this.activeCategoryFilter = 'all';
+        } else {
+          this.activeCategoryFilter = catName;
+        }
+        this.renderSidebarCategories();
         this.render();
+        if (window.innerWidth <= 850) this.toggleSidebar(false);
       });
     });
   }
 
+  renderCategoryList() {
+    if (!this.categoryListContainer) return;
+    this.categoryListContainer.innerHTML = this.categories
+      .map(
+        (c) => `
+        <div class="category-item-row">
+          <div class="category-info">
+            <span class="color-dot" style="background: ${c.color};"></span>
+            <strong>${this.escapeHTML(c.name)}</strong>
+          </div>
+          ${
+            this.categories.length > 1
+              ? `<button class="btn-delete-cat" data-id="${c.id}" title="Eliminar categoría">🗑️</button>`
+              : '<span style="font-size:0.75rem; color:var(--text-muted);">(Única)</span>'
+          }
+        </div>
+      `
+      )
+      .join('');
+
+    this.categoryListContainer.querySelectorAll('.btn-delete-cat').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        this.deleteCategory(btn.dataset.id);
+      });
+    });
+  }
+
+  deleteCategory(catId) {
+    const cat = this.categories.find((c) => c.id === catId);
+    if (!cat) return;
+
+    if (this.categories.length <= 1) {
+      alert('Debe existir al menos una categoría en el sistema.');
+      return;
+    }
+
+    const countNotes = this.notes.filter(
+      (n) => n.category.toLowerCase() === cat.name.toLowerCase()
+    ).length;
+
+    const msg = countNotes > 0
+      ? `¿Eliminar la categoría "${cat.name}"? ${countNotes} nota(s) se reasignarán a la categoría general.`
+      : `¿Eliminar la categoría "${cat.name}"?`;
+
+    if (confirm(msg)) {
+      this.categories = this.categories.filter((c) => c.id !== catId);
+      const fallbackCat = this.categories.find((c) => c.name.toLowerCase() === 'general') || this.categories[0];
+
+      this.notes.forEach((n) => {
+        if (n.category.toLowerCase() === cat.name.toLowerCase()) {
+          n.category = fallbackCat.name;
+        }
+      });
+
+      if (this.activeCategoryFilter.toLowerCase() === cat.name.toLowerCase()) {
+        this.activeCategoryFilter = 'all';
+      }
+
+      StorageService.saveCategories(this.categories);
+      StorageService.saveNotes(this.notes);
+
+      this.populateCategoryOptions();
+      this.renderSidebarCategories();
+      this.renderCategoryList();
+      this.render();
+    }
+  }
+
   bindEvents() {
-    // Alternar visibilidad del formulario
+    // Menú móvil / Backdrop
+    this.mobileMenuBtn.addEventListener('click', () => this.toggleSidebar(true));
+    this.mobileCloseSidebarBtn.addEventListener('click', () => this.toggleSidebar(false));
+    this.sidebarBackdrop.addEventListener('click', () => this.toggleSidebar(false));
+
+    // Formulario Toggle
     this.toggleFormBtn.addEventListener('click', () => this.toggleForm());
     this.closeFormBtn.addEventListener('click', () => this.toggleForm(false));
 
-    // Filtros clicables en las tarjetas de estadísticas
-    this.statCards.forEach((card) => {
-      card.addEventListener('click', () => {
-        this.statCards.forEach((c) => c.classList.remove('active'));
-        card.classList.add('active');
-        this.statusFilter = card.dataset.statusFilter;
+    // Navegación por Estado en Sidebar
+    this.navItems.forEach((item) => {
+      item.addEventListener('click', () => {
+        this.navItems.forEach((n) => n.classList.remove('active'));
+        item.classList.add('active');
+        this.statusFilter = item.dataset.statusFilter;
         this.render();
+        if (window.innerWidth <= 850) this.toggleSidebar(false);
       });
     });
 
@@ -310,7 +411,8 @@ class NotesApp {
     this.notes.unshift(newNote);
     StorageService.saveNotes(this.notes);
     this.newNoteForm.reset();
-    this.toggleForm(false); // Ocultar formulario tras guardar
+    this.toggleForm(false);
+    this.renderSidebarCategories();
     this.render();
   }
 
@@ -343,6 +445,7 @@ class NotesApp {
 
     StorageService.saveNotes(this.notes);
     this.closeEditModal();
+    this.renderSidebarCategories();
     this.render();
   }
 
@@ -350,81 +453,6 @@ class NotesApp {
     this.renderCategoryList();
     this.categoryModal.classList.add('active');
     this.newCategoryName.focus();
-  }
-
-  renderCategoryList() {
-    if (!this.categoryListContainer) return;
-    this.categoryListContainer.innerHTML = this.categories
-      .map(
-        (c) => `
-        <div class="category-item-row">
-          <div class="category-info">
-            <span class="color-dot" style="background: ${c.color};"></span>
-            <strong>${this.escapeHTML(c.name)}</strong>
-          </div>
-          ${
-            this.categories.length > 1
-              ? `<button class="btn-delete-cat" data-id="${c.id}" title="Eliminar categoría">🗑️</button>`
-              : '<span style="font-size:0.75rem; color:var(--text-muted);">(Única)</span>'
-          }
-        </div>
-      `
-      )
-      .join('');
-
-    this.categoryListContainer.querySelectorAll('.btn-delete-cat').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        this.deleteCategory(btn.dataset.id);
-      });
-    });
-  }
-
-  deleteCategory(catId) {
-    const cat = this.categories.find((c) => c.id === catId);
-    if (!cat) return;
-
-    if (this.categories.length <= 1) {
-      alert('Debe existir al menos una categoría en el sistema.');
-      return;
-    }
-
-    const countNotes = this.notes.filter(
-      (n) => n.category.toLowerCase() === cat.name.toLowerCase()
-    ).length;
-
-    const msg = countNotes > 0
-      ? `¿Eliminar la categoría "${cat.name}"? ${countNotes} nota(s) asociada(s) se reasignarán automáticamente a la categoría general.`
-      : `¿Eliminar la categoría "${cat.name}"?`;
-
-    if (confirm(msg)) {
-      // Remover categoría
-      this.categories = this.categories.filter((c) => c.id !== catId);
-
-      // Determinar categoría de reemplazo
-      const fallbackCat = this.categories.find((c) => c.name.toLowerCase() === 'general') || this.categories[0];
-
-      // Reasignar notas afectadas
-      this.notes.forEach((n) => {
-        if (n.category.toLowerCase() === cat.name.toLowerCase()) {
-          n.category = fallbackCat.name;
-        }
-      });
-
-      // Si el filtro activo era esta categoría, resetear a 'all'
-      if (this.activeFilter.toLowerCase() === cat.name.toLowerCase()) {
-        this.activeFilter = 'all';
-      }
-
-      // Persistir cambios
-      StorageService.saveCategories(this.categories);
-      StorageService.saveNotes(this.notes);
-
-      // Actualizar interfaz
-      this.populateCategoryOptions();
-      this.renderCategoryPills();
-      this.renderCategoryList();
-      this.render();
-    }
   }
 
   closeCategoryModal() {
@@ -454,7 +482,7 @@ class NotesApp {
     StorageService.saveCategories(this.categories);
 
     this.populateCategoryOptions();
-    this.renderCategoryPills();
+    this.renderSidebarCategories();
     this.renderCategoryList();
     this.closeCategoryModal();
     this.render();
@@ -473,6 +501,7 @@ class NotesApp {
     if (confirm('¿Deseas eliminar esta nota?')) {
       this.notes = this.notes.filter((n) => n.id !== noteId);
       StorageService.saveNotes(this.notes);
+      this.renderSidebarCategories();
       this.render();
     }
   }
@@ -510,7 +539,7 @@ class NotesApp {
             this.categories = data.categories;
             StorageService.saveCategories(this.categories);
             this.populateCategoryOptions();
-            this.renderCategoryPills();
+            this.renderSidebarCategories();
           }
 
           this.render();
@@ -529,14 +558,13 @@ class NotesApp {
   getFilteredAndSortedNotes() {
     const todayStr = new Date().toISOString().split('T')[0];
 
-    // 1. Filtrado combinado (Categoría + Estado superior + Búsqueda de texto)
     let result = this.notes.filter((note) => {
-      // Filtro de categoría
+      // Filtro de categoría (Sidebar)
       const matchesCategory =
-        this.activeFilter === 'all' ||
-        note.category.toLowerCase() === this.activeFilter.toLowerCase();
+        this.activeCategoryFilter === 'all' ||
+        note.category.toLowerCase() === this.activeCategoryFilter.toLowerCase();
 
-      // Filtro de estado por tarjetas superiores
+      // Filtro de estado (Sidebar)
       let matchesStatus = true;
       if (this.statusFilter === 'pending') {
         matchesStatus = !note.is_completed;
@@ -555,7 +583,7 @@ class NotesApp {
       return matchesCategory && matchesStatus && matchesSearch;
     });
 
-    // 2. Ordenación
+    // Ordenación
     result.sort((a, b) => {
       if (this.currentSort === 'newest') {
         return new Date(b.created_at) - new Date(a.created_at);
@@ -630,11 +658,24 @@ class NotesApp {
     const filtered = this.getFilteredAndSortedNotes();
     const todayStr = new Date().toISOString().split('T')[0];
 
+    // Actualizar barra de título de filtro activo
+    let filterName = 'Todas las notas';
+    if (this.statusFilter === 'pending') filterName = 'Notas Pendientes';
+    if (this.statusFilter === 'completed') filterName = 'Notas Completadas';
+    if (this.statusFilter === 'overdue') filterName = 'Notas Vencidas';
+
+    if (this.activeCategoryFilter !== 'all') {
+      filterName += ` • Categoría: ${this.activeCategoryFilter}`;
+    }
+
+    this.currentFilterTitle.textContent = filterName;
+    this.currentFilterCount.textContent = `(${filtered.length} ${filtered.length === 1 ? 'nota' : 'notas'})`;
+
     if (filtered.length === 0) {
       let msg = 'No se encontraron notas con el filtro o búsqueda actual.';
       if (this.statusFilter === 'pending') msg = '¡Genial! No tienes tareas pendientes.';
       if (this.statusFilter === 'completed') msg = 'Aún no has completado ninguna tarea.';
-      if (this.statusFilter === 'overdue') msg = '¡Perfecto! No tienes tareas vencidas.';
+      if (this.statusFilter === 'overdue') msg = '¡Perfecto! No tienes tareas atrasadas.';
 
       this.notesGrid.innerHTML = `
         <div class="empty-state">
@@ -650,7 +691,6 @@ class NotesApp {
         const completedClass = note.is_completed ? 'completed' : '';
         const catColor = this.getCategoryColor(note.category);
 
-        // Indicador de Due Date
         let dueDateHtml = '';
         if (note.due_date) {
           let badgeClass = 'due-future';
@@ -671,7 +711,6 @@ class NotesApp {
           <div class="note-card ${completedClass}" data-id="${note.id}">
             <div class="note-header">
               <div class="note-title-wrap">
-                <!-- Botón de Checkbox táctil y visible -->
                 <button 
                   class="status-checkbox-btn" 
                   title="${note.is_completed ? 'Marcar como pendiente' : 'Marcar como completada'}"
@@ -707,21 +746,17 @@ class NotesApp {
     // Listeners interactivos
     this.notesGrid.querySelectorAll('.note-card').forEach((card) => {
       const noteId = card.dataset.id;
-      // Clic en el botón verde de check
       card.querySelector('.status-checkbox-btn').addEventListener('click', (e) => {
         e.stopPropagation();
         this.toggleNoteStatus(noteId);
       });
-      // Clic directo en el título para marcar como completada
       card.querySelector('.note-title').addEventListener('click', () => {
         this.toggleNoteStatus(noteId);
       });
-      // Botón editar
       card.querySelector('.btn-edit').addEventListener('click', (e) => {
         e.stopPropagation();
         this.openEditModal(noteId);
       });
-      // Botón eliminar
       card.querySelector('.btn-delete').addEventListener('click', (e) => {
         e.stopPropagation();
         this.deleteNote(noteId);
