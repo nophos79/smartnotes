@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpecKit - Gestor de Tareas y Notas</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <div class="logo-icon">✓</div>
+        <div>
+          <h1>SmartNotes</h1>
+          <div class="subtitle">Metodología Spec-Driven Development (SDD)</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Estadísticas en Tiempo Real -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-label">Total Notas</span>
+        <span class="stat-value" id="totalNotes">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Pendientes</span>
+        <span class="stat-value" id="pendingNotes">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Completadas</span>
+        <span class="stat-value" id="completedNotes">0</span>
+      </div>
+    </section>
+
+    <!-- Formulario para Añadir Nota -->
+    <section class="card">
+      <h2 class="form-title">➕ Nueva Nota o Tarea</h2>
+      <form id="newNoteForm">
+        <div class="input-row">
+          <input 
+            type="text" 
+            id="noteTitle" 
+            class="flex-1" 
+            placeholder="¿Qué necesitas hacer o recordar? (Obligatorio)" 
+            required 
+            autocomplete="off"
+          />
+          <select id="noteCategory">
+            <option value="Trabajo">💼 Trabajo</option>
+            <option value="Urgente">🚨 Urgente</option>
+            <option value="Personal">🌱 Personal</option>
+            <option value="General">📌 General</option>
+          </select>
+        </div>
+        <textarea 
+          id="noteContent" 
+          placeholder="Detalles adicionales, enlaces o descripción..."
+        ></textarea>
+        <div>
+          <button type="submit" class="btn">Guardar Nota</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Barra de Filtros y Búsqueda -->
+    <section class="controls-bar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          id="searchInput" 
+          placeholder="Buscar notas por título o contenido..." 
+          autocomplete="off"
+        />
+      </div>
+      <div class="filter-pills">
+        <button class="pill active" data-filter="all">Todas</button>
+        <button class="pill" data-filter="urgente">🚨 Urgente</button>
+        <button class="pill" data-filter="trabajo">💼 Trabajo</button>
+        <button class="pill" data-filter="personal">🌱 Personal</button>
+        <button class="pill" data-filter="general">📌 General</button>
+      </div>
+    </section>
+
+    <!-- Grid de Tarjetas de Notas -->
+    <main class="notes-grid" id="notesGrid">
+      <!-- Se puebla dinámicamente desde app.js -->
+    </main>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
