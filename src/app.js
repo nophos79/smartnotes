@@ -260,10 +260,38 @@ class NotesApp {
   }
 
   applyCardSize(width, height) {
+    const wasSingleRow = !!this.isSingleRow;
     this.cardSize = { width, height };
     document.documentElement.style.setProperty('--card-min-width', `${width}px`);
     document.documentElement.style.setProperty('--card-height', `${height}px`);
+    this.checkSingleRowLayout(wasSingleRow);
     this.updateCardSizeResetButton();
+  }
+
+  checkSingleRowLayout(wasSingleRow = false) {
+    if (!this.notesGrid) return;
+    const gridWidth = this.notesGrid.clientWidth;
+    if (!gridWidth) return;
+    const gap = 8; // 0.5rem
+    const cols = Math.floor((gridWidth + gap) / (this.cardSize.width + gap));
+    const isSingleRow = cols <= 1;
+
+    // Si transiciona a fila única y la altura era la de tarjeta estándar, ajustar a fila compacta
+    if (isSingleRow && !wasSingleRow && this.cardSize.height >= 140) {
+      this.prevCardHeight = this.cardSize.height;
+      this.cardSize.height = 56;
+      document.documentElement.style.setProperty('--card-height', '56px');
+    } else if (!isSingleRow && wasSingleRow && this.cardSize.height <= 80) {
+      const restoredH = this.prevCardHeight || DEFAULT_CARD_SIZE.height;
+      this.cardSize.height = restoredH;
+      document.documentElement.style.setProperty('--card-height', `${restoredH}px`);
+    }
+
+    this.isSingleRow = isSingleRow;
+    this.notesGrid.classList.toggle('is-single-row', isSingleRow);
+
+    const isMultilineText = isSingleRow && this.cardSize.height > 58;
+    this.notesGrid.classList.toggle('multiline-text', isMultilineText);
   }
 
   applyTextScale(scale) {
@@ -296,8 +324,11 @@ class NotesApp {
       const deltaX = moveEvt.clientX - startX;
       const deltaY = moveEvt.clientY - startY;
 
-      const newWidth = Math.round(Math.max(220, Math.min(650, startWidth + deltaX)));
-      const newHeight = Math.round(Math.max(170, Math.min(600, startHeight + deltaY)));
+      // Permitir agrandar hasta 1800px para que quede 1 sola nota por fila
+      const newWidth = Math.round(Math.max(200, Math.min(1800, startWidth + deltaX)));
+      // Permitir reducir la altura hasta 46px en modo fila única o 75px en cuadrícula
+      const minH = this.isSingleRow ? 46 : 75;
+      const newHeight = Math.round(Math.max(minH, Math.min(650, startHeight + deltaY)));
 
       this.applyCardSize(newWidth, newHeight);
     };
@@ -637,6 +668,9 @@ class NotesApp {
         StorageService.resetCardSize();
       });
     }
+
+    // Adaptar modo fila única al redimensionar ventana
+    window.addEventListener('resize', () => this.checkSingleRowLayout());
   }
 
   handleAddNote() {
@@ -1208,16 +1242,28 @@ class NotesApp {
                 >
                   <span>✓</span>
                 </button>
-                <h3 class="note-title" title="${this.escapeHTML(note.title)}">${this.escapeHTML(note.title)}</h3>
+                <!-- Categoría visible al inicio en modo fila única -->
+                <span class="badge note-badge-row" style="background: ${catColor}22; color: ${catColor}; border: 1px solid ${catColor}44;">
+                  ${this.escapeHTML(note.category)}
+                </span>
+                <!-- Bloque interactivo de texto para fila única y cuadrícula -->
+                <div class="note-text-flow" title="Haz clic para ver el detalle completo">
+                  <h3 class="note-title" title="${this.escapeHTML(note.title)}">${this.escapeHTML(note.title)}</h3>
+                  <span class="note-desc-sep">—</span>
+                  <span class="note-content-inline" title="${this.escapeHTML(note.content || '')}">
+                    ${this.escapeHTML(note.content || 'Sin descripción adicional.')}
+                  </span>
+                </div>
               </div>
               ${dueDateHtml}
             </div>
+            <!-- Cuerpo multilínea (visible en cuadrícula normal) -->
             <div class="note-body" title="Haz clic para ver el detalle completo">
               <p class="note-content">${this.escapeHTML(note.content || 'Sin descripción adicional.')}</p>
             </div>
             <div class="note-footer">
               <div class="note-footer-meta">
-                <span class="badge" style="background: ${catColor}22; color: ${catColor}; border: 1px solid ${catColor}44;">
+                <span class="badge note-badge-card" style="background: ${catColor}22; color: ${catColor}; border: 1px solid ${catColor}44;">
                   ${this.escapeHTML(note.category)}
                 </span>
               </div>
@@ -1257,6 +1303,7 @@ class NotesApp {
       .join('');
 
     this.updateCardSizeResetButton();
+    this.checkSingleRowLayout();
 
     // Listeners interactivos
     this.notesGrid.querySelectorAll('.note-card').forEach((card) => {
@@ -1273,6 +1320,12 @@ class NotesApp {
       card.querySelector('.note-body').addEventListener('click', () => {
         this.openDetailModal(noteId);
       });
+      const textFlow = card.querySelector('.note-text-flow');
+      if (textFlow) {
+        textFlow.addEventListener('click', () => {
+          this.openDetailModal(noteId);
+        });
+      }
       card.querySelector('.btn-edit').addEventListener('click', (e) => {
         e.stopPropagation();
         this.openEditModal(noteId);

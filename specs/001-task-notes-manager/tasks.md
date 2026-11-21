@@ -86,3 +86,11 @@
 
 ## Phase 22: Alineación Inferior del Tirador de Redimensión v6.2 (Completado)
 - [x] **T50**: Alinear verticalmente el icono de arrastre (`.card-resize-handle`) al borde inferior (`align-items: flex-end`, `padding-bottom: 1px`, `transform-origin: bottom center`) para nivelarlo con la base de los botones de acción rápida.
+
+---
+
+## Phase 23: Modo Fila Única y Margen Compacto v6.3 (Completado)
+- [x] **T51**: Reducir la separación de cuadrícula a `gap: 0.5rem` y afinar el padding de `.note-card` para minimizar los márgenes entre tarjetas.
+- [x] **T52**: Ampliar el rango de redimensión (ancho hasta 1800px, altura mínima 46px) e implementar el detector dinámico de 1 nota por fila (`checkSingleRowLayout`) reactivo a redimensionamiento y resize de ventana.
+- [x] **T53**: Implementar la arquitectura de fila única en `src/app.js` y `src/styles.css` con orden: Checkbox y Categoría al inicio, Bloque de Texto en el centro, Fecha y Acciones al final.
+- [x] **T54**: Configurar el flujo de texto continuo: título seguido de descripción en una sola fila (`nowrap` con elipsis en tamaño mínimo) o acotado a máximo 1 fila para título y 1 fila para descripción (2 líneas máximo).
