@@ -81,3 +81,8 @@
 - [x] **T47**: Redimensionar botones de acción a 26×26px con `border-radius: 6px` para igualar exactamente la escala y forma de la etiqueta de categoría (`.badge`).
 - [x] **T48**: Eliminar el margen derecho forzado (`padding-right: 1.4rem`) en `.note-footer` para que los botones queden pegados al extremo derecho de la tarjeta.
 - [x] **T49**: Reubicar el tirador de arrastre (`.card-resize-handle`) en la misma fila horizontal dentro de `.card-actions`, reduciendo el padding inferior de `.note-card` para eliminar la franja desaprovechada y maximizar la visibilidad de título y descripción.
+
+---
+
+## Phase 22: Alineación Inferior del Tirador de Redimensión v6.2 (Completado)
+- [x] **T50**: Alinear verticalmente el icono de arrastre (`.card-resize-handle`) al borde inferior (`align-items: flex-end`, `padding-bottom: 1px`, `transform-origin: bottom center`) para nivelarlo con la base de los botones de acción rápida.

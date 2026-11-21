@@ -1,28 +1,21 @@
-# Feature Specification: Gestor de Tareas y Notas Inteligente (v6.1 - Ergonomía de Tarjetas y Aprovechamiento de Espacio)
+# Feature Specification: Gestor de Tareas y Notas Inteligente (v6.2 - Alineación Inferior del Tirador de Redimensión)
 
 **Feature Branch**: `001-task-notes-manager`  
 **Created**: 2026-11-20 | **Updated**: 2026-11-21  
-**Status**: Completed (v6.1 Card Ergonomics: Flush-Right Actions, Matching Badge Size & Inline Resize Handle)  
+**Status**: Completed (v6.2 Bottom-Aligned Resize Handle with Action Buttons)  
 **Input**:
-1. Pegar los iconos de acción más a la derecha de la tarjeta.
-2. Hacer los botones de acción del mismo tamaño (altura 26px y radio 6px) que la etiqueta de la categoría.
-3. Situar el símbolo para aumentar/reducir tamaño (tirador de arrastre) a la misma altura que los botones para eliminar la línea inferior desaprovechada en la tarjeta.
-4. Maximizar el espacio útil vertical para el título y la descripción de la nota.
+1. Alinear el símbolo de redimensión (tirador diagonal) con el borde inferior de los botones de detalle, editar y borrar, en lugar de estar centrado con los iconos.
 
 ---
 
-## 1. User Story 29 - Ergonomía y Aprovechamiento del Espacio en Tarjetas
-Como usuario, quiero que los botones de acción estén pegados al extremo derecho y tengan exactamente el mismo tamaño compacto que la etiqueta de la categoría, y que el tirador de redimensión esté integrado en la misma fila para no desperdiciar espacio vertical inferior, permitiendo ver mejor el título y la descripción de la nota.
+## 1. User Story 30 - Alineación Inferior del Tirador de Redimensión
+Como usuario, quiero que el icono diagonal de redimensión esté alineado con el borde inferior de los marcos de los botones de acción rápida, para que sirva como remate visual ordenado y simétrico de la esquina inferior de la tarjeta.
 
 * **Acceptance Criteria**:
-  - **Alineación a la Derecha sin Espacio Muerto**:
-    - Se elimina el margen derecho forzado (`padding-right: 1.4rem`) del pie de la tarjeta (`.note-footer`), permitiendo que el grupo de acciones se posicione a ras del margen derecho de la tarjeta.
-  - **Unificación de Escala con la Etiqueta de Categoría**:
-    - Los botones de acción rápida (`.btn-detail`, `.btn-edit`, `.btn-delete`) adoptan dimensiones de 26×26px y esquinas redondeadas de `border-radius: 6px`, igualando exactamente la altura de la insignia de categoría (`.badge`).
-    - Los iconos vectoriales SVG internos se ajustan proporcionalmente a 13×13px con trazo nítido de `2.2px`.
-  - **Tirador de Redimensión en la Misma Fila**:
-    - El tirador de arrastre (`.card-resize-handle`) se traslada al interior de `.card-actions`, posicionándose en la misma fila horizontal justo después del botón de borrado.
-    - Se elimina la franja vacía inferior en `.note-card` ajustando el padding inferior (`padding-bottom: 0.65rem`), liberando valiosa altura vertical para el cuerpo de la nota (`.note-body` / `.note-content` con hasta 5 líneas visibles).
+  - **Alineación Inferior Precisa**:
+    - El contenedor `.card-resize-handle` alinea su SVG al borde inferior (`align-items: flex-end`) en lugar de centrarlo verticalmente.
+    - Se añade un micro-ajuste inferior (`padding-bottom: 1px`) para que el trazo más bajo de las diagonales coincida con el borde inferior de los botones de acción (`.btn-action`).
+    - El efecto hover escala manteniendo el anclaje inferior (`transform-origin: bottom center`).
 
 ---
 
@@ -35,3 +28,4 @@ Como usuario, quiero que los botones de acción estén pegados al extremo derech
 * **FR-043**: Alineación a ras de borde derecho de las acciones y optimización del padding del footer.
 * **FR-044**: Dimensiones normalizadas de 26×26px (`border-radius: 6px`) para los botones de acción, idénticas a la etiqueta `.badge`.
 * **FR-045**: Integración del tirador de arrastre en línea dentro del pie de la tarjeta, liberando espacio para título y contenido.
+* **FR-046**: Alineación del tirador de redimensión con el borde inferior de los marcos de los botones de acción (`align-items: flex-end`).

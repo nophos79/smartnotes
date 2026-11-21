@@ -715,14 +715,16 @@ body.is-resizing-cards .note-card {
   height: 26px;
   cursor: nwse-resize;
   display: inline-flex;
-  align-items: center;
+  align-items: flex-end; /* Alineado con el borde inferior de los botones */
   justify-content: center;
+  padding-bottom: 1px;
   color: var(--text-muted);
   opacity: 0.4;
   transition: opacity 0.2s, color 0.2s, transform 0.15s;
   user-select: none;
   flex-shrink: 0;
   margin-left: 0.15rem;
+  transform-origin: bottom center;
 }
 
 .note-card:hover .card-resize-handle {
