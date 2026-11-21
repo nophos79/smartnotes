@@ -94,3 +94,11 @@
 - [x] **T52**: Ampliar el rango de redimensión (ancho hasta 1800px, altura mínima 46px) e implementar el detector dinámico de 1 nota por fila (`checkSingleRowLayout`) reactivo a redimensionamiento y resize de ventana.
 - [x] **T53**: Implementar la arquitectura de fila única en `src/app.js` y `src/styles.css` con orden: Checkbox y Categoría al inicio, Bloque de Texto en el centro, Fecha y Acciones al final.
 - [x] **T54**: Configurar el flujo de texto continuo: título seguido de descripción en una sola fila (`nowrap` con elipsis en tamaño mínimo) o acotado a máximo 1 fila para título y 1 fila para descripción (2 líneas máximo).
+
+---
+
+## Phase 24: Selector de Vista Cuadrícula/Lista y Corrección de Truncado v6.4 (Completado)
+- [x] **T55**: Añadir botón selector de vista (`#viewToggleBtn`) con soporte y persistencia de modos `grid` y `list` en `localStorage`.
+- [x] **T56**: Aplicar exclusión mutua estricta de la categoría: en cuadrícula solo abajo con los botones; en lista solo arriba con el check; cero duplicidades.
+- [x] **T57**: Establecer la altura mínima de tarjetas en modo cuadrícula en 110px para garantizar la proporción de las tarjetas compactas.
+- [x] **T58**: Corregir el solapamiento en la cabecera aplicando `min-width: 0`, `flex: 1` y truncado con `text-overflow: ellipsis` estricto en título (antes de la fecha) y en la descripción.

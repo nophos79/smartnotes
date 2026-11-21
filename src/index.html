@@ -189,15 +189,34 @@
         </div>
       </section>
 
-      <!-- Barra de Filtro Activo y Conteo -->
+      <!-- Barra de Filtro Activo, Conmutador de Vista y Conteo -->
       <div class="filter-status-bar">
         <div class="current-filter-pill">
           <span id="currentFilterTitle">Todas las notas</span>
           <span class="filter-count-badge" id="currentFilterCount">(3 notas)</span>
         </div>
-        <button id="resetCardSizeBtn" class="reset-size-btn" style="display: none;" title="Restablecer tamaño predeterminado de las tarjetas">
-          <span>↺</span> Restablecer tamaño de notas
-        </button>
+        <div class="filter-bar-actions">
+          <button id="viewToggleBtn" class="view-toggle-btn" title="Cambiar a vista de lista (una tarea por línea)">
+            <svg id="viewIconList" class="view-btn-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="8" y1="6" x2="21" y2="6"/>
+              <line x1="8" y1="12" x2="21" y2="12"/>
+              <line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/>
+              <line x1="3" y1="12" x2="3.01" y2="12"/>
+              <line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+            <svg id="viewIconGrid" class="view-btn-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            <span id="viewToggleLabel">Vista Lista</span>
+          </button>
+          <button id="resetCardSizeBtn" class="reset-size-btn" style="display: none;" title="Restablecer tamaño predeterminado de las tarjetas">
+            <span>↺</span> Restablecer tamaño
+          </button>
+        </div>
       </div>
 
       <!-- Rejilla Fluida que aprovecha toda la pantalla -->

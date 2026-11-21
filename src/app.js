@@ -9,6 +9,7 @@ const STORAGE_KEY_CATS = 'speckit_categories_v1';
 const STORAGE_KEY_THEME = 'speckit_theme_v1';
 const STORAGE_KEY_CARD_SIZE = 'speckit_card_size_v1';
 const STORAGE_KEY_TEXT_SCALE = 'speckit_text_scale_v1';
+const STORAGE_KEY_VIEW_MODE = 'speckit_view_mode_v1';
 
 const DEFAULT_CARD_SIZE = { width: 290, height: 240 };
 
@@ -118,6 +119,14 @@ class StorageService {
   static saveTextScale(scale) {
     localStorage.setItem(STORAGE_KEY_TEXT_SCALE, scale);
   }
+
+  static loadViewMode() {
+    return localStorage.getItem(STORAGE_KEY_VIEW_MODE) || 'grid';
+  }
+
+  static saveViewMode(mode) {
+    localStorage.setItem(STORAGE_KEY_VIEW_MODE, mode);
+  }
 }
 
 // --- Aplicación Principal ---
@@ -131,10 +140,12 @@ class NotesApp {
     this.currentSort = 'newest';
     this.cardSize = StorageService.loadCardSize();
     this.textScale = StorageService.loadTextScale();
+    this.viewMode = StorageService.loadViewMode();
 
     this.cacheElements();
     this.initTheme();
     this.initCardSizeAndTextScale();
+    this.initViewMode();
     this.populateCategoryOptions();
     this.renderSidebarCategories();
     this.bindEvents();
@@ -166,6 +177,10 @@ class NotesApp {
     this.sortSelect = document.getElementById('sortSelect');
     this.textSizeSelect = document.getElementById('textSizeSelect');
     this.resetCardSizeBtn = document.getElementById('resetCardSizeBtn');
+    this.viewToggleBtn = document.getElementById('viewToggleBtn');
+    this.viewIconList = document.getElementById('viewIconList');
+    this.viewIconGrid = document.getElementById('viewIconGrid');
+    this.viewToggleLabel = document.getElementById('viewToggleLabel');
     this.currentFilterTitle = document.getElementById('currentFilterTitle');
     this.currentFilterCount = document.getElementById('currentFilterCount');
 
@@ -254,6 +269,35 @@ class NotesApp {
     this.themeLabel.textContent = isLight ? 'Modo Claro' : 'Modo Oscuro';
   }
 
+  initViewMode() {
+    this.applyViewMode();
+  }
+
+  toggleViewMode() {
+    this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
+    StorageService.saveViewMode(this.viewMode);
+    this.applyViewMode();
+  }
+
+  applyViewMode() {
+    const isList = this.viewMode === 'list';
+    if (this.notesGrid) {
+      this.notesGrid.classList.toggle('view-list', isList);
+      this.notesGrid.classList.toggle('view-grid', !isList);
+    }
+    document.body.classList.toggle('is-view-list', isList);
+    document.body.classList.toggle('is-view-grid', !isList);
+
+    if (this.viewToggleBtn) {
+      this.viewToggleBtn.title = isList 
+        ? 'Cambiar a vista de cuadrícula' 
+        : 'Cambiar a vista de lista (una tarea por línea)';
+    }
+    if (this.viewIconList) this.viewIconList.style.display = isList ? 'none' : 'inline-block';
+    if (this.viewIconGrid) this.viewIconGrid.style.display = isList ? 'inline-block' : 'none';
+    if (this.viewToggleLabel) this.viewToggleLabel.textContent = isList ? 'Vista Cuadrícula' : 'Vista Lista';
+  }
+
   initCardSizeAndTextScale() {
     this.applyCardSize(this.cardSize.width, this.cardSize.height);
     this.applyTextScale(this.textScale);
@@ -324,11 +368,15 @@ class NotesApp {
       const deltaX = moveEvt.clientX - startX;
       const deltaY = moveEvt.clientY - startY;
 
-      // Permitir agrandar hasta 1800px para que quede 1 sola nota por fila
-      const newWidth = Math.round(Math.max(200, Math.min(1800, startWidth + deltaX)));
-      // Permitir reducir la altura hasta 46px en modo fila única o 75px en cuadrícula
-      const minH = this.isSingleRow ? 46 : 75;
-      const newHeight = Math.round(Math.max(minH, Math.min(650, startHeight + deltaY)));
+      const isList = this.viewMode === 'list';
+      // En modo cuadrícula: altura mínima 110px (tarjeta compacta foto 1 y 3). En lista: 44px
+      const minH = isList ? 44 : 110;
+      const maxH = isList ? 70 : 600;
+      const minW = isList ? 200 : 220;
+      const maxW = isList ? 1800 : 750;
+
+      const newWidth = Math.round(Math.max(minW, Math.min(maxW, startWidth + deltaX)));
+      const newHeight = Math.round(Math.max(minH, Math.min(maxH, startHeight + deltaY)));
 
       this.applyCardSize(newWidth, newHeight);
     };
@@ -661,6 +709,11 @@ class NotesApp {
       });
     }
 
+    // Conmutador de Vista (Cuadrícula / Lista de una tarea por línea)
+    if (this.viewToggleBtn) {
+      this.viewToggleBtn.addEventListener('click', () => this.toggleViewMode());
+    }
+
     // Restablecer tamaño de tarjetas
     if (this.resetCardSizeBtn) {
       this.resetCardSizeBtn.addEventListener('click', () => {
@@ -669,8 +722,11 @@ class NotesApp {
       });
     }
 
-    // Adaptar modo fila única al redimensionar ventana
-    window.addEventListener('resize', () => this.checkSingleRowLayout());
+    // Adaptar modo al redimensionar ventana
+    window.addEventListener('resize', () => {
+      this.checkSingleRowLayout();
+      this.applyViewMode();
+    });
   }
 
   handleAddNote() {
