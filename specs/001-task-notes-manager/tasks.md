@@ -74,3 +74,10 @@
 ## Phase 20: Identidad Cromática e Iconos Modernos v6.0 (Completado)
 - [x] **T45**: Aplicar paleta de color diferenciada para `.btn-detail` (Cian), `.btn-edit` (Ámbar) y `.btn-delete` (Carmesí/Rojo) en modo oscuro y claro (fondos sutilmente tintados, bordes a juego, colores de trazo específicos y efectos hover).
 - [x] **T46**: Perfeccionar la iconografía vectorial SVG pura (15×15px, trazo 2.2, estilo moderno Lucide) en `src/app.js` y eliminar cualquier ambigüedad de visualización.
+
+---
+
+## Phase 21: Ergonomía de Tarjetas y Aprovechamiento de Espacio v6.1 (Completado)
+- [x] **T47**: Redimensionar botones de acción a 26×26px con `border-radius: 6px` para igualar exactamente la escala y forma de la etiqueta de categoría (`.badge`).
+- [x] **T48**: Eliminar el margen derecho forzado (`padding-right: 1.4rem`) en `.note-footer` para que los botones queden pegados al extremo derecho de la tarjeta.
+- [x] **T49**: Reubicar el tirador de arrastre (`.card-resize-handle`) en la misma fila horizontal dentro de `.card-actions`, reduciendo el padding inferior de `.note-card` para eliminar la franja desaprovechada y maximizar la visibilidad de título y descripción.

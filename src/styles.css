@@ -689,7 +689,7 @@ textarea {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 14px;
-  padding: 1.15rem;
+  padding: 1rem 1rem 0.65rem 1rem;
   height: var(--card-height, 240px); /* Tamaño estándar uniforme configurable */
   min-height: var(--card-height, 240px);
   display: flex;
@@ -711,20 +711,18 @@ body.is-resizing-cards .note-card {
 }
 
 .card-resize-handle {
-  position: absolute;
-  right: 2px;
-  bottom: 2px;
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 26px;
   cursor: nwse-resize;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--text-muted);
-  opacity: 0.35;
+  opacity: 0.4;
   transition: opacity 0.2s, color 0.2s, transform 0.15s;
   user-select: none;
-  z-index: 10;
+  flex-shrink: 0;
+  margin-left: 0.15rem;
 }
 
 .note-card:hover .card-resize-handle {
@@ -842,7 +840,7 @@ body.is-resizing-cards .note-card {
 
 .note-body {
   flex: 1;
-  margin: 0.6rem 0;
+  margin: 0.45rem 0;
   overflow: hidden;
   cursor: pointer;
   position: relative;
@@ -851,11 +849,11 @@ body.is-resizing-cards .note-card {
 .note-content {
   font-size: 0.94rem;
   color: var(--text-muted);
-  line-height: 1.55;
+  line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
   display: -webkit-box;
-  -webkit-line-clamp: 4; /* Truncado regular de 4 líneas */
+  -webkit-line-clamp: 5; /* 5 líneas de contenido aprovechando el espacio vertical recuperado */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -891,22 +889,23 @@ body.is-resizing-cards .note-card {
 .card-actions {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   flex-shrink: 0;
+  margin-left: auto; /* Pega las acciones completamente a la derecha */
 }
 
-/* Botones enmarcados de acción rápida en cada tarjeta con identidad cromática */
+/* Botones enmarcados de acción rápida en cada tarjeta con identidad cromática y tamaño idéntico a categoría */
 .card-actions .btn-action {
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   cursor: pointer;
   padding: 0;
-  border-radius: 8px;
+  border-radius: 6px; /* Idéntico al tamaño y curvatura de la etiqueta .badge */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 .card-actions .btn-action svg {
@@ -1014,12 +1013,12 @@ body.light-theme .card-actions .btn-action.delete:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 0.65rem;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--border-color);
   font-size: 0.78rem;
   color: var(--text-muted);
   gap: 0.5rem;
-  padding-right: 1.4rem; /* Margen para no solaparse con el tirador de arrastre */
+  padding-right: 0; /* Sin margen artificial: acciones y tirador pegados a la derecha */
 }
 
 .note-footer-meta {
