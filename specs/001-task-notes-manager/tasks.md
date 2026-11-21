@@ -38,3 +38,10 @@
 - [x] **T32**: Corregir solapamiento de la lupa en el buscador con SVG vectorial y padding amplio.
 - [x] **T33**: Sustituir emojis por iconos vectoriales nítidos en el botón principal (+).
 - [x] **T34**: Asegurar preservación de User Gesture en File System Access API ejecutando `showSaveFilePicker`/`showOpenFilePicker` de forma síncrona antes de alterar el DOM del modal.
+
+---
+
+## Phase 15: Redimensionamiento Interactivo & Legibilidad Tipográfica v5.5 (Completado)
+- [x] **T35**: Blindar la separación del buscador (`.search-box input[type="text"]` con `padding-left: 3.25rem !important` e icono centrado) ante cualquier sobreescritura de cascada CSS.
+- [x] **T36**: Implementar redimensionamiento interactivo de tarjetas (tirador de arrastre en cada nota, recálculo sincrónico de `--card-min-width` y `--card-height` en todas las notas, y persistencia en localStorage).
+- [x] **T37**: Optimizar tamaños de fuente base (títulos a `1.08rem`, cuerpo a `0.94rem`) e integrar selector de escala de texto (Normal, Grande, Muy Grande) con persistencia.

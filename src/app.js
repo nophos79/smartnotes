@@ -7,6 +7,10 @@
 const STORAGE_KEY_NOTES = 'speckit_notes_data_v1';
 const STORAGE_KEY_CATS = 'speckit_categories_v1';
 const STORAGE_KEY_THEME = 'speckit_theme_v1';
+const STORAGE_KEY_CARD_SIZE = 'speckit_card_size_v1';
+const STORAGE_KEY_TEXT_SCALE = 'speckit_text_scale_v1';
+
+const DEFAULT_CARD_SIZE = { width: 290, height: 240 };
 
 const DEFAULT_CATEGORIES = [
   { id: 'trabajo', name: 'Trabajo', color: '#38bdf8' },
@@ -87,6 +91,33 @@ class StorageService {
   static setTheme(theme) {
     localStorage.setItem(STORAGE_KEY_THEME, theme);
   }
+
+  static loadCardSize() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY_CARD_SIZE);
+      if (data) {
+        const parsed = JSON.parse(data);
+        if (parsed.width && parsed.height) return parsed;
+      }
+    } catch {}
+    return { ...DEFAULT_CARD_SIZE };
+  }
+
+  static saveCardSize(size) {
+    localStorage.setItem(STORAGE_KEY_CARD_SIZE, JSON.stringify(size));
+  }
+
+  static resetCardSize() {
+    localStorage.removeItem(STORAGE_KEY_CARD_SIZE);
+  }
+
+  static loadTextScale() {
+    return localStorage.getItem(STORAGE_KEY_TEXT_SCALE) || '1';
+  }
+
+  static saveTextScale(scale) {
+    localStorage.setItem(STORAGE_KEY_TEXT_SCALE, scale);
+  }
 }
 
 // --- Aplicación Principal ---
@@ -98,9 +129,12 @@ class NotesApp {
     this.statusFilter = 'all'; // all, pending, completed, overdue
     this.searchQuery = '';
     this.currentSort = 'newest';
+    this.cardSize = StorageService.loadCardSize();
+    this.textScale = StorageService.loadTextScale();
 
     this.cacheElements();
     this.initTheme();
+    this.initCardSizeAndTextScale();
     this.populateCategoryOptions();
     this.renderSidebarCategories();
     this.bindEvents();
@@ -129,6 +163,8 @@ class NotesApp {
     this.noteDueDateInput = document.getElementById('noteDueDate');
     this.searchInput = document.getElementById('searchInput');
     this.sortSelect = document.getElementById('sortSelect');
+    this.textSizeSelect = document.getElementById('textSizeSelect');
+    this.resetCardSizeBtn = document.getElementById('resetCardSizeBtn');
     this.currentFilterTitle = document.getElementById('currentFilterTitle');
     this.currentFilterCount = document.getElementById('currentFilterCount');
 
@@ -215,6 +251,68 @@ class NotesApp {
     StorageService.setTheme(newTheme);
     this.themeIcon.textContent = isLight ? '☀️' : '🌙';
     this.themeLabel.textContent = isLight ? 'Modo Claro' : 'Modo Oscuro';
+  }
+
+  initCardSizeAndTextScale() {
+    this.applyCardSize(this.cardSize.width, this.cardSize.height);
+    this.applyTextScale(this.textScale);
+  }
+
+  applyCardSize(width, height) {
+    this.cardSize = { width, height };
+    document.documentElement.style.setProperty('--card-min-width', `${width}px`);
+    document.documentElement.style.setProperty('--card-height', `${height}px`);
+    this.updateCardSizeResetButton();
+  }
+
+  applyTextScale(scale) {
+    this.textScale = scale;
+    document.documentElement.style.setProperty('--text-scale', scale);
+    if (this.textSizeSelect) {
+      this.textSizeSelect.value = scale;
+    }
+  }
+
+  updateCardSizeResetButton() {
+    if (!this.resetCardSizeBtn) return;
+    const isCustom = this.cardSize.width !== DEFAULT_CARD_SIZE.width || this.cardSize.height !== DEFAULT_CARD_SIZE.height;
+    this.resetCardSizeBtn.style.display = isCustom ? 'inline-flex' : 'none';
+    if (isCustom) {
+      this.resetCardSizeBtn.innerHTML = `<span>↺</span> Restablecer tamaño (${this.cardSize.width}×${this.cardSize.height}px)`;
+    }
+  }
+
+  startResizingCards(e, card) {
+    const rect = card.getBoundingClientRect();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWidth = rect.width;
+    const startHeight = rect.height;
+
+    document.body.classList.add('is-resizing-cards');
+
+    const onPointerMove = (moveEvt) => {
+      const deltaX = moveEvt.clientX - startX;
+      const deltaY = moveEvt.clientY - startY;
+
+      const newWidth = Math.round(Math.max(220, Math.min(650, startWidth + deltaX)));
+      const newHeight = Math.round(Math.max(170, Math.min(600, startHeight + deltaY)));
+
+      this.applyCardSize(newWidth, newHeight);
+    };
+
+    const onPointerUp = () => {
+      document.body.classList.remove('is-resizing-cards');
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+
+      StorageService.saveCardSize(this.cardSize);
+    };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
   }
 
   toggleForm(forceState = null) {
@@ -446,6 +544,23 @@ class NotesApp {
     this.pickExistingFileBtn.addEventListener('click', () => this.pickFile(true));
     this.pickNewFileBtn.addEventListener('click', () => this.pickFile(false));
     this.disconnectFileBtn.addEventListener('click', () => this.disconnectPhysicalFile());
+
+    // Escala de texto
+    if (this.textSizeSelect) {
+      this.textSizeSelect.addEventListener('change', (e) => {
+        const scale = e.target.value;
+        this.applyTextScale(scale);
+        StorageService.saveTextScale(scale);
+      });
+    }
+
+    // Restablecer tamaño de tarjetas
+    if (this.resetCardSizeBtn) {
+      this.resetCardSizeBtn.addEventListener('click', () => {
+        this.applyCardSize(DEFAULT_CARD_SIZE.width, DEFAULT_CARD_SIZE.height);
+        StorageService.resetCardSize();
+      });
+    }
   }
 
   handleAddNote() {
@@ -1002,10 +1117,18 @@ class NotesApp {
               </div>
               <span class="note-date">${this.formatDate(note.created_at)}</span>
             </div>
+            <!-- Tirador para redimensionar todas las notas al arrastrar -->
+            <div class="card-resize-handle" title="Arrastra para cambiar el tamaño estándar de todas las notas">
+              <svg viewBox="0 0 14 14" width="9" height="9">
+                <path d="M12 2 L2 12 M12 6 L6 12 M12 10 L10 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              </svg>
+            </div>
           </div>
         `;
       })
       .join('');
+
+    this.updateCardSizeResetButton();
 
     // Listeners interactivos
     this.notesGrid.querySelectorAll('.note-card').forEach((card) => {
@@ -1030,6 +1153,14 @@ class NotesApp {
         e.stopPropagation();
         this.deleteNote(noteId);
       });
+      const resizeHandle = card.querySelector('.card-resize-handle');
+      if (resizeHandle) {
+        resizeHandle.addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          this.startResizingCards(e, card);
+        });
+      }
     });
   }
 }

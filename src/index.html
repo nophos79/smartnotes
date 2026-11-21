@@ -131,6 +131,14 @@
         </div>
 
         <div class="topbar-right">
+          <div class="text-size-box">
+            <label for="textSizeSelect">Texto:</label>
+            <select id="textSizeSelect" title="Ajustar tamaño de la tipografía">
+              <option value="1">Normal (100%)</option>
+              <option value="1.12">Grande (+12%)</option>
+              <option value="1.25">Muy Grande (+25%)</option>
+            </select>
+          </div>
           <div class="sort-box">
             <label for="sortSelect">Ordenar por:</label>
             <select id="sortSelect">
@@ -187,6 +195,9 @@
           <span id="currentFilterTitle">Todas las notas</span>
           <span class="filter-count-badge" id="currentFilterCount">(3 notas)</span>
         </div>
+        <button id="resetCardSizeBtn" class="reset-size-btn" style="display: none;" title="Restablecer tamaño predeterminado de las tarjetas">
+          <span>↺</span> Restablecer tamaño de notas
+        </button>
       </div>
 
       <!-- Rejilla Fluida que aprovecha toda la pantalla -->

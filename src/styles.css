@@ -10,6 +10,13 @@
   --accent: #38bdf8;
   --accent-hover: #0284c7;
   --sidebar-width: 270px;
+  --card-min-width: 290px;
+  --card-height: 240px;
+  --text-scale: 1;
+}
+
+html {
+  font-size: calc(16px * var(--text-scale, 1));
 }
 
 /* Modo Claro - Paleta de Alta Claridad y Contraste (Estilo Equigasto) */
@@ -428,26 +435,31 @@ body {
   max-width: 600px;
 }
 
-.search-box input {
+.search-box input,
+.search-box input[type="text"] {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.85rem; /* Separación amplia: nunca se solapa con la lupa */
+  padding-left: 3.25rem !important; /* Separación garantizada: la lupa está a 1.1rem y el texto a 3.25rem */
+  padding-right: 1.25rem !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 10px;
   color: var(--text-main);
-  font-size: 0.95rem;
+  font-size: 1rem;
   outline: none;
   transition: all 0.2s;
 }
 
-.search-box input:focus {
+.search-box input:focus,
+.search-box input[type="text"]:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }
 
 .search-icon {
   position: absolute;
-  left: 1rem;
+  left: 1.15rem;
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-muted);
@@ -455,13 +467,39 @@ body {
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  z-index: 2;
 }
 
 .search-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 19px;
+  height: 19px;
   stroke: currentColor;
   stroke-width: 2.2;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.text-size-box {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.text-size-box select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  color: var(--text-main);
+  outline: none;
+  cursor: pointer;
+  font-size: 0.85rem;
 }
 
 .sort-box {
@@ -642,7 +680,7 @@ textarea {
 /* GRID FULL-WIDTH FLUIDO CON TARJETAS DE TAMAÑO ESTÁNDAR */
 .full-width-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(var(--card-min-width, 290px), 1fr));
   gap: 1.25rem;
   width: 100%;
 }
@@ -652,13 +690,72 @@ textarea {
   border: 1px solid var(--border-color);
   border-radius: 14px;
   padding: 1.15rem;
-  height: 235px; /* Tamaño estándar uniforme en todas las tarjetas */
+  height: var(--card-height, 240px); /* Tamaño estándar uniforme configurable */
+  min-height: var(--card-height, 240px);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
   position: relative;
   overflow: hidden;
+}
+
+body.is-resizing-cards,
+body.is-resizing-cards * {
+  cursor: nwse-resize !important;
+  user-select: none !important;
+}
+
+body.is-resizing-cards .note-card {
+  transition: none !important;
+}
+
+.card-resize-handle {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 20px;
+  height: 20px;
+  cursor: nwse-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  opacity: 0.35;
+  transition: opacity 0.2s, color 0.2s, transform 0.15s;
+  user-select: none;
+  z-index: 10;
+}
+
+.note-card:hover .card-resize-handle {
+  opacity: 0.85;
+}
+
+.card-resize-handle:hover {
+  opacity: 1;
+  color: var(--accent);
+  transform: scale(1.15);
+}
+
+.reset-size-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.reset-size-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(79, 70, 229, 0.08);
 }
 
 .note-card:hover {
@@ -733,9 +830,9 @@ textarea {
 }
 
 .note-title {
-  font-size: 1.02rem;
+  font-size: 1.08rem;
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.35;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
@@ -751,9 +848,9 @@ textarea {
 }
 
 .note-content {
-  font-size: 0.88rem;
+  font-size: 0.94rem;
   color: var(--text-muted);
-  line-height: 1.45;
+  line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-word;
   display: -webkit-box;
@@ -767,8 +864,8 @@ textarea {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
   color: var(--text-muted);
-  font-size: 0.72rem;
-  padding: 0.2rem 0.5rem;
+  font-size: 0.78rem;
+  padding: 0.25rem 0.6rem;
   border-radius: 5px;
   cursor: pointer;
   transition: all 0.15s;
