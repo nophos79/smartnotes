@@ -1,25 +1,30 @@
-# Feature Specification: Gestor de Tareas y Notas Inteligente (v6.6 - Restablecimiento Automático de Tamaño Mínimo en Cuadrícula)
+# Feature Specification: Gestor de Tareas y Notas Inteligente (v6.7 - Optimización de Márgenes y Exclusión de Redimensionamiento en Lista)
 
 **Feature Branch**: `001-task-notes-manager`  
 **Created**: 2026-11-20 | **Updated**: 2026-11-21  
-**Status**: Completed (v6.6 Grid View Auto-Reset to Compact Minimum Dimensions)  
+**Status**: Completed (v6.7 Compact Margins & List View Resize Exclusion)  
 **Input**:
-1. Al volver a la vista cuadrícula desde la vista de lista, las tarjetas deben volver a tener automáticamente el tamaño mínimo ya decidido para esa visualización (fichas compactas de 3 niveles: 110px de altura y 250px de ancho).
-2. Actualización de las constantes de tamaño por defecto del sistema a la geometría mínima compacta (110px de alto), migrando valores obsoletos de versiones anteriores.
+1. En la vista de lista, no debe aparecer el icono para cambiar el tamaño de las fichas (`.card-resize-handle`) y, por consiguiente, tampoco el botón `#resetCardSizeBtn`.
+2. En la vista de cuadrícula, reducir el margen y el espacio en blanco excesivo alrededor del contenido de las fichas.
+3. En la vista de lista, reducir el espacio en blanco del borde de cada fila para lograr un diseño denso y ceñido al contenido.
 
 ---
 
-## 1. User Story 34 - Restablecimiento Automático del Tamaño Mínimo en Vista Cuadrícula
-Como usuario, cuando cambio de la vista de lista a la vista de cuadrícula, quiero que las fichas vuelvan a adoptar de forma inmediata el tamaño mínimo compacto establecido para esa visualización (110px de altura y 250px de ancho), evitando que se muestren con dimensiones sobredimensionadas.
+## 1. User Story 35 - Optimización de Márgenes y Exclusión de Redimensión en Lista
+Como usuario, quiero que la vista de lista prescinda del tirador de redimensión y del botón de restablecimiento de tamaño, y que tanto las fichas de cuadrícula como las filas de lista tengan márgenes y rellenos ceñidos a su contenido sin espacios en blanco desaprovechados.
 
 * **Acceptance Criteria**:
-  - **Restablecimiento Inmediato al Conmutar a Cuadrícula**:
-    - Al pulsar el conmutador de vista (`#viewToggleBtn`) para regresar a la vista de cuadrícula (`viewMode === 'grid'`), el sistema aplica automáticamente el tamaño mínimo decidido: `GRID_MIN_CARD_SIZE = { width: 250, height: 110 }`.
-    - Las propiedades CSS `--card-min-width` y `--card-height` se actualizan a `250px` y `110px` respectivamente.
-    - El tamaño se sincroniza en `localStorage` (`speckit_card_size_v1`), manteniendo la coherencia entre recargas.
-  - **Definición de Tamaño Base Compacto**:
-    - El tamaño por defecto `DEFAULT_CARD_SIZE` pasa de los antiguos 240px a los `110px` de altura actuales (y `250px` de ancho mínimo), garantizando que las nuevas sesiones y los restablecimientos manuales muestren siempre la ficha compacta de 3 niveles.
-    - En `src/styles.css`, `.note-card` fija `min-height: 110px;` y `height: var(--card-height, 110px);`.
+  - **Exclusión de Redimensionamiento en Vista Lista**:
+    - En `.view-list`, el tirador de arrastre `.card-resize-handle` queda oculto (`display: none !important;`).
+    - En `.view-list`, el botón `#resetCardSizeBtn` permanece oculto en la barra de herramientas.
+  - **Reducción de Márgenes y Relleno Blanco en Cuadrícula**:
+    - Reducción del relleno perimetral de `.note-card` a `padding: 0.4rem 0.55rem 0.35rem 0.55rem;`.
+    - Reducción del espaciado interno en `.note-body` (`margin: 0.15rem 0;`) y `.note-footer` (`padding-top: 0.3rem;`).
+    - Ajuste de dimensiones compactas mínimas a `width: 240px` y `height: 98px` (`min-height: 96px;`), eliminando el área blanca sobrante.
+  - **Reducción de Espacio Blanco del Borde en Vista Lista**:
+    - Reducción del padding de la fila a `padding: 0.2rem 0.5rem !important;`.
+    - Ajuste de altura de fila a `height: 36px !important; min-height: 36px !important; max-height: 40px !important;`.
+    - Contenido verticalmente centrado con holgura mínima estética.
 
 ---
 
@@ -27,8 +32,10 @@ Como usuario, cuando cambio de la vista de lista a la vista de cuadrícula, quie
 
 * **FR-051**: Botón conmutador de vista (`grid` vs `list`) con persistencia en `localStorage`.
 * **FR-052**: Regla de exclusión mutua de categoría: pie en cuadrícula, inicio en lista; cero duplicidades.
-* **FR-053**: Altura mínima de 110px para tarjetas en modo cuadrícula.
+* **FR-053**: Altura mínima acotada para tarjetas en modo cuadrícula.
 * **FR-054**: Truncado con elipsis anticolisión entre el título y la fecha límite, y en la descripción.
 * **FR-055**: Posicionamiento contextual de la fecha límite: contigua a la categoría en vista lista, superior derecha en vista cuadrícula.
 * **FR-056**: Flujo continuo y adyacente entre título y descripción en vista lista sin espacios intermedios fantasma.
-* **FR-057**: Restablecimiento automático a dimensiones mínimas compactas (250×110px) al regresar a la vista de cuadrícula.
+* **FR-057**: Restablecimiento automático a dimensiones mínimas compactas al regresar a la vista de cuadrícula.
+* **FR-058**: Ocultación estricta de controles de redimensión (tirador y botón restablecer) en la vista de lista.
+* **FR-059**: Optimización de márgenes y eliminación de espacios en blanco perimetrales en tarjetas y filas.

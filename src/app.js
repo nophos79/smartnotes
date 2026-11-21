@@ -11,8 +11,8 @@ const STORAGE_KEY_CARD_SIZE = 'speckit_card_size_v1';
 const STORAGE_KEY_TEXT_SCALE = 'speckit_text_scale_v1';
 const STORAGE_KEY_VIEW_MODE = 'speckit_view_mode_v1';
 
-const GRID_MIN_CARD_SIZE = { width: 250, height: 110 };
-const DEFAULT_CARD_SIZE = { width: 250, height: 110 };
+const GRID_MIN_CARD_SIZE = { width: 240, height: 98 };
+const DEFAULT_CARD_SIZE = { width: 240, height: 98 };
 
 const DEFAULT_CATEGORIES = [
   { id: 'trabajo', name: 'Trabajo', color: '#38bdf8' },
@@ -282,7 +282,7 @@ class NotesApp {
     this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
     StorageService.saveViewMode(this.viewMode);
 
-    // Al volver a la vista cuadrícula, las tarjetas deben volver a tener el tamaño mínimo ya decidido (110px de alto, 250px de ancho)
+    // Al volver a la vista cuadrícula, las tarjetas deben volver al tamaño mínimo ya decidido (98px de alto, 240px de ancho)
     if (this.viewMode === 'grid') {
       this.applyCardSize(GRID_MIN_CARD_SIZE.width, GRID_MIN_CARD_SIZE.height);
       StorageService.saveCardSize(GRID_MIN_CARD_SIZE);
@@ -308,6 +308,9 @@ class NotesApp {
     if (this.viewIconList) this.viewIconList.style.display = isList ? 'none' : 'inline-block';
     if (this.viewIconGrid) this.viewIconGrid.style.display = isList ? 'inline-block' : 'none';
     if (this.viewToggleLabel) this.viewToggleLabel.textContent = isList ? 'Vista Cuadrícula' : 'Vista Lista';
+
+    // En vista lista, el botón de restablecer tamaño nunca debe mostrarse
+    this.updateCardSizeResetButton();
   }
 
   initCardSizeAndTextScale() {
@@ -360,6 +363,11 @@ class NotesApp {
 
   updateCardSizeResetButton() {
     if (!this.resetCardSizeBtn) return;
+    // En vista lista nunca debe mostrarse el botón de restablecer tamaño
+    if (this.viewMode === 'list') {
+      this.resetCardSizeBtn.style.display = 'none';
+      return;
+    }
     const isCustom = this.cardSize.width !== DEFAULT_CARD_SIZE.width || this.cardSize.height !== DEFAULT_CARD_SIZE.height;
     this.resetCardSizeBtn.style.display = isCustom ? 'inline-flex' : 'none';
     if (isCustom) {
@@ -368,6 +376,9 @@ class NotesApp {
   }
 
   startResizingCards(e, card) {
+    // En vista lista no se permite cambiar el tamaño de las fichas
+    if (this.viewMode === 'list') return;
+
     const rect = card.getBoundingClientRect();
     const startX = e.clientX;
     const startY = e.clientY;
@@ -380,12 +391,11 @@ class NotesApp {
       const deltaX = moveEvt.clientX - startX;
       const deltaY = moveEvt.clientY - startY;
 
-      const isList = this.viewMode === 'list';
-      // En modo cuadrícula: altura mínima 110px (tarjeta compacta foto 1 y 3). En lista: 44px
-      const minH = isList ? 44 : 110;
-      const maxH = isList ? 70 : 600;
-      const minW = isList ? 200 : 220;
-      const maxW = isList ? 1800 : 750;
+      // En modo cuadrícula: altura mínima 96px (tarjeta compacta ceñida sin blancos sobrantes)
+      const minH = 96;
+      const maxH = 600;
+      const minW = 210;
+      const maxW = 750;
 
       const newWidth = Math.round(Math.max(minW, Math.min(maxW, startWidth + deltaX)));
       const newHeight = Math.round(Math.max(minH, Math.min(maxH, startHeight + deltaY)));

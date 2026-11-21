@@ -113,3 +113,9 @@
 
 ## Phase 26: Restablecimiento Automático de Tamaño Mínimo en Cuadrícula v6.6 (Completado)
 - [x] **T61**: Restablecer automáticamente el tamaño de las tarjetas a las dimensiones mínimas compactas (`width: 250px`, `height: 110px`) al conmutar a la vista de cuadrícula, actualizando variables CSS, persistencia en almacenamiento y constantes por defecto.
+
+---
+
+## Phase 27: Optimización de Márgenes Compactos y Exclusión de Redimensión en Lista v6.7 (Completado)
+- [x] **T62**: Ocultar el tirador de redimensión (`.card-resize-handle`) y el botón `#resetCardSizeBtn` en la vista de lista (`.view-list`).
+- [x] **T63**: Reducir el relleno y márgenes en blanco en las fichas de cuadrícula (`padding: 0.4rem 0.55rem 0.35rem 0.55rem; height: 98px;`) y en las filas de lista (`padding: 0.2rem 0.5rem; height: 36px;`).
