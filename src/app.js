@@ -1287,6 +1287,9 @@ class NotesApp {
           dueDateHtml = `<span class="due-badge ${badgeClass}" title="${tooltip}">${iconSvg}<span>${label}</span></span>`;
         }
 
+        const dueListHtml = dueDateHtml ? `<span class="note-due-list-wrap">${dueDateHtml}</span>` : '';
+        const dueGridHtml = dueDateHtml ? `<div class="note-due-grid-wrap">${dueDateHtml}</div>` : '';
+
         return `
           <div class="note-card ${completedClass}" data-id="${note.id}">
             <div class="note-header">
@@ -1302,6 +1305,8 @@ class NotesApp {
                 <span class="badge note-badge-row" style="background: ${catColor}22; color: ${catColor}; border: 1px solid ${catColor}44;">
                   ${this.escapeHTML(note.category)}
                 </span>
+                <!-- Fecha límite a continuación de la categoría en vista lista -->
+                ${dueListHtml}
                 <!-- Bloque interactivo de texto para fila única y cuadrícula -->
                 <div class="note-text-flow" title="Haz clic para ver el detalle completo">
                   <h3 class="note-title" title="${this.escapeHTML(note.title)}">${this.escapeHTML(note.title)}</h3>
@@ -1311,7 +1316,8 @@ class NotesApp {
                   </span>
                 </div>
               </div>
-              ${dueDateHtml}
+              <!-- Fecha visible arriba a la derecha en cuadrícula normal -->
+              ${dueGridHtml}
             </div>
             <!-- Cuerpo multilínea (visible en cuadrícula normal) -->
             <div class="note-body" title="Haz clic para ver el detalle completo">

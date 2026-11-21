@@ -102,3 +102,9 @@
 - [x] **T56**: Aplicar exclusión mutua estricta de la categoría: en cuadrícula solo abajo con los botones; en lista solo arriba con el check; cero duplicidades.
 - [x] **T57**: Establecer la altura mínima de tarjetas en modo cuadrícula en 110px para garantizar la proporción de las tarjetas compactas.
 - [x] **T58**: Corregir el solapamiento en la cabecera aplicando `min-width: 0`, `flex: 1` y truncado con `text-overflow: ellipsis` estricto en título (antes de la fecha) y en la descripción.
+
+---
+
+## Phase 25: Vista Lista con Fecha Contigua y Título-Descripción Adyacente v6.5 (Completado)
+- [x] **T59**: Reubicar la fecha límite (`.due-badge`) a continuación inmediata de la categoría (`.note-badge-row`) en la vista de lista (`.view-list`), manteniendo la posición superior derecha en la vista de cuadrícula sin duplicidades.
+- [x] **T60**: Eliminar el espacio artificial en blanco entre título y descripción en vista lista mediante `width: auto !important`, `max-width: 55%` y espaciado fluido `gap: 0.35rem`.
