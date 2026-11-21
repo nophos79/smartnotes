@@ -26,9 +26,15 @@
 - [x] **T25 - T27**: File System Access API para guardado en disco/carpeta sincronizada.
 
 ## Phase 12: Deshacer Filtros & Rediseño de Completado v5.1 (Completado)
-- [x] **T28 - T29**: Opción "Todas las categorías", chips con botón [✕] y rediseño de completado.
+- [x] **T28 - T29**: Opción "Todas las categorías" y chips con botón [✕].
+
+## Phase 13: Geometría Cuadrada Estilizada v5.2 (Completado)
+- [x] **T30**: Geometría cuadrada estilizada con esquinas suavizadas (border-radius: 6px).
 
 ---
 
-## Phase 13: Geometría Cuadrada Estilizada v5.2 (Completado)
-- [x] **T30**: Adaptar la geometría del checkbox a formato cuadrado moderno con esquinas suavizadas (border-radius: 6px), conservando animaciones y estados.
+## Phase 14: Perfeccionamiento de Contraste e Iconos Modo Claro v5.3 (Completado)
+- [x] **T31**: Aplicar paleta Slate-50 / Indigo-600 inspirada en Equigasto con alto contraste tipográfico.
+- [x] **T32**: Corregir solapamiento de la lupa en el buscador con SVG vectorial y padding amplio.
+- [x] **T33**: Sustituir emojis por iconos vectoriales nítidos en el botón principal (+).
+- [x] **T34**: Asegurar preservación de User Gesture en File System Access API ejecutando `showSaveFilePicker`/`showOpenFilePicker` de forma síncrona antes de alterar el DOM del modal.

@@ -120,6 +120,7 @@ class NotesApp {
     this.notesGrid = document.getElementById('notesGrid');
     this.newNoteSection = document.getElementById('newNoteSection');
     this.toggleFormBtn = document.getElementById('toggleFormBtn');
+    this.toggleFormBtnText = document.getElementById('toggleFormBtnText');
     this.closeFormBtn = document.getElementById('closeFormBtn');
     this.newNoteForm = document.getElementById('newNoteForm');
     this.noteTitleInput = document.getElementById('noteTitle');
@@ -220,11 +221,11 @@ class NotesApp {
     const isOpen = forceState !== null ? forceState : !this.newNoteSection.classList.contains('open');
     if (isOpen) {
       this.newNoteSection.classList.add('open');
-      this.toggleFormBtn.innerHTML = '<span>✕</span> Ocultar Form';
+      if (this.toggleFormBtnText) this.toggleFormBtnText.textContent = 'Ocultar Form';
       this.noteTitleInput.focus();
     } else {
       this.newNoteSection.classList.remove('open');
-      this.toggleFormBtn.innerHTML = '<span>➕</span> Nueva Nota';
+      if (this.toggleFormBtnText) this.toggleFormBtnText.textContent = 'Nueva Nota';
     }
   }
 
@@ -632,12 +633,10 @@ class NotesApp {
   }
 
   async pickFile(isExisting) {
-    this.closeConnectModal();
-
     try {
       let handle;
       if (isExisting) {
-        // Abrir existente directamente desde el evento de clic del usuario
+        // Abrir existente de inmediato en el contexto del clic del usuario
         [handle] = await window.showOpenFilePicker({
           types: [
             {
@@ -648,7 +647,7 @@ class NotesApp {
           multiple: false
         });
       } else {
-        // Crear nuevo directamente desde el evento de clic del usuario
+        // Crear nuevo de inmediato en el contexto del clic del usuario
         handle = await window.showSaveFilePicker({
           suggestedName: 'smartnotes.json',
           types: [
@@ -661,6 +660,9 @@ class NotesApp {
       }
 
       if (!handle) return;
+
+      // Una vez obtenido el handle cerramos el modal
+      this.closeConnectModal();
       this.fileHandle = handle;
 
       // Leer contenido inicial si ya tenía datos
