@@ -56,3 +56,9 @@
 ## Phase 17: Botones Enmarcados e Iconos Vectoriales SVG v5.7 (Completado)
 - [x] **T39**: Unificar el diseño de la fecha límite (`.due-badge`) para que sea gemelo al tag de categoría en tamaño, padding, bordes redondeados (`border-radius: 6px`) y borde fino con SVG de calendario.
 - [x] **T40**: Enmarcar los 3 botones de acción (`.btn-action`) con borde, fondo elevado y sustituir emojis por iconos vectoriales SVG nítidos (ojo, lápiz, papelera).
+
+---
+
+## Phase 18: Tooltips Modernos e Iconografía de Última Generación v5.8 (Completado)
+- [x] **T41**: Implementar el sistema de tooltips flotantes modernos (`#appTooltip`), silenciando los tooltips antiguos del navegador y posicionándolos dinámicamente con animación fluida.
+- [x] **T42**: Actualizar la iconografía de los botones de tarjeta a diseños vectoriales contemporáneos (ojo moderno con pupila centrada, pluma estilizada, papelera moderna de doble ranura) y optimizar el tamaño de los botones a 30×30px con `border-radius: 8px`.
