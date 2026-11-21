@@ -62,3 +62,9 @@
 ## Phase 18: Tooltips Modernos e Iconografía de Última Generación v5.8 (Completado)
 - [x] **T41**: Implementar el sistema de tooltips flotantes modernos (`#appTooltip`), silenciando los tooltips antiguos del navegador y posicionándolos dinámicamente con animación fluida.
 - [x] **T42**: Actualizar la iconografía de los botones de tarjeta a diseños vectoriales contemporáneos (ojo moderno con pupila centrada, pluma estilizada, papelera moderna de doble ranura) y optimizar el tamaño de los botones a 30×30px con `border-radius: 8px`.
+
+---
+
+## Phase 19: Formato dd/mm/aa Superior y Contraste Modo Oscuro v5.9 (Completado)
+- [x] **T43**: Reubicar la fecha de vencimiento a la esquina superior derecha (`.note-header`) con formateador `dd/mm/aa` (ej: `01/12/26`).
+- [x] **T44**: Mejorar la visibilidad y contraste en modo oscuro para los botones de acción (`#f1f5f9` sobre `#1e293b`) y la paleta de alto contraste para la fecha en ambos temas.

@@ -766,6 +766,7 @@ body.is-resizing-cards .note-card {
 
 .note-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 0.65rem;
   flex-shrink: 0;
@@ -898,9 +899,9 @@ body.is-resizing-cards .note-card {
 .card-actions .btn-action {
   width: 30px;
   height: 30px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  color: var(--text-muted);
+  background: #1e293b; /* Slate 800 en modo oscuro - Elevado sobre el fondo de la tarjeta */
+  border: 1px solid #334155; /* Slate 700 - Borde visible y nítido */
+  color: #f1f5f9; /* Slate 100 - Blanco grisáceo de altísimo contraste */
   cursor: pointer;
   padding: 0;
   border-radius: 8px;
@@ -908,20 +909,21 @@ body.is-resizing-cards .note-card {
   align-items: center;
   justify-content: center;
   transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 .card-actions .btn-action svg {
   stroke: currentColor;
+  stroke-width: 2.2;
   transition: transform 0.15s, stroke 0.15s;
 }
 
 .card-actions .btn-action:hover {
-  background-color: var(--bg-secondary);
-  border-color: var(--accent);
-  color: var(--accent);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
+  background-color: #334155;
+  border-color: #38bdf8;
+  color: #38bdf8;
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
 .card-actions .btn-action:hover svg {
@@ -936,29 +938,29 @@ body.is-resizing-cards .note-card {
 body.light-theme .card-actions .btn-action {
   background-color: #ffffff;
   border-color: #cbd5e1; /* Slate 300 - Borde nítido */
-  color: #475569; /* Slate 600 - Máximo contraste visual */
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  color: #1e293b; /* Slate 800 - Máximo contraste sobre blanco */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 body.light-theme .card-actions .btn-action:hover {
   background-color: #f8fafc;
   border-color: var(--accent);
   color: var(--accent);
-  box-shadow: 0 3px 8px rgba(79, 70, 229, 0.15);
+  box-shadow: 0 3px 8px rgba(79, 70, 229, 0.18);
 }
 
 /* Botón de Borrado enmarcado */
 .card-actions .btn-action.delete:hover {
-  color: #ef4444;
+  color: #f87171;
   border-color: #f87171;
-  background-color: rgba(239, 68, 68, 0.08);
+  background-color: rgba(239, 68, 68, 0.2);
 }
 
 body.light-theme .card-actions .btn-action.delete:hover {
   color: #dc2626;
   border-color: #fca5a5;
   background-color: #fef2f2;
-  box-shadow: 0 2px 5px rgba(239, 68, 68, 0.12);
+  box-shadow: 0 3px 8px rgba(220, 38, 38, 0.18);
 }
 
 .note-footer {
@@ -1000,54 +1002,59 @@ body.light-theme .card-actions .btn-action.delete:hover {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 600;
-  padding: 0.25rem 0.6rem;
+  padding: 0.22rem 0.55rem;
   border-radius: 6px;
   letter-spacing: 0.02em;
   border: 1px solid transparent;
   line-height: 1.25;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .badge-icon-svg {
   flex-shrink: 0;
   stroke: currentColor;
+  stroke-width: 2.2;
+}
+
+/* Modo Oscuro: Paleta viva de alto contraste */
+.due-future {
+  background-color: rgba(56, 189, 248, 0.12); /* Cyan translúcido */
+  color: #38bdf8; /* Cyan 400 - Nítido, vivo y perfectamente legible */
+  border: 1px solid rgba(56, 189, 248, 0.4);
 }
 
 .due-overdue {
-  background-color: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
-  border-color: rgba(239, 68, 68, 0.25);
+  background-color: rgba(239, 68, 68, 0.18);
+  color: #fca5a5; /* Rojo brillante de alto contraste */
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.due-today {
+  background-color: rgba(245, 158, 11, 0.18);
+  color: #fde047; /* Amarillo brillante de alto contraste */
+  border: 1px solid rgba(245, 158, 11, 0.5);
+}
+
+/* Modo Claro: Azul zafiro y tonos intensos de alto contraste */
+body.light-theme .due-future {
+  background-color: #eff6ff; /* Azul 50 */
+  color: #1d4ed8; /* Azul 700 - Intenso, nítido y profesional */
+  border-color: #bfdbfe; /* Azul 200 */
 }
 
 body.light-theme .due-overdue {
   background-color: #fef2f2;
-  color: #dc2626;
-  border-color: #fecaca;
-}
-
-.due-today {
-  background-color: rgba(245, 158, 11, 0.12);
-  color: #d97706;
-  border-color: rgba(245, 158, 11, 0.25);
+  color: #b91c1c; /* Crimson 700 */
+  border-color: #fca5a5;
 }
 
 body.light-theme .due-today {
   background-color: #fffbeb;
-  color: #b45309;
-  border-color: #fde68a;
-}
-
-.due-future {
-  background-color: rgba(148, 163, 184, 0.1);
-  color: var(--text-muted);
-  border-color: var(--border-color);
-}
-
-body.light-theme .due-future {
-  background-color: #f8fafc; /* Slate 50 */
-  color: #475569; /* Slate 600 */
-  border-color: #cbd5e1; /* Slate 300 */
+  color: #b45309; /* Ámbar 700 */
+  border-color: #fcd34d;
 }
 
 /* Modales */
