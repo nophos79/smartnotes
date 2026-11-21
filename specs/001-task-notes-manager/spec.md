@@ -1,30 +1,33 @@
-# Feature Specification: Gestor de Tareas y Notas Inteligente (v5.9 - Fecha dd/mm/aa Superior y Alto Contraste)
+# Feature Specification: Gestor de Tareas y Notas Inteligente (v6.0 - Identidad Cromática de Acciones e Iconos)
 
 **Feature Branch**: `001-task-notes-manager`  
 **Created**: 2026-11-20 | **Updated**: 2026-11-21  
-**Status**: Completed (v5.9 Due Date dd/mm/yy Top-Right & High Contrast Icons)  
+**Status**: Completed (v6.0 Action Buttons Chromatic Identity & Modern Vector Icons)  
 **Input**:
-1. En modo oscuro los iconos de detalle, editar y borrar notas no se ven claros (faint/dim).
-2. El campo fecha debe presentarse en formato `dd/mm/aa` (ej: `01/12/26`) y reubicarse arriba a la derecha en la cabecera de la nota.
-3. La etiqueta de fecha debe tener colores de alto contraste que resalten con nitidez tanto en modo claro como en modo oscuro.
+1. Poner color diferenciado a los botones de acción rápida de cada nota: detalle, editar y borrar.
+2. Aclarar la discrepancia visual entre los iconos descritos en las respuestas del asistente (donde se utilizaron emojis como atajo de texto) y los iconos reales mostrados en la aplicación web (vectores SVG modernos).
 
 ---
 
-## 1. User Story 27 - Fecha en Cabecera y Máximo Contraste de Acciones
-Como usuario, quiero consultar la fecha límite de un vistazo en la esquina superior derecha de la tarjeta con formato compacto `dd/mm/aa` y colores vivos de alto contraste, y que los botones de acción en modo oscuro se distingan con total nitidez sin verse apagados.
+## 1. User Story 28 - Identidad Cromática en Botones de Acción
+Como usuario, quiero que los botones de detalle, editar y borrar tengan identidades de color diferenciadas tanto en modo oscuro como en modo claro, para identificarlos y pulsarlos de forma instantánea sin confusiones visuales, disfrutando de iconos vectoriales modernos y estilizados.
 
 * **Acceptance Criteria**:
-  - **Ubicación y Formato de Fecha**:
-    - Se formatea la fecha como `dd/mm/aa` (por ejemplo, `01/12/26`).
-    - Se ubica en la esquina superior derecha (`.note-header`), conviviendo armónicamente con el título y el checkbox.
-    - El pie de la tarjeta queda libre en su lado izquierdo exclusivamente para la categoría (`.badge`), y en su lado derecho para los botones de acción.
-  - **Paleta de Alto Contraste para la Fecha**:
-    - Modo Oscuro: Fondo suave cian translúcido con texto `#38bdf8` y borde vibrante (o rojo brillante `#fca5a5` para vencidas y amarillo `#fde047` para hoy).
-    - Modo Claro: Fondo azul suave `#eff6ff` con texto azul zafiro `#1d4ed8` de alto contraste y borde `#bfdbfe`.
-  - **Contraste de Botones de Acción en Modo Oscuro**:
-    - Fondo elevado `#1e293b` con borde nítido `#334155`.
-    - Color base de icono en blanco slate `#f1f5f9` (en lugar de gris apagado `#94a3b8`) con trazo `stroke-width: 2.2px`.
-    - Feedback interactivo vívido al pasar el ratón (azul cielo para detalle, violeta para editar, rojo coral para borrar).
+  - **Identidad Cromática Diferenciada**:
+    - **Botón Detalle (`.btn-detail`)**:
+      - Modo Oscuro: Fondo translúcido cian/cielo (`rgba(14, 165, 233, 0.12)`), borde `rgba(56, 189, 248, 0.35)`, icono/texto cian brillante `#38bdf8`. Hover: fondo más luminoso y borde `#38bdf8`.
+      - Modo Claro: Fondo azul cielo suave `#f0f9ff`, borde `#bae6fd`, icono azul zafiro `#0284c7`. Hover: fondo `#e0f2fe` y borde `#7dd3fc`.
+    - **Botón Editar (`.btn-edit`)**:
+      - Modo Oscuro: Fondo translúcido ámbar/dorado (`rgba(245, 158, 11, 0.12)`), borde `rgba(245, 158, 11, 0.35)`, icono ámbar cálido `#fbbf24`. Hover: fondo ámbar aumentado y borde `#fbbf24`.
+      - Modo Claro: Fondo ámbar claro `#fffbeb`, borde `#fde68a`, icono ámbar oscuro `#d97706`. Hover: fondo `#fef3c7` y borde `#fcd34d`.
+    - **Botón Borrar (`.btn-delete`)**:
+      - Modo Oscuro: Fondo translúcido carmesí/coral (`rgba(239, 68, 68, 0.12)`), borde `rgba(248, 113, 113, 0.35)`, icono rojo coral `#f87171`. Hover: fondo rojo intenso y borde `#f87171`.
+      - Modo Claro: Fondo rosa suave `#fef2f2`, borde `#fecaca`, icono carmesí `#dc2626`. Hover: fondo `#fee2e2` y borde `#f87171`.
+  - **Iconografía Vectorial Nítida (SVG)**:
+    - Sin dependencia de emojis de sistema operativo.
+    - Ojo geométrico moderno con pupila central nítida (15×15px).
+    - Lápiz de edición con ángulo contemporáneo y punta definida (15×15px).
+    - Papelera estilizada con tapa separada y guías verticales interiores (15×15px).
 
 ---
 
@@ -32,3 +35,5 @@ Como usuario, quiero consultar la fecha límite de un vistazo en la esquina supe
 
 * **FR-039**: Formato `dd/mm/aa` y reubicación en la cabecera superior derecha de la nota.
 * **FR-040**: Elevación de contraste de iconos de acción y etiqueta de fecha en temas claro y oscuro.
+* **FR-041**: Identidad cromática por tipo de acción (Cian para Detalle, Ámbar para Editar, Coral/Rojo para Borrar) tanto en estado base como en hover.
+* **FR-042**: Consistencia vectorial SVG de estilo moderno en los 3 botones de acción rápida.

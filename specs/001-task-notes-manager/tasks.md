@@ -68,3 +68,9 @@
 ## Phase 19: Formato dd/mm/aa Superior y Contraste Modo Oscuro v5.9 (Completado)
 - [x] **T43**: Reubicar la fecha de vencimiento a la esquina superior derecha (`.note-header`) con formateador `dd/mm/aa` (ej: `01/12/26`).
 - [x] **T44**: Mejorar la visibilidad y contraste en modo oscuro para los botones de acción (`#f1f5f9` sobre `#1e293b`) y la paleta de alto contraste para la fecha en ambos temas.
+
+---
+
+## Phase 20: Identidad Cromática e Iconos Modernos v6.0 (Completado)
+- [x] **T45**: Aplicar paleta de color diferenciada para `.btn-detail` (Cian), `.btn-edit` (Ámbar) y `.btn-delete` (Carmesí/Rojo) en modo oscuro y claro (fondos sutilmente tintados, bordes a juego, colores de trazo específicos y efectos hover).
+- [x] **T46**: Perfeccionar la iconografía vectorial SVG pura (15×15px, trazo 2.2, estilo moderno Lucide) en `src/app.js` y eliminar cualquier ambigüedad de visualización.
