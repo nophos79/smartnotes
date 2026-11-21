@@ -119,3 +119,9 @@
 ## Phase 27: Optimización de Márgenes Compactos y Exclusión de Redimensión en Lista v6.7 (Completado)
 - [x] **T62**: Ocultar el tirador de redimensión (`.card-resize-handle`) y el botón `#resetCardSizeBtn` en la vista de lista (`.view-list`).
 - [x] **T63**: Reducir el relleno y márgenes en blanco en las fichas de cuadrícula (`padding: 0.4rem 0.55rem 0.35rem 0.55rem; height: 98px;`) y en las filas de lista (`padding: 0.2rem 0.5rem; height: 36px;`).
+
+---
+
+## Phase 28: Arquitectura Híbrida Segura: SmartNotes.html y notas.json v7.0 (Completado)
+- [x] **T64**: Implementar la persistencia de `FileSystemFileHandle` en IndexedDB (`SmartNotesFS`) y flujo de reconexión ágil en `src/app.js` con sugerencia predeterminada `notas.json`.
+- [x] **T65**: Crear script compilador `scripts/build.js` y generar el ejecutable autónomo `SmartNotes.html` con CSS y JS autocontenidos en la raíz del proyecto para uso seguro en Google Drive / OneDrive.

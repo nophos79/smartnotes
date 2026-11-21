@@ -1,30 +1,30 @@
-# Feature Specification: Gestor de Tareas y Notas Inteligente (v6.7 - Optimización de Márgenes y Exclusión de Redimensionamiento en Lista)
+# Feature Specification: Gestor de Tareas y Notas Inteligente (v7.0 - Arquitectura Híbrida Segura: SmartNotes.html y notas.json)
 
 **Feature Branch**: `001-task-notes-manager`  
 **Created**: 2026-11-20 | **Updated**: 2026-11-21  
-**Status**: Completed (v6.7 Compact Margins & List View Resize Exclusion)  
+**Status**: Completed (v7.0 Autonomous SmartNotes.html Executable with Cloud-Synced notas.json & Anti-Corruption Design)  
 **Input**:
-1. En la vista de lista, no debe aparecer el icono para cambiar el tamaño de las fichas (`.card-resize-handle`) y, por consiguiente, tampoco el botón `#resetCardSizeBtn`.
-2. En la vista de cuadrícula, reducir el margen y el espacio en blanco excesivo alrededor del contenido de las fichas.
-3. En la vista de lista, reducir el espacio en blanco del borde de cada fila para lograr un diseño denso y ceñido al contenido.
+1. Implementar la arquitectura híbrida acordada: un ejecutable autónomo `SmartNotes.html` (código y estilos autocontenidos en modo solo lectura para evitar cualquier corrupción) que guarda las notas en un archivo independiente `notas.json` situado en la carpeta sincronizada de Google Drive o OneDrive.
+2. Persistencia del enlace con el archivo `notas.json` en IndexedDB para reconexión instantánea entre sesiones.
+3. Doble capa de persistencia activa: guardado en tiempo real en `notas.json` respaldado en la nube junto a una réplica de seguridad en `localStorage`.
 
 ---
 
-## 1. User Story 35 - Optimización de Márgenes y Exclusión de Redimensión en Lista
-Como usuario, quiero que la vista de lista prescinda del tirador de redimensión y del botón de restablecimiento de tamaño, y que tanto las fichas de cuadrícula como las filas de lista tengan márgenes y rellenos ceñidos a su contenido sin espacios en blanco desaprovechados.
+## 1. User Story 36 - Arquitectura Híbrida Segura (SmartNotes.html + notas.json)
+Como usuario, quiero disponer de un único archivo ejecutable `SmartNotes.html` que pueda abrir desde cualquier ubicación (como mi Google Drive o OneDrive) sin riesgo de que el código se corrompa, y que guarde mis notas en un archivo de datos limpio `notas.json` sincronizado en la nube con reconexión persistente.
 
 * **Acceptance Criteria**:
-  - **Exclusión de Redimensionamiento en Vista Lista**:
-    - En `.view-list`, el tirador de arrastre `.card-resize-handle` queda oculto (`display: none !important;`).
-    - En `.view-list`, el botón `#resetCardSizeBtn` permanece oculto en la barra de herramientas.
-  - **Reducción de Márgenes y Relleno Blanco en Cuadrícula**:
-    - Reducción del relleno perimetral de `.note-card` a `padding: 0.4rem 0.55rem 0.35rem 0.55rem;`.
-    - Reducción del espaciado interno en `.note-body` (`margin: 0.15rem 0;`) y `.note-footer` (`padding-top: 0.3rem;`).
-    - Ajuste de dimensiones compactas mínimas a `width: 240px` y `height: 98px` (`min-height: 96px;`), eliminando el área blanca sobrante.
-  - **Reducción de Espacio Blanco del Borde en Vista Lista**:
-    - Reducción del padding de la fila a `padding: 0.2rem 0.5rem !important;`.
-    - Ajuste de altura de fila a `height: 36px !important; min-height: 36px !important; max-height: 40px !important;`.
-    - Contenido verticalmente centrado con holgura mínima estética.
+  - **Ejecutable Autónomo `SmartNotes.html`**:
+    - Archivo único e independiente que integra `HTML`, `CSS` y `JS` en un solo documento ejecutable con doble clic en cualquier navegador.
+    - Modo de ejecución de solo lectura para el código base: la aplicación nunca se auto-modifica ni sobreescribe su propia estructura, garantizando un riesgo 0 de corrupción.
+  - **Sincronización Transparente con `notas.json`**:
+    - El widget de sincronización permite conectar o crear `notas.json` (o cualquier archivo `.json`) en una carpeta sincronizada (Google Drive / OneDrive / disco local).
+    - Cada creación, edición, cambio de estado, eliminación o creación de categorías escribe de inmediato en `notas.json`.
+  - **Persistencia de Handle en IndexedDB (Reconexión Instantánea)**:
+    - El `FileSystemFileHandle` se almacena en IndexedDB (`SmartNotesFS`).
+    - Al abrir `SmartNotes.html` en sesiones posteriores, la aplicación detecta el archivo vinculado previamente y restaura la conexión de forma automática o mediante un solo clic de confirmación de permisos.
+  - **Doble Capa de Seguridad**:
+    - Mantiene sincronizado tanto el archivo físico `notas.json` como el almacenamiento en `localStorage`, garantizando que las notas sigan disponibles incluso si se abre la app temporalmente sin permisos de archivo.
 
 ---
 
@@ -39,3 +39,6 @@ Como usuario, quiero que la vista de lista prescinda del tirador de redimensión
 * **FR-057**: Restablecimiento automático a dimensiones mínimas compactas al regresar a la vista de cuadrícula.
 * **FR-058**: Ocultación estricta de controles de redimensión (tirador y botón restablecer) en la vista de lista.
 * **FR-059**: Optimización de márgenes y eliminación de espacios en blanco perimetrales en tarjetas y filas.
+* **FR-060**: Compilación y mantenimiento del ejecutable autocontenido `SmartNotes.html` (CSS + JS integrados en solo lectura).
+* **FR-061**: Persistencia del `FileSystemFileHandle` en IndexedDB para reconexión ágil con `notas.json`.
+* **FR-062**: Doble capa de persistencia activa (`notas.json` sincronizado en la nube + réplica en `localStorage`).

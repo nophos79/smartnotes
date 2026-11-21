@@ -134,6 +134,50 @@ class StorageService {
   }
 }
 
+// --- IndexedDB Helper para Persistencia del FileHandle (Reconexión Instantánea) ---
+const IDB_FS_NAME = 'SmartNotesFS';
+const IDB_FS_STORE = 'handles';
+const IDB_FS_KEY = 'activeFileHandle';
+
+function openFSDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_FS_NAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(IDB_FS_STORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveStoredHandle(handle) {
+  try {
+    const db = await openFSDB();
+    const tx = db.transaction(IDB_FS_STORE, 'readwrite');
+    tx.objectStore(IDB_FS_STORE).put(handle, IDB_FS_KEY);
+    return new Promise((resolve) => { tx.oncomplete = resolve; });
+  } catch (e) {
+    console.warn('No se pudo guardar el handle en IDB:', e);
+  }
+}
+
+async function getStoredHandle() {
+  try {
+    const db = await openFSDB();
+    const tx = db.transaction(IDB_FS_STORE, 'readonly');
+    const req = tx.objectStore(IDB_FS_STORE).get(IDB_FS_KEY);
+    return new Promise((resolve) => { req.onsuccess = () => resolve(req.result || null); });
+  } catch (e) {
+    return null;
+  }
+}
+
+async function removeStoredHandle() {
+  try {
+    const db = await openFSDB();
+    const tx = db.transaction(IDB_FS_STORE, 'readwrite');
+    tx.objectStore(IDB_FS_STORE).delete(IDB_FS_KEY);
+  } catch (e) {}
+}
+
 // --- Aplicación Principal ---
 class NotesApp {
   constructor() {
@@ -146,6 +190,8 @@ class NotesApp {
     this.cardSize = StorageService.loadCardSize();
     this.textScale = StorageService.loadTextScale();
     this.viewMode = StorageService.loadViewMode();
+    this.fileHandle = null;
+    this.pendingFileHandle = null;
 
     this.cacheElements();
     this.initTheme();
@@ -156,6 +202,7 @@ class NotesApp {
     this.bindEvents();
     this.initTooltips();
     this.render();
+    this.initPhysicalFile();
   }
 
   cacheElements() {
@@ -715,7 +762,13 @@ class NotesApp {
     this.importFileInput.addEventListener('change', (e) => this.importBackup(e));
 
     // Conexión con Archivo Físico
-    this.connectFileBtn.addEventListener('click', () => this.openConnectModal());
+    this.connectFileBtn.addEventListener('click', () => {
+      if (this.pendingFileHandle) {
+        this.reconnectPendingFile();
+      } else {
+        this.openConnectModal();
+      }
+    });
     this.closeConnectModalBtn.addEventListener('click', () => this.closeConnectModal());
     this.cancelConnectBtn.addEventListener('click', () => this.closeConnectModal());
     this.pickExistingFileBtn.addEventListener('click', () => this.pickFile(true));
@@ -921,6 +974,90 @@ class NotesApp {
   }
 
   // --- Sincronización con Archivo Físico / Carpeta Sincronizada (File System Access API) ---
+  async initPhysicalFile() {
+    if (!('showOpenFilePicker' in window)) return;
+    const stored = await getStoredHandle();
+    if (!stored) return;
+
+    try {
+      const perm = await stored.queryPermission({ mode: 'readwrite' });
+      if (perm === 'granted') {
+        this.fileHandle = stored;
+        await this.loadDataFromFileHandle();
+        this.updateSyncUI(true, this.fileHandle.name);
+      } else {
+        // Permiso pendiente para la sesión actual: estado de reconexión rápida en 1 clic
+        this.pendingFileHandle = stored;
+        this.syncDot.classList.remove('connected');
+        this.syncDot.classList.add('pending');
+        this.syncStatusText.textContent = 'Reconectar archivo';
+        this.syncFilenameText.textContent = stored.name;
+        this.connectBtnLabel.textContent = 'Reconectar ahora';
+        this.disconnectFileBtn.style.display = 'block';
+      }
+    } catch (err) {
+      console.warn('Error al verificar handle de archivo guardado:', err);
+    }
+  }
+
+  async reconnectPendingFile() {
+    if (!this.pendingFileHandle) return;
+    try {
+      const perm = await this.pendingFileHandle.requestPermission({ mode: 'readwrite' });
+      if (perm === 'granted') {
+        this.fileHandle = this.pendingFileHandle;
+        this.pendingFileHandle = null;
+        await this.loadDataFromFileHandle();
+        this.updateSyncUI(true, this.fileHandle.name);
+      }
+    } catch (err) {
+      console.warn('No se pudo reanudar el permiso del archivo:', err);
+      this.pendingFileHandle = null;
+      this.openConnectModal();
+    }
+  }
+
+  async loadDataFromFileHandle() {
+    if (!this.fileHandle) return;
+    try {
+      const file = await this.fileHandle.getFile();
+      const text = await file.text();
+      if (text.trim()) {
+        const data = JSON.parse(text);
+        if (Array.isArray(data.notes)) {
+          this.notes = data.notes;
+          StorageService.saveNotes(this.notes);
+          if (Array.isArray(data.categories)) {
+            this.categories = data.categories;
+            StorageService.saveCategories(this.categories);
+            this.populateCategoryOptions();
+            this.renderSidebarCategories();
+          }
+          this.render();
+        }
+      }
+    } catch (err) {
+      console.warn('Error leyendo el archivo vinculado:', err);
+    }
+  }
+
+  updateSyncUI(connected, filename = '') {
+    if (connected) {
+      this.syncDot.classList.remove('pending');
+      this.syncDot.classList.add('connected');
+      this.syncStatusText.textContent = 'Archivo Vinculado';
+      this.syncFilenameText.textContent = filename || (this.fileHandle ? this.fileHandle.name : 'notas.json');
+      this.connectBtnLabel.textContent = 'Cambiar Archivo';
+      this.disconnectFileBtn.style.display = 'block';
+    } else {
+      this.syncDot.classList.remove('connected', 'pending');
+      this.syncStatusText.textContent = 'Sin vincular';
+      this.syncFilenameText.textContent = 'Guardando en navegador';
+      this.connectBtnLabel.textContent = 'Conectar Archivo';
+      this.disconnectFileBtn.style.display = 'none';
+    }
+  }
+
   openConnectModal() {
     if (!('showOpenFilePicker' in window)) {
       alert(
@@ -950,9 +1087,9 @@ class NotesApp {
           multiple: false
         });
       } else {
-        // Crear nuevo de inmediato en el contexto del clic del usuario
+        // Crear nuevo de inmediato en el contexto del clic del usuario con nombre 'notas.json'
         handle = await window.showSaveFilePicker({
-          suggestedName: 'smartnotes.json',
+          suggestedName: 'notas.json',
           types: [
             {
               description: 'Archivo de notas JSON',
@@ -967,40 +1104,20 @@ class NotesApp {
       // Una vez obtenido el handle cerramos el modal
       this.closeConnectModal();
       this.fileHandle = handle;
+      this.pendingFileHandle = null;
 
-      // Leer contenido inicial si ya tenía datos
-      const file = await this.fileHandle.getFile();
-      const text = await file.text();
+      // Persistir el handle en IndexedDB para reconexiones en sesiones futuras
+      await saveStoredHandle(handle);
 
-      if (text.trim()) {
-        try {
-          const data = JSON.parse(text);
-          if (Array.isArray(data.notes)) {
-            this.notes = data.notes;
-            StorageService.saveNotes(this.notes);
-            if (Array.isArray(data.categories)) {
-              this.categories = data.categories;
-              StorageService.saveCategories(this.categories);
-              this.populateCategoryOptions();
-              this.renderSidebarCategories();
-            }
-          }
-        } catch {
-          console.warn('El archivo estaba vacío o no formateado. Se guardarán los datos actuales.');
-        }
-      }
+      // Leer contenido inicial si ya existía en el archivo
+      await this.loadDataFromFileHandle();
 
-      // Escribir los datos actuales para asegurar sincronización
+      // Guardar inmediatamente los datos actuales para asegurar sincronización inicial
       await this.saveToPhysicalFile();
 
       // Actualizar estado en interfaz
-      this.syncDot.classList.add('connected');
-      this.syncStatusText.textContent = 'Archivo Vinculado';
-      this.syncFilenameText.textContent = this.fileHandle.name;
-      this.connectBtnLabel.textContent = 'Cambiar Archivo';
-      this.disconnectFileBtn.style.display = 'block';
+      this.updateSyncUI(true, this.fileHandle.name);
 
-      this.render();
       alert(`¡Conectado con éxito a "${this.fileHandle.name}"!\nCada cambio se guardará automáticamente en este archivo.`);
     } catch (err) {
       if (err.name !== 'AbortError') {
@@ -1010,13 +1127,11 @@ class NotesApp {
     }
   }
 
-  disconnectPhysicalFile() {
+  async disconnectPhysicalFile() {
     this.fileHandle = null;
-    this.syncDot.classList.remove('connected');
-    this.syncStatusText.textContent = 'Sin vincular';
-    this.syncFilenameText.textContent = 'Guardando en navegador';
-    this.connectBtnLabel.textContent = 'Conectar Archivo';
-    this.disconnectFileBtn.style.display = 'none';
+    this.pendingFileHandle = null;
+    await removeStoredHandle();
+    this.updateSyncUI(false);
   }
 
   async saveToPhysicalFile() {
