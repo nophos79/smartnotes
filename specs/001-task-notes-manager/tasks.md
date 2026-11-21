@@ -50,3 +50,9 @@
 
 ## Phase 16: Reubicación de Acciones a Pie de Tarjeta v5.6 (Completado)
 - [x] **T38**: Trasladar el bloque de acciones (detalle con solo icono `👁️`, lápiz de editar `✏️` y papelera `🗑️`) al pie de la tarjeta (`.note-footer`) junto a la categoría, liberando todo el ancho superior para el título.
+
+---
+
+## Phase 17: Botones Enmarcados e Iconos Vectoriales SVG v5.7 (Completado)
+- [x] **T39**: Unificar el diseño de la fecha límite (`.due-badge`) para que sea gemelo al tag de categoría en tamaño, padding, bordes redondeados (`border-radius: 6px`) y borde fino con SVG de calendario.
+- [x] **T40**: Enmarcar los 3 botones de acción (`.btn-action`) con borde, fondo elevado y sustituir emojis por iconos vectoriales SVG nítidos (ojo, lápiz, papelera).

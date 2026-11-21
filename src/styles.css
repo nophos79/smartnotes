@@ -890,41 +890,75 @@ body.is-resizing-cards .note-card {
 .card-actions {
   display: flex;
   align-items: center;
-  gap: 0.2rem;
+  gap: 0.35rem;
   flex-shrink: 0;
 }
 
-.btn-action {
-  background: none;
-  border: 1px solid transparent;
+/* Botones enmarcados de acción rápida en cada tarjeta */
+.card-actions .btn-action {
+  width: 28px;
+  height: 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   color: var(--text-muted);
   cursor: pointer;
-  padding: 0.25rem 0.45rem;
+  padding: 0;
   border-radius: 6px;
-  font-size: 0.95rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.btn-action:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-color: var(--border-color);
-  color: var(--text-main);
+.card-actions .btn-action svg {
+  stroke: currentColor;
+  transition: transform 0.15s;
+}
+
+.card-actions .btn-action:hover {
+  background-color: var(--bg-secondary);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-actions .btn-action:hover svg {
   transform: scale(1.1);
 }
 
-body.light-theme .btn-action:hover {
-  background-color: #f1f5f9;
-  border-color: #cbd5e1;
-  color: #0f172a;
+.card-actions .btn-action:active {
+  transform: scale(0.94);
 }
 
-.btn-action.delete:hover {
+/* Modo Claro: Botones enmarcados nítidos estilo Equigasto */
+body.light-theme .card-actions .btn-action {
+  background-color: #ffffff;
+  border-color: #cbd5e1; /* Slate 300 - Borde nítido */
+  color: #475569; /* Slate 600 - Máximo contraste visual */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme .card-actions .btn-action:hover {
+  background-color: #f8fafc;
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 2px 5px rgba(79, 70, 229, 0.12);
+}
+
+/* Botón de Borrado enmarcado */
+.card-actions .btn-action.delete:hover {
   color: #ef4444;
-  background-color: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.25);
+  border-color: #f87171;
+  background-color: rgba(239, 68, 68, 0.08);
+}
+
+body.light-theme .card-actions .btn-action.delete:hover {
+  color: #dc2626;
+  border-color: #fca5a5;
+  background-color: #fef2f2;
+  box-shadow: 0 2px 5px rgba(239, 68, 68, 0.12);
 }
 
 .note-footer {
@@ -943,46 +977,77 @@ body.light-theme .btn-action:hover {
 .note-footer-meta {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.45rem;
   flex-wrap: wrap;
   min-width: 0;
   flex: 1;
 }
 
+/* Insignias de Categoría y Fecha con Diseño Idéntico */
 .badge {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 600;
   padding: 0.25rem 0.6rem;
   border-radius: 6px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   border: 1px solid transparent;
+  line-height: 1.25;
+  display: inline-flex;
+  align-items: center;
 }
 
 .due-badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.75rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
-  font-weight: 500;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  line-height: 1.25;
+}
+
+.badge-icon-svg {
+  flex-shrink: 0;
+  stroke: currentColor;
 }
 
 .due-overdue {
-  background-color: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+body.light-theme .due-overdue {
+  background-color: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
 }
 
 .due-today {
-  background-color: rgba(245, 158, 11, 0.15);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+body.light-theme .due-today {
+  background-color: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
 }
 
 .due-future {
-  background-color: rgba(148, 163, 184, 0.15);
+  background-color: rgba(148, 163, 184, 0.1);
   color: var(--text-muted);
+  border-color: var(--border-color);
+}
+
+body.light-theme .due-future {
+  background-color: #f8fafc; /* Slate 50 */
+  color: #475569; /* Slate 600 */
+  border-color: #cbd5e1; /* Slate 300 */
 }
 
 /* Modales */
