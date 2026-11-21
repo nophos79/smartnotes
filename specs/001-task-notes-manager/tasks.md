@@ -108,3 +108,8 @@
 ## Phase 25: Vista Lista con Fecha Contigua y Título-Descripción Adyacente v6.5 (Completado)
 - [x] **T59**: Reubicar la fecha límite (`.due-badge`) a continuación inmediata de la categoría (`.note-badge-row`) en la vista de lista (`.view-list`), manteniendo la posición superior derecha en la vista de cuadrícula sin duplicidades.
 - [x] **T60**: Eliminar el espacio artificial en blanco entre título y descripción en vista lista mediante `width: auto !important`, `max-width: 55%` y espaciado fluido `gap: 0.35rem`.
+
+---
+
+## Phase 26: Restablecimiento Automático de Tamaño Mínimo en Cuadrícula v6.6 (Completado)
+- [x] **T61**: Restablecer automáticamente el tamaño de las tarjetas a las dimensiones mínimas compactas (`width: 250px`, `height: 110px`) al conmutar a la vista de cuadrícula, actualizando variables CSS, persistencia en almacenamiento y constantes por defecto.

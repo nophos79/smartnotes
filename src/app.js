@@ -11,7 +11,8 @@ const STORAGE_KEY_CARD_SIZE = 'speckit_card_size_v1';
 const STORAGE_KEY_TEXT_SCALE = 'speckit_text_scale_v1';
 const STORAGE_KEY_VIEW_MODE = 'speckit_view_mode_v1';
 
-const DEFAULT_CARD_SIZE = { width: 290, height: 240 };
+const GRID_MIN_CARD_SIZE = { width: 250, height: 110 };
+const DEFAULT_CARD_SIZE = { width: 250, height: 110 };
 
 const DEFAULT_CATEGORIES = [
   { id: 'trabajo', name: 'Trabajo', color: '#38bdf8' },
@@ -98,7 +99,11 @@ class StorageService {
       const data = localStorage.getItem(STORAGE_KEY_CARD_SIZE);
       if (data) {
         const parsed = JSON.parse(data);
-        if (parsed.width && parsed.height) return parsed;
+        if (parsed.width && parsed.height) {
+          // Migrar valores de altura antigua (240px) al tamaño mínimo compacto actual
+          if (parsed.height === 240) return { ...DEFAULT_CARD_SIZE };
+          return parsed;
+        }
       }
     } catch {}
     return { ...DEFAULT_CARD_SIZE };
@@ -276,6 +281,13 @@ class NotesApp {
   toggleViewMode() {
     this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
     StorageService.saveViewMode(this.viewMode);
+
+    // Al volver a la vista cuadrícula, las tarjetas deben volver a tener el tamaño mínimo ya decidido (110px de alto, 250px de ancho)
+    if (this.viewMode === 'grid') {
+      this.applyCardSize(GRID_MIN_CARD_SIZE.width, GRID_MIN_CARD_SIZE.height);
+      StorageService.saveCardSize(GRID_MIN_CARD_SIZE);
+    }
+
     this.applyViewMode();
   }
 
