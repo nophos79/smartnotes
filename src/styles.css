@@ -630,11 +630,11 @@ textarea {
   min-width: 0;
 }
 
-/* Checkbox Circular Moderno (Estilo Apple Reminders / Things 3) */
+/* Checkbox Cuadrado Estilizado (Esquinas sutiles, micro-animación y verde esmeralda) */
 .circle-check-btn {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px; /* Forma cuadrada con bordes ligeramente redondeados */
   border: 2px solid var(--border-color);
   background: transparent;
   display: flex;

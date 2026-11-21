@@ -1,6 +1,6 @@
 # Task Breakdown: Gestor de Tareas y Notas Inteligente
 
-**Branch**: `001-task-notes-manager` | **Date**: 2026-11-20
+**Branch**: `001-task-notes-manager` | **Date**: 2026-11-20 / 2026-11-21
 
 ---
 
@@ -25,8 +25,10 @@
 ## Phase 11: Sincronización de Archivo Físico v5 (Completado)
 - [x] **T25 - T27**: File System Access API para guardado en disco/carpeta sincronizada.
 
+## Phase 12: Deshacer Filtros & Rediseño de Completado v5.1 (Completado)
+- [x] **T28 - T29**: Opción "Todas las categorías", chips con botón [✕] y rediseño de completado.
+
 ---
 
-## Phase 12: Deshacer Filtros & Rediseño de Completado v5.1 (Completado)
-- [x] **T28**: Añadir botón "Todas las categorías" y chip interactivo [✕] en la barra de filtros activa.
-- [x] **T29**: Rediseñar visualmente el control de completado como un anillo circular moderno con micro-animaciones (estilo Apple Reminders).
+## Phase 13: Geometría Cuadrada Estilizada v5.2 (Completado)
+- [x] **T30**: Adaptar la geometría del checkbox a formato cuadrado moderno con esquinas suavizadas (border-radius: 6px), conservando animaciones y estados.
