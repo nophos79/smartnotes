@@ -74,34 +74,29 @@
         </div>
       </div>
 
-      <!-- Sincronización con Archivo Físico / Carpeta Local -->
+      <!-- Carpeta de Notas (Almacenamiento Físico Exclusivo) -->
       <div class="sidebar-section">
-        <span class="sidebar-section-title">Almacenamiento Físico</span>
+        <span class="sidebar-section-title">Carpeta de Notas</span>
         <div class="sync-card">
           <div class="sync-status-row">
             <span class="sync-indicator">
               <span class="sync-dot" id="syncDot"></span>
-              <span id="syncStatusText">Sin vincular</span>
+              <span id="syncStatusText">Sin carpeta</span>
             </span>
-            <button class="btn-action" id="disconnectFileBtn" style="display: none; padding: 0.1rem 0.3rem;" title="Desconectar archivo">✕</button>
+            <button class="btn-action" id="disconnectFolderBtn" style="display: none; padding: 0.1rem 0.3rem;" title="Desvincular carpeta">✕</button>
           </div>
-          <div class="sync-filename" id="syncFilenameText">Guardando en navegador</div>
-          <button id="connectFileBtn" class="sync-btn" title="Vincular archivo físico en disco o carpeta sincronizada">
-            <span>📁</span> <span id="connectBtnLabel">Conectar Archivo</span>
+          <div class="sync-filename" id="syncFolderText">Sin carpeta seleccionada</div>
+          <button id="selectFolderBtn" class="sync-btn" title="Seleccionar carpeta donde guardar notas.json">
+            <span>📁</span> <span id="selectFolderBtnLabel">Seleccionar Carpeta</span>
           </button>
         </div>
       </div>
 
-      <!-- Utilidades del Sistema Separadas (Modo Claro/Oscuro y Backup) -->
+      <!-- Utilidades del Sistema Separadas (Modo Claro/Oscuro) -->
       <div class="sidebar-footer">
         <button id="themeToggleBtn" class="sidebar-util-btn" title="Alternar Modo Claro / Oscuro">
           <span id="themeIcon">🌙</span> <span id="themeLabel">Modo Oscuro</span>
         </button>
-        <div class="backup-actions-row">
-          <button id="exportJsonBtn" class="sidebar-mini-btn" title="Descargar Copia de Seguridad">💾 Exportar</button>
-          <button id="importJsonBtn" class="sidebar-mini-btn" title="Restaurar Copia de Seguridad">📥 Importar</button>
-          <input type="file" id="importFileInput" accept=".json" style="display: none;">
-        </div>
       </div>
     </aside>
 
@@ -224,38 +219,6 @@
         <!-- Se puebla dinámicamente con app.js -->
       </div>
     </main>
-  </div>
-
-  <!-- Modal para Conectar Archivo Físico (Sin consumir el gesto de usuario) -->
-  <div class="modal-overlay" id="connectModal">
-    <div class="modal-box" style="max-width: 440px;">
-      <div class="modal-header">
-        <h3>📁 Conectar Archivo Físico</h3>
-        <button class="btn-action" id="closeConnectModalBtn">✕</button>
-      </div>
-      <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5;">
-        Selecciona cómo deseas vincular tus notas con tu disco o carpeta sincronizada:
-      </p>
-      <div style="display: flex; flex-direction: column; gap: 0.75rem; margin: 0.5rem 0;">
-        <button id="pickExistingFileBtn" class="btn" style="width: 100%; justify-content: flex-start; padding: 0.85rem 1rem;">
-          <span style="font-size: 1.2rem;">📂</span>
-          <div style="text-align: left;">
-            <div style="font-weight: 600;">Abrir archivo existente</div>
-            <div style="font-size: 0.75rem; opacity: 0.85;">Si ya tienes un notas.json guardado en tu equipo o nube</div>
-          </div>
-        </button>
-        <button id="pickNewFileBtn" class="btn-secondary" style="width: 100%; justify-content: flex-start; padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.75rem;">
-          <span style="font-size: 1.2rem;">📄</span>
-          <div style="text-align: left;">
-            <div style="font-weight: 600; color: var(--text-main);">Crear archivo nuevo</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Crea un nuevo notas.json en tu Google Drive, OneDrive o disco local</div>
-          </div>
-        </button>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary" id="cancelConnectBtn">Cancelar</button>
-      </div>
-    </div>
   </div>
 
   <!-- Modal de Detalle de Nota (Lectura Completa) -->

@@ -125,3 +125,10 @@
 ## Phase 28: Arquitectura Híbrida Segura: SmartNotes.html y notas.json v7.0 (Completado)
 - [x] **T64**: Implementar la persistencia de `FileSystemFileHandle` en IndexedDB (`SmartNotesFS`) y flujo de reconexión ágil en `src/app.js` con sugerencia predeterminada `notas.json`.
 - [x] **T65**: Crear script compilador `scripts/build.js` y generar el ejecutable autónomo `SmartNotes.html` con CSS y JS autocontenidos en la raíz del proyecto para uso seguro en Google Drive / OneDrive.
+
+---
+
+## Phase 29: Persistencia Exclusiva en Carpeta Física (Cero Guardado en Navegador) v8.0 (Completado)
+- [x] **T66**: Eliminar por completo el guardado y carga de notas y categorías en `localStorage` (cero persistencia en navegador).
+- [x] **T67**: Implementar selección directa de carpeta con `window.showDirectoryPicker` y gestión automática de `notas.json` dentro de la carpeta con persistencia de `FileSystemDirectoryHandle` en IndexedDB.
+- [x] **T68**: Simplificar la interfaz de usuario: eliminar modal redundante de archivos, suprimir botones de exportar/importar JSON y presentar estado limpio de conexión y bienvenida.

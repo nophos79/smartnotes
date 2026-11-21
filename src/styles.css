@@ -343,6 +343,65 @@ body {
   white-space: nowrap;
 }
 
+/* Estado de Bienvenida / Reconexión de Carpeta en Rejilla */
+.folder-state-card {
+  grid-column: 1 / -1;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-color);
+  border-radius: 14px;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  max-width: 580px;
+  margin: 3rem auto;
+  box-shadow: var(--shadow-sm);
+}
+
+.folder-state-icon {
+  font-size: 3.2rem;
+  line-height: 1;
+}
+
+.folder-state-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.folder-state-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  max-width: 440px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.folder-state-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+}
+
+.folder-state-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(56, 189, 248, 0.4);
+}
+
 .sidebar-footer {
   margin-top: auto;
   padding-top: 1rem;
