@@ -1090,7 +1090,7 @@ class NotesApp {
           <div class="note-card ${completedClass}" data-id="${note.id}">
             <div class="note-header">
               <div class="note-title-wrap">
-                <!-- Checkbox circular estilizado tipo Apple Reminders -->
+                <!-- Checkbox cuadrado moderno -->
                 <button 
                   class="circle-check-btn" 
                   title="${note.is_completed ? 'Marcar como pendiente' : 'Marcar como completada'}"
@@ -1099,23 +1099,22 @@ class NotesApp {
                 </button>
                 <h3 class="note-title" title="${this.escapeHTML(note.title)}">${this.escapeHTML(note.title)}</h3>
               </div>
-              <div class="card-actions">
-                <button class="btn-detail" title="Ver detalle completo">👁️ Detalle</button>
-                <button class="btn-action btn-edit" title="Editar nota">✏️</button>
-                <button class="btn-action delete btn-delete" title="Eliminar nota">🗑️</button>
-              </div>
             </div>
             <div class="note-body" title="Haz clic para ver el detalle completo">
               <p class="note-content">${this.escapeHTML(note.content || 'Sin descripción adicional.')}</p>
             </div>
             <div class="note-footer">
-              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+              <div class="note-footer-meta">
                 <span class="badge" style="background: ${catColor}22; color: ${catColor}; border: 1px solid ${catColor}44;">
                   ${this.escapeHTML(note.category)}
                 </span>
                 ${dueDateHtml}
               </div>
-              <span class="note-date">${this.formatDate(note.created_at)}</span>
+              <div class="card-actions">
+                <button class="btn-action btn-detail" title="Ver detalle completo">👁️</button>
+                <button class="btn-action btn-edit" title="Editar nota">✏️</button>
+                <button class="btn-action delete btn-delete" title="Eliminar nota">🗑️</button>
+              </div>
             </div>
             <!-- Tirador para redimensionar todas las notas al arrastrar -->
             <div class="card-resize-handle" title="Arrastra para cambiar el tamaño estándar de todas las notas">

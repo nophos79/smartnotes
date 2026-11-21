@@ -45,3 +45,8 @@
 - [x] **T35**: Blindar la separación del buscador (`.search-box input[type="text"]` con `padding-left: 3.25rem !important` e icono centrado) ante cualquier sobreescritura de cascada CSS.
 - [x] **T36**: Implementar redimensionamiento interactivo de tarjetas (tirador de arrastre en cada nota, recálculo sincrónico de `--card-min-width` y `--card-height` en todas las notas, y persistencia en localStorage).
 - [x] **T37**: Optimizar tamaños de fuente base (títulos a `1.08rem`, cuerpo a `0.94rem`) e integrar selector de escala de texto (Normal, Grande, Muy Grande) con persistencia.
+
+---
+
+## Phase 16: Reubicación de Acciones a Pie de Tarjeta v5.6 (Completado)
+- [x] **T38**: Trasladar el bloque de acciones (detalle con solo icono `👁️`, lápiz de editar `✏️` y papelera `🗑️`) al pie de la tarjeta (`.note-footer`) junto a la categoría, liberando todo el ancho superior para el título.
