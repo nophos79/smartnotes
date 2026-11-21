@@ -2050,30 +2050,64 @@ const IDB_FS_KEY = 'activeFileHandle';
 
 function openFSDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(IDB_FS_NAME, 1);
-    req.onupgradeneeded = () => req.result.createObjectStore(IDB_FS_STORE);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    if (!('indexedDB' in window)) return reject(new Error('IndexedDB no soportado'));
+    try {
+      const req = indexedDB.open(IDB_FS_NAME, 1);
+      req.onupgradeneeded = () => {
+        try {
+          req.result.createObjectStore(IDB_FS_STORE);
+        } catch (e) {}
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error || new Error('Error IDB'));
+      req.onblocked = () => reject(new Error('IDB bloqueado'));
+    } catch (err) {
+      reject(err);
+    }
   });
 }
 
 async function saveStoredHandle(handle) {
   try {
-    const db = await openFSDB();
-    const tx = db.transaction(IDB_FS_STORE, 'readwrite');
-    tx.objectStore(IDB_FS_STORE).put(handle, IDB_FS_KEY);
-    return new Promise((resolve) => { tx.oncomplete = resolve; });
+    const db = await Promise.race([
+      openFSDB(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout IDB')), 800))
+    ]);
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(IDB_FS_STORE, 'readwrite');
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+        tx.onabort = () => resolve(false);
+        tx.objectStore(IDB_FS_STORE).put(handle, IDB_FS_KEY);
+      } catch (e) {
+        resolve(false);
+      }
+    });
   } catch (e) {
     console.warn('No se pudo guardar el handle en IDB:', e);
+    return false;
   }
 }
 
 async function getStoredHandle() {
   try {
-    const db = await openFSDB();
-    const tx = db.transaction(IDB_FS_STORE, 'readonly');
-    const req = tx.objectStore(IDB_FS_STORE).get(IDB_FS_KEY);
-    return new Promise((resolve) => { req.onsuccess = () => resolve(req.result || null); });
+    const db = await Promise.race([
+      openFSDB(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout IDB')), 800))
+    ]);
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(IDB_FS_STORE, 'readonly');
+        tx.onerror = () => resolve(null);
+        tx.onabort = () => resolve(null);
+        const req = tx.objectStore(IDB_FS_STORE).get(IDB_FS_KEY);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      } catch (e) {
+        resolve(null);
+      }
+    });
   } catch (e) {
     return null;
   }
@@ -2081,10 +2115,24 @@ async function getStoredHandle() {
 
 async function removeStoredHandle() {
   try {
-    const db = await openFSDB();
-    const tx = db.transaction(IDB_FS_STORE, 'readwrite');
-    tx.objectStore(IDB_FS_STORE).delete(IDB_FS_KEY);
-  } catch (e) {}
+    const db = await Promise.race([
+      openFSDB(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout IDB')), 800))
+    ]);
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(IDB_FS_STORE, 'readwrite');
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+        tx.onabort = () => resolve(false);
+        tx.objectStore(IDB_FS_STORE).delete(IDB_FS_KEY);
+      } catch (e) {
+        resolve(false);
+      }
+    });
+  } catch (e) {
+    return false;
+  }
 }
 
 // --- Aplicación Principal ---
@@ -2933,11 +2981,21 @@ class NotesApp {
       const text = await file.text();
       if (text.trim()) {
         const data = JSON.parse(text);
-        if (Array.isArray(data.notes)) {
-          this.notes = data.notes;
+        let loadedNotes = null;
+        let loadedCats = null;
+
+        if (Array.isArray(data)) {
+          loadedNotes = data;
+        } else if (data && typeof data === 'object') {
+          if (Array.isArray(data.notes)) loadedNotes = data.notes;
+          if (Array.isArray(data.categories)) loadedCats = data.categories;
+        }
+
+        if (loadedNotes) {
+          this.notes = loadedNotes;
           StorageService.saveNotes(this.notes);
-          if (Array.isArray(data.categories)) {
-            this.categories = data.categories;
+          if (loadedCats) {
+            this.categories = loadedCats;
             StorageService.saveCategories(this.categories);
             this.populateCategoryOptions();
             this.renderSidebarCategories();
@@ -3010,22 +3068,24 @@ class NotesApp {
 
       if (!handle) return;
 
-      // Una vez obtenido el handle cerramos el modal
-      this.closeConnectModal();
+      // 1. Guardar handle en memoria y cerrar modal de inmediato
       this.fileHandle = handle;
       this.pendingFileHandle = null;
+      this.closeConnectModal();
 
-      // Persistir el handle en IndexedDB para reconexiones en sesiones futuras
-      await saveStoredHandle(handle);
-
-      // Leer contenido inicial si ya existía en el archivo
-      await this.loadDataFromFileHandle();
-
-      // Guardar inmediatamente los datos actuales para asegurar sincronización inicial
-      await this.saveToPhysicalFile();
-
-      // Actualizar estado en interfaz
+      // 2. Actualizar estado visual de inmediato a conectado
       this.updateSyncUI(true, this.fileHandle.name);
+
+      // 3. Si abrimos un archivo existente, cargamos sus notas en la app
+      if (isExisting) {
+        await this.loadDataFromFileHandle();
+      } else {
+        // Si creamos un archivo nuevo, guardamos las notas actuales en él
+        await this.saveToPhysicalFile();
+      }
+
+      // 4. Intentar persistir en IndexedDB en segundo plano para próximas sesiones sin bloquear
+      saveStoredHandle(handle).catch(() => {});
 
       alert(`¡Conectado con éxito a "${this.fileHandle.name}"!\nCada cambio se guardará automáticamente en este archivo.`);
     } catch (err) {
@@ -3047,6 +3107,18 @@ class NotesApp {
     if (!this.fileHandle) return;
 
     try {
+      // Comprobar y solicitar permisos de escritura si son necesarios
+      if (this.fileHandle.queryPermission) {
+        const status = await this.fileHandle.queryPermission({ mode: 'readwrite' });
+        if (status !== 'granted') {
+          const req = await this.fileHandle.requestPermission({ mode: 'readwrite' });
+          if (req !== 'granted') {
+            console.warn('Permiso de escritura no concedido.');
+            return;
+          }
+        }
+      }
+
       const writable = await this.fileHandle.createWritable();
       const payload = {
         version: 1,
