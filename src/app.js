@@ -137,6 +137,7 @@ class NotesApp {
     this.initTooltips();
     this.initGoogleDrive();
     this.initPWA();
+    this.refreshFavicon();
     this.render();
   }
 
@@ -1626,6 +1627,20 @@ class NotesApp {
         this.pwaInstallBtnText.textContent = 'Añadir a Pantalla de Inicio';
       }
     }
+  }
+
+  refreshFavicon() {
+    try {
+      const v = 'v=' + Date.now();
+      const links = document.querySelectorAll("link[rel*='icon']");
+      links.forEach((l) => {
+        const href = l.getAttribute('href');
+        if (href && !href.startsWith('data:')) {
+          const clean = href.split('?')[0];
+          l.setAttribute('href', `${clean}?${v}`);
+        }
+      });
+    } catch (e) {}
   }
 
   escapeHTML(str) {
