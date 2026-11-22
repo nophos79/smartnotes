@@ -146,3 +146,11 @@
 - [x] **T72**: Rediseñar el botón `#closeFormBtn` con la clase `.btn-close-form` integrando bordes redondeados (`8px`), microinteracciones hover y compatibilidad con temas oscuro y claro.
 - [x] **T73**: Implementar la navegación por teclado asistida con <kbd>Tab</kbd> y <kbd>Shift + Tab</kbd> en los formularios: Título -> Descripción -> Categoría -> Fecha -> Envío.
 - [x] **T74**: Recompilar el ejecutable `SmartNotes.html` y verificar la experiencia de redacción fluida.
+
+---
+
+## Phase 32: Botón Cerrar Unificado y Fallback Resiliente de Selección Física v8.3 (Completado)
+- [x] **T75**: Rediseñar `#closeFormBtn` adoptando la clase unificada `.btn` con icono y texto `✕ Cerrar`, garantizando perfecta legibilidad en modo claro y oscuro idéntica a "Guardar Nota".
+- [x] **T76**: Implementar preservación del gesto de usuario (`onConfirmAction`) en `showAlert` para evitar pérdida del token de activación transitorio requerido por la API de archivos en Chromium.
+- [x] **T77**: Incorporar soporte dual en IndexedDB y motor de persistencia para directorio (`dirHandle`) y archivo (`fileHandle`) con fallback transparente ante bloqueos de `file:///`.
+- [x] **T78**: Recompilar el ejecutable autocontenido `SmartNotes.html` y validar persistencia directa sin bloqueos ni pérdidas de selección.

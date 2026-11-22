@@ -1915,9 +1915,8 @@ body.light-theme #appTooltip {
         <div class="card">
           <div class="form-header-bar">
             <h2 class="form-title">➕ Crear Nueva Nota o Tarea</h2>
-            <button type="button" class="btn-close-form" id="closeFormBtn" title="Ocultar formulario">
-              <span>✕</span>
-              <span>Ocultar</span>
+            <button type="button" class="btn" id="closeFormBtn" title="Cerrar formulario">
+              <span>✕ Cerrar</span>
             </button>
           </div>
           <form id="newNoteForm">
@@ -2205,10 +2204,11 @@ class StorageService {
   }
 }
 
-// --- IndexedDB Helper para Persistencia del Directorio de Notas ---
+// --- IndexedDB Helper para Persistencia del Directorio o Archivo de Notas ---
 const IDB_FS_NAME = 'SmartNotesFS';
 const IDB_FS_STORE = 'handles';
-const IDB_FS_KEY = 'activeDirHandle';
+const IDB_KEY_DIR = 'activeDirHandle';
+const IDB_KEY_FILE = 'activeFileHandle';
 
 function openFSDB() {
   return new Promise((resolve, reject) => {
@@ -2241,7 +2241,7 @@ async function saveStoredDirHandle(handle) {
         tx.oncomplete = () => resolve(true);
         tx.onerror = () => resolve(false);
         tx.onabort = () => resolve(false);
-        tx.objectStore(IDB_FS_STORE).put(handle, IDB_FS_KEY);
+        tx.objectStore(IDB_FS_STORE).put(handle, IDB_KEY_DIR);
       } catch (e) {
         resolve(false);
       }
@@ -2263,7 +2263,7 @@ async function getStoredDirHandle() {
         const tx = db.transaction(IDB_FS_STORE, 'readonly');
         tx.onerror = () => resolve(null);
         tx.onabort = () => resolve(null);
-        const req = tx.objectStore(IDB_FS_STORE).get(IDB_FS_KEY);
+        const req = tx.objectStore(IDB_FS_STORE).get(IDB_KEY_DIR);
         req.onsuccess = () => resolve(req.result || null);
         req.onerror = () => resolve(null);
       } catch (e) {
@@ -2287,7 +2287,75 @@ async function removeStoredDirHandle() {
         tx.oncomplete = () => resolve(true);
         tx.onerror = () => resolve(false);
         tx.onabort = () => resolve(false);
-        tx.objectStore(IDB_FS_STORE).delete(IDB_FS_KEY);
+        tx.objectStore(IDB_FS_STORE).delete(IDB_KEY_DIR);
+      } catch (e) {
+        resolve(false);
+      }
+    });
+  } catch (e) {
+    return false;
+  }
+}
+
+async function saveStoredFileHandle(handle) {
+  try {
+    const db = await Promise.race([
+      openFSDB(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout IDB')), 800))
+    ]);
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(IDB_FS_STORE, 'readwrite');
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+        tx.onabort = () => resolve(false);
+        tx.objectStore(IDB_FS_STORE).put(handle, IDB_KEY_FILE);
+      } catch (e) {
+        resolve(false);
+      }
+    });
+  } catch (e) {
+    console.warn('No se pudo guardar fileHandle en IDB:', e);
+    return false;
+  }
+}
+
+async function getStoredFileHandle() {
+  try {
+    const db = await Promise.race([
+      openFSDB(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout IDB')), 800))
+    ]);
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(IDB_FS_STORE, 'readonly');
+        tx.onerror = () => resolve(null);
+        tx.onabort = () => resolve(null);
+        const req = tx.objectStore(IDB_FS_STORE).get(IDB_KEY_FILE);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      } catch (e) {
+        resolve(null);
+      }
+    });
+  } catch (e) {
+    return null;
+  }
+}
+
+async function removeStoredFileHandle() {
+  try {
+    const db = await Promise.race([
+      openFSDB(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout IDB')), 800))
+    ]);
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(IDB_FS_STORE, 'readwrite');
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+        tx.onabort = () => resolve(false);
+        tx.objectStore(IDB_FS_STORE).delete(IDB_KEY_FILE);
       } catch (e) {
         resolve(false);
       }
@@ -2316,7 +2384,9 @@ class NotesApp {
     this.textScale = StorageService.loadTextScale();
     this.viewMode = StorageService.loadViewMode();
     this.dirHandle = null;
+    this.fileHandle = null;
     this.pendingDirHandle = null;
+    this.pendingFileHandle = null;
 
     this.cacheElements();
     this.initTheme();
@@ -2430,7 +2500,7 @@ class NotesApp {
    * @param {string} [options.confirmText='Aceptar'] - Texto del botón
    * @returns {Promise<void>}
    */
-  showAlert({ title = 'Aviso', message = '', icon = '🔔', confirmText = 'Aceptar' } = {}) {
+  showAlert({ title = 'Aviso', message = '', icon = '🔔', confirmText = 'Aceptar', onConfirmAction = null } = {}) {
     return new Promise((resolve) => {
       this.dialogIcon.textContent = icon;
       this.dialogTitle.textContent = title;
@@ -2457,7 +2527,16 @@ class NotesApp {
         resolve();
       };
 
-      const onConfirm = () => cleanup();
+      const onConfirm = () => {
+        cleanup();
+        if (typeof onConfirmAction === 'function') {
+          try {
+            onConfirmAction();
+          } catch (e) {
+            console.error('Error en onConfirmAction:', e);
+          }
+        }
+      };
       const onBackdrop = (e) => {
         if (e.target === this.customDialogModal) cleanup();
       };
@@ -2798,7 +2877,7 @@ class NotesApp {
     const isOpen = forceState !== null ? forceState : !this.newNoteSection.classList.contains('open');
     if (isOpen) {
       this.newNoteSection.classList.add('open');
-      if (this.toggleFormBtnText) this.toggleFormBtnText.textContent = 'Ocultar Form';
+      if (this.toggleFormBtnText) this.toggleFormBtnText.textContent = 'Cerrar Form';
       this.noteTitleInput.focus();
     } else {
       this.newNoteSection.classList.remove('open');
@@ -3137,14 +3216,16 @@ class NotesApp {
   }
 
   async handleAddNote() {
-    if (!this.dirHandle) {
-      await this.showAlert({
+    if (!this.dirHandle && !this.fileHandle) {
+      this.showAlert({
         title: 'Carpeta Requerida',
         message: 'Por favor selecciona primero tu carpeta de notas para poder guardar.',
         icon: '📁',
-        confirmText: 'Seleccionar Carpeta'
+        confirmText: 'Seleccionar Carpeta',
+        onConfirmAction: () => {
+          this.selectFolder();
+        }
       });
-      await this.selectFolder();
       return;
     }
 
@@ -3327,92 +3408,189 @@ class NotesApp {
     }
   }
 
-  // --- Almacenamiento Exclusivo en Carpeta Física (File System Access API) ---
+  // --- Almacenamiento Exclusivo en Carpeta / Archivo Físico (File System Access API) ---
   async initFolderStorage() {
-    if (!('showDirectoryPicker' in window)) {
-      this.updateSyncUI(false);
-      this.render();
-      return;
-    }
-
-    const stored = await getStoredDirHandle();
-    if (!stored) {
-      this.updateSyncUI(false);
-      this.render();
-      return;
-    }
-
-    try {
-      const perm = await stored.queryPermission({ mode: 'readwrite' });
-      if (perm === 'granted') {
-        this.dirHandle = stored;
-        await this.loadDataFromDirectory();
-        this.updateSyncUI(true, this.dirHandle.name);
-      } else {
-        // Permiso pendiente para la sesión actual (requiere un clic de usuario por seguridad del navegador)
-        this.pendingDirHandle = stored;
-        this.syncDot.classList.remove('connected');
-        this.syncDot.classList.add('pending');
-        this.syncStatusText.textContent = 'Permiso requerido';
-        this.syncFolderText.textContent = `📁 ${stored.name} (notas.json)`;
-        this.selectFolderBtnLabel.textContent = 'Reconectar Carpeta';
-        this.disconnectFolderBtn.style.display = 'block';
-        this.render();
+    const storedDir = await getStoredDirHandle();
+    if (storedDir) {
+      try {
+        const perm = await storedDir.queryPermission({ mode: 'readwrite' });
+        if (perm === 'granted') {
+          this.dirHandle = storedDir;
+          this.fileHandle = null;
+          await this.loadDataFromDirectory();
+          this.updateSyncUI(true, this.dirHandle.name);
+          return;
+        } else {
+          this.pendingDirHandle = storedDir;
+          this.syncDot.classList.remove('connected');
+          this.syncDot.classList.add('pending');
+          this.syncStatusText.textContent = 'Permiso requerido';
+          this.syncFolderText.textContent = `📁 ${storedDir.name} (notas.json)`;
+          this.selectFolderBtnLabel.textContent = 'Reconectar Carpeta';
+          this.disconnectFolderBtn.style.display = 'block';
+          this.render();
+          return;
+        }
+      } catch (err) {
+        console.warn('Error al verificar storedDir:', err);
       }
-    } catch (err) {
-      console.warn('Error al verificar dirHandle guardado:', err);
-      this.updateSyncUI(false);
-      this.render();
     }
+
+    const storedFile = await getStoredFileHandle();
+    if (storedFile) {
+      try {
+        const perm = await storedFile.queryPermission({ mode: 'readwrite' });
+        if (perm === 'granted') {
+          this.fileHandle = storedFile;
+          this.dirHandle = null;
+          await this.loadDataFromFileHandle();
+          this.updateSyncUI(true, this.fileHandle.name);
+          return;
+        } else {
+          this.pendingFileHandle = storedFile;
+          this.syncDot.classList.remove('connected');
+          this.syncDot.classList.add('pending');
+          this.syncStatusText.textContent = 'Permiso requerido';
+          this.syncFolderText.textContent = `📄 ${storedFile.name}`;
+          this.selectFolderBtnLabel.textContent = 'Reconectar Archivo';
+          this.disconnectFolderBtn.style.display = 'block';
+          this.render();
+          return;
+        }
+      } catch (err) {
+        console.warn('Error al verificar storedFile:', err);
+      }
+    }
+
+    this.updateSyncUI(false);
+    this.render();
   }
 
   async selectFolder() {
-    if (!('showDirectoryPicker' in window)) {
-      await this.showAlert({
-        title: 'Navegador No Compatible',
-        message: 'Tu navegador actual no soporta la selección nativa de carpetas (File System Access API).\nTe recomendamos usar Microsoft Edge o Google Chrome.',
-        icon: '🌐'
-      });
-      return;
-    }
-
-    try {
-      let handle;
-      if (this.pendingDirHandle) {
-        // Reconexión ágil en 1 clic: solicitar permiso para la carpeta ya vinculada
+    // 1. Si hay un permiso pendiente de reconexión previa:
+    if (this.pendingDirHandle) {
+      try {
         const perm = await this.pendingDirHandle.requestPermission({ mode: 'readwrite' });
         if (perm === 'granted') {
-          handle = this.pendingDirHandle;
+          this.dirHandle = this.pendingDirHandle;
           this.pendingDirHandle = null;
-        } else {
-          // Si el usuario no concede permiso a la anterior, abrimos el selector para elegir carpeta
-          handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+          this.fileHandle = null;
+          this.pendingFileHandle = null;
+          this.updateSyncUI(true, this.dirHandle.name);
+          await this.loadDataFromDirectory();
+          this.render();
+          return;
         }
-      } else {
-        handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      } catch (e) {
+        console.warn('Fallo reconectando pendingDirHandle:', e);
       }
+    }
 
-      if (!handle) return;
+    if (this.pendingFileHandle) {
+      try {
+        const perm = await this.pendingFileHandle.requestPermission({ mode: 'readwrite' });
+        if (perm === 'granted') {
+          this.fileHandle = this.pendingFileHandle;
+          this.pendingFileHandle = null;
+          this.dirHandle = null;
+          this.pendingDirHandle = null;
+          this.updateSyncUI(true, this.fileHandle.name);
+          await this.loadDataFromFileHandle();
+          this.render();
+          return;
+        }
+      } catch (e) {
+        console.warn('Fallo reconectando pendingFileHandle:', e);
+      }
+    }
 
-      this.dirHandle = handle;
-      this.pendingDirHandle = null;
+    // 2. Intentar selector nativo de carpetas primero
+    let folderConnected = false;
+    if ('showDirectoryPicker' in window) {
+      try {
+        const handle = await window.showDirectoryPicker();
+        if (handle) {
+          folderConnected = true;
+          this.dirHandle = handle;
+          this.fileHandle = null;
+          this.pendingDirHandle = null;
+          this.pendingFileHandle = null;
 
-      // Cargar o crear notas.json en la carpeta elegida
-      await this.loadDataFromDirectory();
+          // Inmediatamente reflejar en la barra lateral el nombre de la carpeta seleccionada
+          this.updateSyncUI(true, this.dirHandle.name);
 
-      // Guardar dirHandle en IndexedDB en segundo plano
-      saveStoredDirHandle(handle).catch(() => {});
+          // Solicitar permiso de lectura/escritura si es necesario
+          try {
+            if (handle.queryPermission) {
+              const q = await handle.queryPermission({ mode: 'readwrite' });
+              if (q !== 'granted' && handle.requestPermission) {
+                await handle.requestPermission({ mode: 'readwrite' });
+              }
+            }
+          } catch (pe) {
+            console.warn('No se pudo comprobar permiso dirHandle:', pe);
+          }
 
-      this.updateSyncUI(true, this.dirHandle.name);
-      this.render();
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        console.error('Error al seleccionar carpeta:', err);
-        await this.showAlert({
-          title: 'Error de Acceso a Carpeta',
-          message: 'No se pudo acceder a la carpeta seleccionada:\n' + err.message,
-          icon: '⚠️'
-        });
+          await this.loadDataFromDirectory();
+          saveStoredDirHandle(handle).catch(() => {});
+          removeStoredFileHandle().catch(() => {});
+          this.render();
+          return;
+        }
+      } catch (err) {
+        console.warn('showDirectoryPicker devolvió excepción o fue cancelado:', err);
+      }
+    }
+
+    // 3. Si showDirectoryPicker falló (por ejemplo por restricción de Chromium en file:// o oclusión de ventana),
+    // abrir directamente el selector de archivo notas.json en la carpeta elegida:
+    if (!folderConnected && ('showSaveFilePicker' in window || 'showOpenFilePicker' in window)) {
+      try {
+        let handle;
+        if ('showSaveFilePicker' in window) {
+          handle = await window.showSaveFilePicker({
+            suggestedName: 'notas.json',
+            types: [
+              {
+                description: 'Archivo de notas JSON',
+                accept: { 'application/json': ['.json'] }
+              }
+            ]
+          });
+        } else {
+          [handle] = await window.showOpenFilePicker({
+            types: [
+              {
+                description: 'Archivo de notas JSON',
+                accept: { 'application/json': ['.json'] }
+              }
+            ],
+            multiple: false
+          });
+        }
+
+        if (handle) {
+          this.fileHandle = handle;
+          this.dirHandle = null;
+          this.pendingDirHandle = null;
+          this.pendingFileHandle = null;
+
+          this.updateSyncUI(true, this.fileHandle.name);
+          await this.loadDataFromFileHandle();
+          saveStoredFileHandle(handle).catch(() => {});
+          removeStoredDirHandle().catch(() => {});
+          this.render();
+          return;
+        }
+      } catch (fileErr) {
+        if (fileErr.name !== 'AbortError') {
+          console.error('Error al vincular archivo notas.json:', fileErr);
+          await this.showAlert({
+            title: 'Error de Selección',
+            message: 'No se pudo vincular la carpeta o archivo:\n' + fileErr.message,
+            icon: '⚠️'
+          });
+        }
       }
     }
   }
@@ -3459,49 +3637,121 @@ class NotesApp {
       this.renderSidebarCategories();
     } catch (err) {
       console.error('Error al leer/crear notas.json en la carpeta:', err);
-      await this.showAlert({
-        title: 'Error en notas.json',
-        message: 'Ocurrió un error al acceder a notas.json dentro de la carpeta:\n' + err.message,
-        icon: '⚠️'
-      });
+    }
+  }
+
+  async loadDataFromFileHandle() {
+    if (!this.fileHandle) return;
+
+    try {
+      const file = await this.fileHandle.getFile();
+      const text = await file.text();
+
+      if (text.trim()) {
+        try {
+          const data = JSON.parse(text);
+          let loadedNotes = null;
+          let loadedCats = null;
+
+          if (Array.isArray(data)) {
+            loadedNotes = data;
+          } else if (data && typeof data === 'object') {
+            if (Array.isArray(data.notes)) loadedNotes = data.notes;
+            if (Array.isArray(data.categories)) loadedCats = data.categories;
+          }
+
+          if (loadedNotes) {
+            this.notes = loadedNotes;
+          }
+          if (loadedCats && loadedCats.length > 0) {
+            this.categories = loadedCats;
+          }
+        } catch (parseErr) {
+          console.warn('El archivo notas.json contenía formato inválido, inicializando estructura limpia:', parseErr);
+          this.notes = [...INITIAL_SEED_NOTES];
+          await this.saveToDirectory();
+        }
+      } else {
+        // Archivo nuevo creado: inicializar con notas de bienvenida y guardar de inmediato
+        this.notes = [...INITIAL_SEED_NOTES];
+        await this.saveToDirectory();
+      }
+
+      this.populateCategoryOptions();
+      this.renderSidebarCategories();
+    } catch (err) {
+      console.error('Error leyendo archivo vinculado:', err);
     }
   }
 
   async saveToDirectory() {
-    if (!this.dirHandle) return;
+    if (this.fileHandle) {
+      try {
+        if (this.fileHandle.queryPermission) {
+          const q = await this.fileHandle.queryPermission({ mode: 'readwrite' });
+          if (q !== 'granted' && this.fileHandle.requestPermission) {
+            await this.fileHandle.requestPermission({ mode: 'readwrite' });
+          }
+        }
+        const writable = await this.fileHandle.createWritable();
+        const payload = {
+          version: 1,
+          last_synced: new Date().toISOString(),
+          notes: this.notes,
+          categories: this.categories
+        };
+        await writable.write(JSON.stringify(payload, null, 2));
+        await writable.close();
+      } catch (err) {
+        console.warn('Error al guardar en archivo físico notas.json:', err);
+      }
+      return;
+    }
 
-    try {
-      const fileHandle = await this.dirHandle.getFileHandle('notas.json', { create: true });
-      const writable = await fileHandle.createWritable();
-      const payload = {
-        version: 1,
-        last_synced: new Date().toISOString(),
-        notes: this.notes,
-        categories: this.categories
-      };
-      await writable.write(JSON.stringify(payload, null, 2));
-      await writable.close();
-    } catch (err) {
-      console.warn('Error al guardar en notas.json dentro de la carpeta:', err);
+    if (this.dirHandle) {
+      try {
+        if (this.dirHandle.queryPermission) {
+          const q = await this.dirHandle.queryPermission({ mode: 'readwrite' });
+          if (q !== 'granted' && this.dirHandle.requestPermission) {
+            await this.dirHandle.requestPermission({ mode: 'readwrite' });
+          }
+        }
+        const fileHandle = await this.dirHandle.getFileHandle('notas.json', { create: true });
+        const writable = await fileHandle.createWritable();
+        const payload = {
+          version: 1,
+          last_synced: new Date().toISOString(),
+          notes: this.notes,
+          categories: this.categories
+        };
+        await writable.write(JSON.stringify(payload, null, 2));
+        await writable.close();
+      } catch (err) {
+        console.warn('Error al guardar en notas.json dentro de la carpeta:', err);
+      }
+      return;
     }
   }
 
   async disconnectFolder() {
     this.dirHandle = null;
+    this.fileHandle = null;
     this.pendingDirHandle = null;
+    this.pendingFileHandle = null;
     this.notes = [];
     await removeStoredDirHandle();
+    await removeStoredFileHandle();
     this.updateSyncUI(false);
     this.render();
   }
 
-  updateSyncUI(connected, folderName = '') {
+  updateSyncUI(connected, name = '') {
     if (connected) {
       this.syncDot.classList.remove('pending');
       this.syncDot.classList.add('connected');
-      this.syncStatusText.textContent = 'Carpeta Activa';
-      const name = folderName || (this.dirHandle ? this.dirHandle.name : 'Carpeta');
-      this.syncFolderText.textContent = `📁 ${name} (notas.json)`;
+      this.syncStatusText.textContent = this.dirHandle ? 'Carpeta Activa' : 'Archivo Vinculado';
+      const label = name || (this.dirHandle ? this.dirHandle.name : (this.fileHandle ? this.fileHandle.name : 'Notas'));
+      this.syncFolderText.textContent = `📁 ${label} (notas.json)`;
       this.selectFolderBtnLabel.textContent = 'Cambiar Carpeta';
       this.disconnectFolderBtn.style.display = 'block';
     } else {
@@ -3625,17 +3875,18 @@ class NotesApp {
     this.updateStats();
 
     // Si no hay carpeta conectada o hay permiso pendiente, mostrar tarjeta explicativa directa
-    if (!this.dirHandle) {
-      this.currentFilterTitle.innerHTML = `<span>Carpeta de Notas</span>`;
+    if (!this.dirHandle && !this.fileHandle) {
+      this.currentFilterTitle.innerHTML = `<span>Carpeta / Archivo de Notas</span>`;
       this.currentFilterCount.textContent = '';
 
-      if (this.pendingDirHandle) {
+      if (this.pendingDirHandle || this.pendingFileHandle) {
+        const pendingName = this.pendingDirHandle ? this.pendingDirHandle.name : (this.pendingFileHandle ? this.pendingFileHandle.name : '');
         this.notesGrid.innerHTML = `
           <div class="folder-state-card">
             <div class="folder-state-icon">🔒</div>
-            <h3 class="folder-state-title">Permiso para acceder a tu carpeta de notas</h3>
+            <h3 class="folder-state-title">Permiso para acceder a tus notas</h3>
             <p class="folder-state-desc">
-              Tu carpeta vinculada es <strong>📁 ${this.escapeHTML(this.pendingDirHandle.name)}</strong>.<br>
+              Tu ubicación vinculada es <strong>📁 ${this.escapeHTML(pendingName)}</strong>.<br>
               Haz clic en el botón para reanudar el acceso y cargar tus notas guardadas en <code>notas.json</code>.
             </p>
             <button class="folder-state-btn" id="reconnectFolderMainBtn">
@@ -3651,12 +3902,12 @@ class NotesApp {
         this.notesGrid.innerHTML = `
           <div class="folder-state-card">
             <div class="folder-state-icon">📁</div>
-            <h3 class="folder-state-title">Selecciona tu carpeta de notas</h3>
+            <h3 class="folder-state-title">Selecciona tu carpeta o archivo de notas</h3>
             <p class="folder-state-desc">
               Tus tareas y notas se guardan de forma exclusiva en un archivo <code>notas.json</code> dentro de la carpeta que elijas (Google Drive, OneDrive o cualquier carpeta de tu equipo), sin almacenar nada en el navegador.
             </p>
             <button class="folder-state-btn" id="selectFolderMainBtn">
-              <span>📁</span> Seleccionar Carpeta para Comenzar
+              <span>📁</span> Seleccionar Carpeta o Archivo para Comenzar
             </button>
           </div>
         `;

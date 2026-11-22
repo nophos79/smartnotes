@@ -82,3 +82,5 @@ Como usuario, quiero que mis tareas se guarden única y exclusivamente en un arc
 * **FR-068**: Integración visual con temas (claro/oscuro), accesibilidad con teclado (`Enter`, `Escape`), animaciones y botones temáticos.
 * **FR-069**: Rediseño visual del botón "Ocultar" del formulario (`.btn-close-form`) con bordes redondeados, sombra, microinteracciones y armonía en temas claro/oscuro.
 * **FR-070**: Flujo de navegación por teclado bidireccional asistido con tabulador (Título -> Descripción -> Categoría -> Fecha -> Envío).
+* **FR-071**: Botón "✕ Cerrar" en cabecera del formulario con estilo unificado idéntico a "Guardar Nota" (`class="btn"`), máxima visibilidad y consistencia en temas claro y oscuro.
+* **FR-072**: Motor resiliente de persistencia física con preservación del gesto de usuario (invocación sincrónica `onConfirmAction`) y fallback transparente a selección de archivo `notas.json` (`showSaveFilePicker` / `showOpenFilePicker`) ante restricciones de Chromium en orígenes locales `file:///`.
