@@ -1,23 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="snBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4338ca" />
-      <stop offset="45%" stop-color="#6366f1" />
-      <stop offset="100%" stop-color="#06b6d4" />
+      <stop offset="0%" stop-color="#064e3b" />
+      <stop offset="45%" stop-color="#059669" />
+      <stop offset="75%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#34d399" />
     </linearGradient>
     <linearGradient id="snSheetGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25" />
       <stop offset="100%" stop-color="#ffffff" stop-opacity="0.10" />
     </linearGradient>
     <filter id="snShadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0b0f19" flood-opacity="0.35" />
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#022c22" flood-opacity="0.4" />
     </filter>
   </defs>
 
-  <!-- Base Squircle con Gradiente Tecnológico Indigo -> Violeta -> Cian -->
+  <!-- Base Squircle con Gradiente Esmeralda -> Menta -->
   <rect width="512" height="512" rx="118" fill="url(#snBgGrad)" />
 
-  <!-- Hoja / Libreta Estilizada con Esquina Doblada (Notas) -->
+  <!-- Hoja / Libreta Estilizada con Esquina Doblada -->
   <path d="M148 112 H316 L376 172 V392 C376 406 364 418 350 418 H148 C134 418 122 406 122 392 V138 C122 124 134 112 148 112 Z" 
         fill="url(#snSheetGrad)" 
         stroke="rgba(255, 255, 255, 0.45)" 
@@ -28,12 +29,12 @@
   <!-- Pliegue de la esquina superior derecha -->
   <path d="M316 112 V166 C316 170 320 174 324 174 H376" 
         fill="none" 
-        stroke="rgba(255, 255, 255, 0.55)" 
+        stroke="rgba(255, 255, 255, 0.6)" 
         stroke-width="12" 
         stroke-linecap="round" 
         stroke-linejoin="round" />
 
-  <!-- Símbolo Dinámico de Tarea Inteligente (Checkmark en Relieve) -->
+  <!-- Símbolo Dinámico de Tarea Inteligente (Checkmark en Blanco Puro) -->
   <path d="M178 280 L242 344 L356 196" 
         fill="none" 
         stroke="#ffffff" 
@@ -42,8 +43,8 @@
         stroke-linejoin="round" 
         filter="url(#snShadow)" />
 
-  <!-- Destello Inteligente (Smart Sparkle) -->
+  <!-- Destello Inteligente (Smart Sparkle) en Menta Neón -->
   <path d="M400 88 C400 106 410 116 428 116 C410 116 400 126 400 144 C400 126 390 116 372 116 C390 116 400 106 400 88 Z" 
-        fill="#38bdf8" 
+        fill="#6ee7b7" 
         filter="url(#snShadow)" />
 </svg>

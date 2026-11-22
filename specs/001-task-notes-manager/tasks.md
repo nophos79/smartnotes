@@ -217,9 +217,9 @@
 
 ---
 
-## Phase 40: Rediseño Cromático del Icono e Imagotipo Oficial v9.8 (Completado)
-- [x] **T111**: Diseñar el nuevo imagotipo vectorial SVG compuesto por gradiente vibrante Indigo-Violeta-Cian, silueta de libreta/notas con pliegue de página, checkmark dinámico de alta legibilidad y destello inteligente (*Smart Sparkle*).
-- [x] **T112**: Reemplazar el texto genérico `✓` en el sidebar por el nuevo imagotipo SVG vectorizado con microinteracción hover.
-- [x] **T113**: Actualizar `favicon.svg` y la etiqueta Data-URI en `<head>` para propagación inmediata en navegadores.
-- [x] **T114**: Regenerar los iconos rasterizados `icon-192.png` y `icon-512.png` para la pantalla de inicio en Android e iOS.
+## Phase 40: Rediseño Cromático del Icono e Imagotipo Oficial Esmeralda y Menta v9.8 (Completado)
+- [x] **T111**: Diseñar el nuevo imagotipo vectorial SVG compuesto por gradiente vibrante Verde Esmeralda y Menta tecnológica (`#064e3b` -> `#059669` -> `#10b981` -> `#34d399`), silueta de libreta con pliegue de página, checkmark blanco puro y destello inteligente en menta neón (`#6ee7b7`).
+- [x] **T112**: Reemplazar el icono en el sidebar por el nuevo imagotipo SVG vectorizado con brillo esmeralda y microinteracción hover.
+- [x] **T113**: Actualizar `favicon.svg` y la etiqueta Data-URI en `<head>` con la paleta esmeralda.
+- [x] **T114**: Regenerar los iconos rasterizados `icon-192.png` y `icon-512.png` para la pantalla de inicio móvil PWA.
 - [x] **T115**: Recompilar ejecutables standalone `SmartNotes.html` e `index.html` con `scripts/build.js` y desplegar en GitHub Pages.
