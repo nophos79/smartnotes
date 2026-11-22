@@ -162,3 +162,12 @@
 - [x] **T80**: Crear el servidor local autónomo `scripts/server.js` y el lanzador de 1 clic `Iniciar_SmartNotes.bat` para ejecutar en `http://localhost:3000` con soporte 100% nativo de la File System Access API.
 - [x] **T81**: Añadir detección pedagógica de `window.location.protocol === 'file:'` en pantalla principal y alerta, guiando al usuario hacia `Iniciar_SmartNotes.bat`.
 - [x] **T82**: Recompilar el ejecutable `SmartNotes.html` y verificar funcionamiento sin errores.
+
+---
+
+## Phase 34: Integración Nube Google Drive (OAuth 2.0 / GIS) y Sincronización Multiplataforma v9.0 (Completado)
+- [x] **T83**: Añadir la biblioteca Google Identity Services (GIS) y meta tags móviles en `src/index.html`.
+- [x] **T84**: Diseñar la interfaz de usuario en la barra lateral para Google Drive: tarjeta de sesión, botón de conexión oficial, avatar/email y botón para configurar Client ID.
+- [x] **T85**: Implementar el modal interactivo de configuración de Google Client ID (`#googleConfigModal`) con instrucciones paso a paso y persistencia en `localStorage`.
+- [x] **T86**: Desarrollar el módulo de sincronización con Google Drive API v3 (`drive.file`) en `src/app.js`: login, obtención de token, búsqueda/creación de `notas.json`, lectura y guardado automático con debouncing.
+- [x] **T87**: Recompilar el ejecutable `SmartNotes.html` e `index.html` con `scripts/build.js` y verificar compatibilidad en PC y móvil.

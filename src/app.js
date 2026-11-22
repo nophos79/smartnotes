@@ -276,10 +276,14 @@ class NotesApp {
     this.cardSize = StorageService.loadCardSize();
     this.textScale = StorageService.loadTextScale();
     this.viewMode = StorageService.loadViewMode();
-    this.dirHandle = null;
-    this.fileHandle = null;
-    this.pendingDirHandle = null;
-    this.pendingFileHandle = null;
+
+    // Google Drive Cloud Sync
+    this.googleClientId = localStorage.getItem('smartnotes_gclient_id') || '';
+    this.driveAccessToken = null;
+    this.driveTokenClient = null;
+    this.driveFileId = localStorage.getItem('smartnotes_gdrive_file_id') || null;
+    this.driveUser = null;
+    this.driveSaveTimeout = null;
 
     this.cacheElements();
     this.initTheme();
@@ -289,8 +293,8 @@ class NotesApp {
     this.renderSidebarCategories();
     this.bindEvents();
     this.initTooltips();
+    this.initGoogleDrive();
     this.render();
-    this.initFolderStorage();
   }
 
   cacheElements() {
@@ -366,10 +370,16 @@ class NotesApp {
     this.closeCategoryModalBtn = document.getElementById('closeCategoryModalBtn');
     this.cancelCategoryBtn = document.getElementById('cancelCategoryBtn');
 
-    // Carpeta de Notas (Almacenamiento Físico Exclusivo)
-    this.selectFolderBtn = document.getElementById('selectFolderBtn');
-    this.selectFolderBtnLabel = document.getElementById('selectFolderBtnLabel');
-    this.disconnectFolderBtn = document.getElementById('disconnectFolderBtn');
+    // Sincronización Nube Google Drive
+    this.connectDriveBtn = document.getElementById('connectDriveBtn');
+    this.connectDriveBtnLabel = document.getElementById('connectDriveBtnLabel');
+    this.disconnectDriveBtn = document.getElementById('disconnectDriveBtn');
+    this.openGoogleConfigBtn = document.getElementById('openGoogleConfigBtn');
+    this.googleConfigModal = document.getElementById('googleConfigModal');
+    this.closeGoogleConfigModalBtn = document.getElementById('closeGoogleConfigModalBtn');
+    this.cancelGoogleConfigBtn = document.getElementById('cancelGoogleConfigBtn');
+    this.saveGoogleConfigBtn = document.getElementById('saveGoogleConfigBtn');
+    this.googleClientIdInput = document.getElementById('googleClientIdInput');
     this.syncDot = document.getElementById('syncDot');
     this.syncStatusText = document.getElementById('syncStatusText');
     this.syncFolderText = document.getElementById('syncFolderText');
@@ -994,9 +1004,25 @@ class NotesApp {
       this.handleAddCategory();
     });
 
-    // Selección / Desvinculación de Carpeta de Notas
-    this.selectFolderBtn.addEventListener('click', () => this.selectFolder());
-    this.disconnectFolderBtn.addEventListener('click', () => this.disconnectFolder());
+    // Sincronización Google Drive
+    if (this.connectDriveBtn) {
+      this.connectDriveBtn.addEventListener('click', () => this.handleConnectGoogleDrive());
+    }
+    if (this.disconnectDriveBtn) {
+      this.disconnectDriveBtn.addEventListener('click', () => this.disconnectGoogleDrive());
+    }
+    if (this.openGoogleConfigBtn) {
+      this.openGoogleConfigBtn.addEventListener('click', () => this.openGoogleConfigModal());
+    }
+    if (this.closeGoogleConfigModalBtn) {
+      this.closeGoogleConfigModalBtn.addEventListener('click', () => this.closeGoogleConfigModal());
+    }
+    if (this.cancelGoogleConfigBtn) {
+      this.cancelGoogleConfigBtn.addEventListener('click', () => this.closeGoogleConfigModal());
+    }
+    if (this.saveGoogleConfigBtn) {
+      this.saveGoogleConfigBtn.addEventListener('click', () => this.saveGoogleConfig());
+    }
 
     // Escala de texto
     if (this.textSizeSelect) {
@@ -1109,14 +1135,14 @@ class NotesApp {
   }
 
   async handleAddNote() {
-    if (!this.dirHandle && !this.fileHandle) {
+    if (!this.driveAccessToken) {
       this.showAlert({
-        title: 'Carpeta Requerida',
-        message: 'Por favor selecciona primero tu carpeta de notas para poder guardar.',
-        icon: '📁',
-        confirmText: 'Seleccionar Carpeta',
+        title: 'Conexión Requerida',
+        message: 'Por favor inicia sesión con tu cuenta de Google Drive para guardar y sincronizar tus notas en la nube.',
+        icon: '☁️',
+        confirmText: 'Conectar con Google',
         onConfirmAction: () => {
-          this.selectFolder();
+          this.handleConnectGoogleDrive();
         }
       });
       return;
@@ -1140,7 +1166,7 @@ class NotesApp {
     };
 
     this.notes.unshift(newNote);
-    await this.saveToDirectory();
+    await this.saveData();
     this.newNoteForm.reset();
     this.toggleForm(false);
     this.renderSidebarCategories();
@@ -1222,7 +1248,7 @@ class NotesApp {
     note.category = this.editNoteCategory.value;
     note.due_date = this.editNoteDueDate.value || '';
 
-    await this.saveToDirectory();
+    await this.saveData();
     this.closeEditModal();
     this.renderSidebarCategories();
     this.render();
@@ -1262,7 +1288,7 @@ class NotesApp {
     };
 
     this.categories.push(newCat);
-    await this.saveToDirectory();
+    await this.saveData();
 
     this.populateCategoryOptions();
     this.renderSidebarCategories();
@@ -1275,7 +1301,7 @@ class NotesApp {
     const note = this.notes.find((n) => n.id === noteId);
     if (note) {
       note.is_completed = !note.is_completed;
-      await this.saveToDirectory();
+      await this.saveData();
       this.render();
     }
   }
@@ -1295,299 +1321,320 @@ class NotesApp {
 
     if (confirmed) {
       this.notes = this.notes.filter((n) => n.id !== noteId);
-      await this.saveToDirectory();
+      await this.saveData();
       this.renderSidebarCategories();
       this.render();
     }
   }
 
-  // --- Almacenamiento Exclusivo en Carpeta / Archivo Físico (File System Access API) ---
-  async initFolderStorage() {
-    const storedDir = await getStoredDirHandle();
-    if (storedDir) {
-      try {
-        const perm = await storedDir.queryPermission({ mode: 'readwrite' });
-        if (perm === 'granted') {
-          this.dirHandle = storedDir;
-          this.fileHandle = null;
-          await this.loadDataFromDirectory();
-          this.updateSyncUI(true, this.dirHandle.name);
-          return;
-        } else {
-          this.pendingDirHandle = storedDir;
-          this.syncDot.classList.remove('connected');
-          this.syncDot.classList.add('pending');
-          this.syncStatusText.textContent = 'Permiso requerido';
-          this.syncFolderText.textContent = `📁 ${storedDir.name} (notas.json)`;
-          this.selectFolderBtnLabel.textContent = 'Reconectar Carpeta';
-          this.disconnectFolderBtn.style.display = 'block';
-          this.render();
-          return;
-        }
-      } catch (err) {
-        console.warn('Error al verificar storedDir:', err);
-      }
+  // --- Sincronización en la Nube con Google Drive (OAuth 2.0 / GIS) ---
+  initGoogleDrive() {
+    this.googleClientId = localStorage.getItem('smartnotes_gclient_id') || '';
+    if (!this.googleClientId) {
+      this.updateGoogleSyncUI('config_needed');
+      return;
     }
 
-    const storedFile = await getStoredFileHandle();
-    if (storedFile) {
+    this.updateGoogleSyncUI('disconnected');
+    this.setupGisClient();
+  }
+
+  setupGisClient() {
+    if (!this.googleClientId) return;
+    if (window.google && window.google.accounts && window.google.accounts.oauth2) {
       try {
-        const perm = await storedFile.queryPermission({ mode: 'readwrite' });
-        if (perm === 'granted') {
-          this.fileHandle = storedFile;
-          this.dirHandle = null;
-          await this.loadDataFromFileHandle();
-          this.updateSyncUI(true, this.fileHandle.name);
-          return;
-        } else {
-          this.pendingFileHandle = storedFile;
-          this.syncDot.classList.remove('connected');
-          this.syncDot.classList.add('pending');
-          this.syncStatusText.textContent = 'Permiso requerido';
-          this.syncFolderText.textContent = `📄 ${storedFile.name}`;
-          this.selectFolderBtnLabel.textContent = 'Reconectar Archivo';
-          this.disconnectFolderBtn.style.display = 'block';
-          this.render();
-          return;
-        }
+        this.driveTokenClient = window.google.accounts.oauth2.initTokenClient({
+          client_id: this.googleClientId,
+          scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+          callback: (tokenResponse) => {
+            if (tokenResponse && tokenResponse.access_token) {
+              this.handleDriveTokenReceived(tokenResponse.access_token);
+            } else if (tokenResponse && tokenResponse.error) {
+              console.error('Error Google OAuth:', tokenResponse.error);
+              this.updateGoogleSyncUI('disconnected');
+              this.showAlert({
+                title: 'Error de Autenticación',
+                message: 'No se pudo iniciar sesión con Google: ' + tokenResponse.error,
+                icon: '⚠️'
+              });
+            }
+          }
+        });
       } catch (err) {
-        console.warn('Error al verificar storedFile:', err);
+        console.warn('Fallo al inicializar Google Identity Client:', err);
       }
+    } else {
+      setTimeout(() => this.setupGisClient(), 500);
+    }
+  }
+
+  openGoogleConfigModal() {
+    if (this.googleClientIdInput) {
+      this.googleClientIdInput.value = this.googleClientId || '';
+    }
+    if (this.googleConfigModal) {
+      this.googleConfigModal.classList.add('active');
+      this.googleConfigModal.setAttribute('aria-hidden', 'false');
+    }
+    if (this.googleClientIdInput) this.googleClientIdInput.focus();
+  }
+
+  closeGoogleConfigModal() {
+    if (this.googleConfigModal) {
+      this.googleConfigModal.classList.remove('active');
+      this.googleConfigModal.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  saveGoogleConfig() {
+    const val = (this.googleClientIdInput ? this.googleClientIdInput.value : '').trim();
+    if (!val) {
+      this.showAlert({
+        title: 'Client ID Vacío',
+        message: 'Por favor introduce tu Google Client ID para poder sincronizar tus notas.',
+        icon: '⚠️'
+      });
+      return;
     }
 
-    this.updateSyncUI(false);
+    this.googleClientId = val;
+    localStorage.setItem('smartnotes_gclient_id', val);
+    this.closeGoogleConfigModal();
+    this.setupGisClient();
+    this.updateGoogleSyncUI('disconnected');
+    this.showAlert({
+      title: 'Configuración Guardada',
+      message: 'Google Client ID guardado con éxito. Ahora pulsa en "Conectar con Google" para iniciar sesión.',
+      icon: '✅'
+    });
     this.render();
   }
 
-  async selectFolder() {
-    // 1. Detección de protocolo file:// (restricción nativa de Chrome / Edge)
-    if (window.location.protocol === 'file:') {
-      await this.showAlert({
-        title: 'Restricción del Navegador en file://',
-        message: 'Google Chrome y Microsoft Edge bloquean por seguridad el acceso a carpetas del disco cuando se abre una página con "file://".\n\n👉 Para activar el guardado automático en tu carpeta de Google Drive, OneDrive o local, abre la aplicación ejecutando:\n\n"Iniciar_SmartNotes.bat"',
-        icon: '⚠️',
-        confirmText: 'Entendido'
+  handleConnectGoogleDrive() {
+    this.googleClientId = localStorage.getItem('smartnotes_gclient_id') || '';
+    if (!this.googleClientId) {
+      this.openGoogleConfigModal();
+      return;
+    }
+
+    if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
+      this.showAlert({
+        title: 'Cargando Servicios de Google',
+        message: 'Los servicios de Google aún se están cargando en tu navegador. Comprueba tu conexión a Internet e inténtalo en unos segundos.',
+        icon: '⏳'
       });
       return;
     }
 
-    if (!('showDirectoryPicker' in window)) {
-      await this.showAlert({
-        title: 'Navegador No Compatible',
-        message: 'Tu navegador no soporta la selección de carpetas físicas (File System Access API).\nTe recomendamos usar Google Chrome o Microsoft Edge en http://localhost.',
-        icon: '🌐'
-      });
-      return;
+    if (!this.driveTokenClient) {
+      this.setupGisClient();
     }
 
-    // 2. Si hay un permiso pendiente de reconexión previa:
-    if (this.pendingDirHandle) {
-      try {
-        const perm = await this.pendingDirHandle.requestPermission({ mode: 'readwrite' });
-        if (perm === 'granted') {
-          this.dirHandle = this.pendingDirHandle;
-          this.pendingDirHandle = null;
-          this.updateSyncUI(true, this.dirHandle.name);
-          await this.loadDataFromDirectory();
-          this.render();
-          return;
-        }
-      } catch (e) {
-        console.warn('Fallo reconectando pendingDirHandle:', e);
-      }
+    if (this.driveTokenClient) {
+      this.updateGoogleSyncUI('syncing', 'Iniciando sesión...');
+      this.driveTokenClient.requestAccessToken({ prompt: '' });
     }
+  }
 
-    // 3. Abrir selector nativo de carpetas con modo lectura/escritura
+  async handleDriveTokenReceived(accessToken) {
+    this.driveAccessToken = accessToken;
+    this.updateGoogleSyncUI('syncing', 'Obteniendo perfil...');
+
     try {
-      const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
-      if (!handle) return;
+      const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      if (userRes.ok) {
+        this.driveUser = await userRes.json();
+      }
+    } catch (e) {
+      console.warn('No se pudo obtener información del perfil:', e);
+    }
 
-      this.dirHandle = handle;
-      this.pendingDirHandle = null;
+    await this.syncWithGoogleDrive();
+  }
 
-      this.updateSyncUI(true, this.dirHandle.name);
-      await this.loadDataFromDirectory();
-      saveStoredDirHandle(handle).catch(() => {});
+  async syncWithGoogleDrive() {
+    if (!this.driveAccessToken) return;
+    this.updateGoogleSyncUI('syncing', 'Buscando notas.json en Drive...');
+
+    try {
+      const q = encodeURIComponent("name = 'notas.json' and trashed = false");
+      const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime)`, {
+        headers: { Authorization: `Bearer ${this.driveAccessToken}` }
+      });
+
+      if (!searchRes.ok) {
+        throw new Error('Error al conectar con Google Drive: ' + searchRes.statusText);
+      }
+
+      const searchData = await searchRes.json();
+
+      if (searchData.files && searchData.files.length > 0) {
+        this.driveFileId = searchData.files[0].id;
+        localStorage.setItem('smartnotes_gdrive_file_id', this.driveFileId);
+
+        this.updateGoogleSyncUI('syncing', 'Descargando notas...');
+        const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${this.driveFileId}?alt=media`, {
+          headers: { Authorization: `Bearer ${this.driveAccessToken}` }
+        });
+
+        if (fileRes.ok) {
+          const content = await fileRes.text();
+          if (content.trim()) {
+            try {
+              const parsed = JSON.parse(content);
+              if (Array.isArray(parsed)) {
+                this.notes = parsed;
+              } else if (parsed && typeof parsed === 'object') {
+                if (Array.isArray(parsed.notes)) this.notes = parsed.notes;
+                if (Array.isArray(parsed.categories)) this.categories = parsed.categories;
+              }
+            } catch (pe) {
+              console.warn('Formato inválido en Drive notas.json:', pe);
+            }
+          }
+        }
+      } else {
+        // Crear notas.json en Google Drive
+        this.updateGoogleSyncUI('syncing', 'Creando notas.json en Drive...');
+        const metadata = {
+          name: 'notas.json',
+          mimeType: 'application/json'
+        };
+        const payload = {
+          version: 1,
+          created_at: new Date().toISOString(),
+          notes: this.notes.length ? this.notes : [...INITIAL_SEED_NOTES],
+          categories: this.categories
+        };
+
+        const form = new FormData();
+        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+        form.append('file', new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' }));
+
+        const createRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${this.driveAccessToken}` },
+          body: form
+        });
+
+        if (createRes.ok) {
+          const createdData = await createRes.json();
+          this.driveFileId = createdData.id;
+          localStorage.setItem('smartnotes_gdrive_file_id', this.driveFileId);
+        }
+      }
+
+      this.populateCategoryOptions();
+      this.renderSidebarCategories();
+      this.updateGoogleSyncUI('connected');
       this.render();
     } catch (err) {
-      if (err.name === 'AbortError') {
-        // El usuario canceló o cerró la ventana de selección: silencioso
-        return;
-      }
-      console.error('Error al seleccionar carpeta:', err);
+      console.error('Error sincronizando con Google Drive:', err);
+      this.updateGoogleSyncUI('disconnected');
       await this.showAlert({
-        title: 'Error de Selección',
-        message: 'No se pudo acceder a la carpeta seleccionada:\n' + (err.message || err),
+        title: 'Error de Google Drive',
+        message: 'Ocurrió un problema al sincronizar con tu Google Drive:\n' + err.message,
         icon: '⚠️'
       });
     }
   }
 
-  async loadDataFromDirectory() {
-    if (!this.dirHandle) return;
+  scheduleDriveSave() {
+    if (this.driveSaveTimeout) clearTimeout(this.driveSaveTimeout);
+    this.updateGoogleSyncUI('saving');
+    this.driveSaveTimeout = setTimeout(() => {
+      this.saveToGoogleDrive();
+    }, 600);
+  }
+
+  async saveToGoogleDrive() {
+    if (!this.driveAccessToken || !this.driveFileId) return;
 
     try {
-      const fileHandle = await this.dirHandle.getFileHandle('notas.json', { create: true });
-      const file = await fileHandle.getFile();
-      const text = await file.text();
+      const payload = {
+        version: 1,
+        last_synced: new Date().toISOString(),
+        notes: this.notes,
+        categories: this.categories
+      };
 
-      if (text.trim()) {
-        try {
-          const data = JSON.parse(text);
-          let loadedNotes = null;
-          let loadedCats = null;
+      const res = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${this.driveFileId}?uploadType=media`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${this.driveAccessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload, null, 2)
+      });
 
-          if (Array.isArray(data)) {
-            loadedNotes = data;
-          } else if (data && typeof data === 'object') {
-            if (Array.isArray(data.notes)) loadedNotes = data.notes;
-            if (Array.isArray(data.categories)) loadedCats = data.categories;
-          }
-
-          if (loadedNotes) {
-            this.notes = loadedNotes;
-          }
-          if (loadedCats && loadedCats.length > 0) {
-            this.categories = loadedCats;
-          }
-        } catch (parseErr) {
-          console.warn('El archivo notas.json contenía formato inválido, inicializando estructura limpia:', parseErr);
-          this.notes = [...INITIAL_SEED_NOTES];
-          await this.saveToDirectory();
+      if (!res.ok) {
+        if (res.status === 401) {
+          this.updateGoogleSyncUI('disconnected', 'Sesión expirada');
+          return;
         }
-      } else {
-        // Archivo notas.json nuevo creado en la carpeta elegida: inicializar con notas de bienvenida y guardar de inmediato
-        this.notes = [...INITIAL_SEED_NOTES];
-        await this.saveToDirectory();
+        throw new Error('Error al guardar en Drive: ' + res.statusText);
       }
 
-      this.populateCategoryOptions();
-      this.renderSidebarCategories();
+      this.updateGoogleSyncUI('connected');
     } catch (err) {
-      console.error('Error al leer/crear notas.json en la carpeta:', err);
+      console.warn('Error guardando en Google Drive:', err);
+      this.updateGoogleSyncUI('connected', 'Pendiente de sincronizar');
     }
   }
 
-  async loadDataFromFileHandle() {
-    if (!this.fileHandle) return;
-
-    try {
-      const file = await this.fileHandle.getFile();
-      const text = await file.text();
-
-      if (text.trim()) {
-        try {
-          const data = JSON.parse(text);
-          let loadedNotes = null;
-          let loadedCats = null;
-
-          if (Array.isArray(data)) {
-            loadedNotes = data;
-          } else if (data && typeof data === 'object') {
-            if (Array.isArray(data.notes)) loadedNotes = data.notes;
-            if (Array.isArray(data.categories)) loadedCats = data.categories;
-          }
-
-          if (loadedNotes) {
-            this.notes = loadedNotes;
-          }
-          if (loadedCats && loadedCats.length > 0) {
-            this.categories = loadedCats;
-          }
-        } catch (parseErr) {
-          console.warn('El archivo notas.json contenía formato inválido, inicializando estructura limpia:', parseErr);
-          this.notes = [...INITIAL_SEED_NOTES];
-          await this.saveToDirectory();
-        }
-      } else {
-        // Archivo nuevo creado: inicializar con notas de bienvenida y guardar de inmediato
-        this.notes = [...INITIAL_SEED_NOTES];
-        await this.saveToDirectory();
-      }
-
-      this.populateCategoryOptions();
-      this.renderSidebarCategories();
-    } catch (err) {
-      console.error('Error leyendo archivo vinculado:', err);
+  async saveData() {
+    if (this.driveAccessToken && this.driveFileId) {
+      this.scheduleDriveSave();
     }
   }
 
-  async saveToDirectory() {
-    if (this.fileHandle) {
-      try {
-        if (this.fileHandle.queryPermission) {
-          const q = await this.fileHandle.queryPermission({ mode: 'readwrite' });
-          if (q !== 'granted' && this.fileHandle.requestPermission) {
-            await this.fileHandle.requestPermission({ mode: 'readwrite' });
-          }
-        }
-        const writable = await this.fileHandle.createWritable();
-        const payload = {
-          version: 1,
-          last_synced: new Date().toISOString(),
-          notes: this.notes,
-          categories: this.categories
-        };
-        await writable.write(JSON.stringify(payload, null, 2));
-        await writable.close();
-      } catch (err) {
-        console.warn('Error al guardar en archivo físico notas.json:', err);
-      }
-      return;
-    }
-
-    if (this.dirHandle) {
-      try {
-        if (this.dirHandle.queryPermission) {
-          const q = await this.dirHandle.queryPermission({ mode: 'readwrite' });
-          if (q !== 'granted' && this.dirHandle.requestPermission) {
-            await this.dirHandle.requestPermission({ mode: 'readwrite' });
-          }
-        }
-        const fileHandle = await this.dirHandle.getFileHandle('notas.json', { create: true });
-        const writable = await fileHandle.createWritable();
-        const payload = {
-          version: 1,
-          last_synced: new Date().toISOString(),
-          notes: this.notes,
-          categories: this.categories
-        };
-        await writable.write(JSON.stringify(payload, null, 2));
-        await writable.close();
-      } catch (err) {
-        console.warn('Error al guardar en notas.json dentro de la carpeta:', err);
-      }
-      return;
-    }
-  }
-
-  async disconnectFolder() {
-    this.dirHandle = null;
-    this.fileHandle = null;
-    this.pendingDirHandle = null;
-    this.pendingFileHandle = null;
+  disconnectGoogleDrive() {
+    this.driveAccessToken = null;
+    this.driveUser = null;
+    this.driveFileId = null;
+    localStorage.removeItem('smartnotes_gdrive_file_id');
     this.notes = [];
-    await removeStoredDirHandle();
-    await removeStoredFileHandle();
-    this.updateSyncUI(false);
+    this.updateGoogleSyncUI('disconnected');
     this.render();
   }
 
-  updateSyncUI(connected, name = '') {
-    if (connected) {
-      this.syncDot.classList.remove('pending');
-      this.syncDot.classList.add('connected');
-      this.syncStatusText.textContent = this.dirHandle ? 'Carpeta Activa' : 'Archivo Vinculado';
-      const label = name || (this.dirHandle ? this.dirHandle.name : (this.fileHandle ? this.fileHandle.name : 'Notas'));
-      this.syncFolderText.textContent = `📁 ${label} (notas.json)`;
-      this.selectFolderBtnLabel.textContent = 'Cambiar Carpeta';
-      this.disconnectFolderBtn.style.display = 'block';
+  updateGoogleSyncUI(state, extraText = '') {
+    if (!this.syncDot) return;
+
+    if (state === 'connected') {
+      this.syncDot.className = 'sync-dot connected';
+      this.syncStatusText.textContent = 'Sincronizado';
+      const userLabel = this.driveUser ? (this.driveUser.email || this.driveUser.name) : 'Google Drive';
+      this.syncFolderText.textContent = `☁️ ${userLabel}`;
+      if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'none';
+      if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'block';
+    } else if (state === 'saving') {
+      this.syncDot.className = 'sync-dot pending';
+      this.syncStatusText.textContent = 'Guardando...';
+      this.syncFolderText.textContent = 'Subiendo a Drive...';
+    } else if (state === 'syncing') {
+      this.syncDot.className = 'sync-dot pending';
+      this.syncStatusText.textContent = 'Conectando...';
+      this.syncFolderText.textContent = extraText || 'Sincronizando notas...';
+      if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'none';
+      if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'none';
+    } else if (state === 'config_needed') {
+      this.syncDot.className = 'sync-dot';
+      this.syncStatusText.textContent = 'Falta Client ID';
+      this.syncFolderText.textContent = 'Configura tu Client ID';
+      if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'flex';
+      if (this.connectDriveBtnLabel) this.connectDriveBtnLabel.textContent = '⚙️ Configurar Client ID';
+      if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'none';
     } else {
-      this.syncDot.classList.remove('connected', 'pending');
-      this.syncStatusText.textContent = 'Sin carpeta';
-      this.syncFolderText.textContent = 'Sin carpeta seleccionada';
-      this.selectFolderBtnLabel.textContent = 'Seleccionar Carpeta';
-      this.disconnectFolderBtn.style.display = 'none';
+      // disconnected
+      this.syncDot.className = 'sync-dot';
+      this.syncStatusText.textContent = 'Desconectado';
+      this.syncFolderText.textContent = extraText || 'Inicia sesión con tu cuenta';
+      if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'flex';
+      if (this.connectDriveBtnLabel) this.connectDriveBtnLabel.textContent = 'Conectar con Google';
+      if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'none';
     }
   }
 
@@ -1702,66 +1749,35 @@ class NotesApp {
   render() {
     this.updateStats();
 
-    // Si no hay carpeta conectada o hay permiso pendiente, mostrar tarjeta explicativa directa
-    if (!this.dirHandle) {
-      this.currentFilterTitle.innerHTML = `<span>Carpeta de Notas</span>`;
+    // Si Google Drive no está conectado, mostrar tarjeta para conectar
+    if (!this.driveAccessToken) {
+      this.currentFilterTitle.innerHTML = `<span>Sincronización en la Nube</span>`;
       this.currentFilterCount.textContent = '';
 
-      if (window.location.protocol === 'file:') {
-        this.notesGrid.innerHTML = `
-          <div class="folder-state-card">
-            <div class="folder-state-icon">⚠️</div>
-            <h3 class="folder-state-title">Modo Archivo Local (file://) Detectado</h3>
-            <p class="folder-state-desc">
-              Google Chrome y Microsoft Edge bloquean por seguridad el acceso directo a carpetas del disco cuando se abre un archivo como <code>file:///</code>.<br><br>
-              👉 <strong>Para guardar de forma automática y exclusiva en tu carpeta:</strong><br>
-              Ejecuta el archivo <strong><code>Iniciar_SmartNotes.bat</code></strong> en la carpeta del proyecto. Se abrirá en tu navegador con acceso total y seguro a tu carpeta de Google Drive, OneDrive o local.
-            </p>
-            <button class="folder-state-btn" id="selectFolderMainBtn">
-              <span>📁</span> Más Información / Seleccionar Carpeta
+      const hasClientId = !!this.googleClientId;
+      this.notesGrid.innerHTML = `
+        <div class="folder-state-card">
+          <div class="folder-state-icon">☁️</div>
+          <h3 class="folder-state-title">Sincroniza tus notas con Google Drive</h3>
+          <p class="folder-state-desc">
+            Tus notas y tareas se guardan de forma privada y cifrada en tu cuenta personal de Google Drive (en un archivo <code>notas.json</code>).<br>
+            Accede a ellas desde tu ordenador o tu móvil con total seguridad y privacidad.
+          </p>
+          <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
+            <button class="folder-state-btn" id="mainConnectDriveBtn">
+              <span>🟢</span> Conectar con Google Drive
+            </button>
+            <button class="folder-state-btn" id="mainConfigDriveBtn" style="background: var(--bg-hover); color: var(--text-main); border: 1px solid var(--border-color);">
+              <span>⚙️</span> ${hasClientId ? 'Cambiar Client ID' : 'Configurar Client ID'}
             </button>
           </div>
-        `;
-        const selBtn = document.getElementById('selectFolderMainBtn');
-        if (selBtn) {
-          selBtn.addEventListener('click', () => this.selectFolder());
-        }
-      } else if (this.pendingDirHandle) {
-        this.notesGrid.innerHTML = `
-          <div class="folder-state-card">
-            <div class="folder-state-icon">🔒</div>
-            <h3 class="folder-state-title">Permiso para acceder a tus notas</h3>
-            <p class="folder-state-desc">
-              Tu carpeta vinculada es <strong>📁 ${this.escapeHTML(this.pendingDirHandle.name)}</strong>.<br>
-              Haz clic en el botón para reanudar el acceso y cargar tus notas guardadas en <code>notas.json</code>.
-            </p>
-            <button class="folder-state-btn" id="reconnectFolderMainBtn">
-              <span>🔓</span> Conceder Acceso y Cargar Notas
-            </button>
-          </div>
-        `;
-        const reconnBtn = document.getElementById('reconnectFolderMainBtn');
-        if (reconnBtn) {
-          reconnBtn.addEventListener('click', () => this.selectFolder());
-        }
-      } else {
-        this.notesGrid.innerHTML = `
-          <div class="folder-state-card">
-            <div class="folder-state-icon">📁</div>
-            <h3 class="folder-state-title">Selecciona tu carpeta de notas</h3>
-            <p class="folder-state-desc">
-              Tus tareas y notas se guardan de forma exclusiva en un archivo <code>notas.json</code> dentro de la carpeta que elijas (Google Drive, OneDrive o cualquier carpeta de tu equipo), sin almacenar nada en el navegador.
-            </p>
-            <button class="folder-state-btn" id="selectFolderMainBtn">
-              <span>📁</span> Seleccionar Carpeta para Comenzar
-            </button>
-          </div>
-        `;
-        const selBtn = document.getElementById('selectFolderMainBtn');
-        if (selBtn) {
-          selBtn.addEventListener('click', () => this.selectFolder());
-        }
-      }
+        </div>
+      `;
+
+      const connBtn = document.getElementById('mainConnectDriveBtn');
+      if (connBtn) connBtn.addEventListener('click', () => this.handleConnectGoogleDrive());
+      const cfgBtn = document.getElementById('mainConfigDriveBtn');
+      if (cfgBtn) cfgBtn.addEventListener('click', () => this.openGoogleConfigModal());
       return;
     }
 

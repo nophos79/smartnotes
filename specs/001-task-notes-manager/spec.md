@@ -85,3 +85,8 @@ Como usuario, quiero que mis tareas se guarden única y exclusivamente en un arc
 * **FR-071**: Botón "✕ Cerrar" en cabecera del formulario con estilo unificado idéntico a "Guardar Nota" (`class="btn"`), máxima visibilidad y consistencia en temas claro y oscuro.
 * **FR-072**: Motor resiliente de persistencia física con preservación del gesto de usuario (invocación sincrónica `onConfirmAction`).
 * **FR-073**: Lanzador local asistido `Iniciar_SmartNotes.bat` y servidor autónomo `scripts/server.js` (`http://localhost:3000`) para habilitar el uso sin restricciones de la File System Access API (`showDirectoryPicker`) superando las restricciones de origen opaco en Chromium sobre `file:///`.
+* **FR-074**: Integración con Google Identity Services (GIS) y OAuth 2.0 con alcance de privilegio mínimo `https://www.googleapis.com/auth/drive.file`.
+* **FR-075**: Gestión de almacenamiento en la nube en Google Drive (`notas.json`) con búsqueda/creación automática, lectura y guardado desasistido en tiempo real.
+* **FR-076**: Modal de configuración de Google Client ID integrado en la interfaz de usuario con persistencia en `localStorage`.
+* **FR-077**: Barra de estado de sincronización en tiempo real con avatar de usuario, correo y estados visuales (Desconectado, Conectando, Sincronizado, Guardando en Drive).
+* **FR-078**: Optimización para dispositivos móviles (PWA / meta tags para pantalla completa) para acceso fluido desde smartphones y tablets.

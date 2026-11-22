@@ -22,5 +22,7 @@ standalone = standalone.replace(
 );
 
 fs.writeFileSync(outPath, standalone, 'utf8');
+const rootIndexPath = path.join(rootDir, 'index.html');
+fs.writeFileSync(rootIndexPath, standalone, 'utf8');
 const sizeKb = (Buffer.byteLength(standalone, 'utf8') / 1024).toFixed(1);
-console.log(`[BUILD] SmartNotes.html generado con éxito (${sizeKb} KB) en: ${outPath}`);
+console.log(`[BUILD] SmartNotes.html e index.html generados con éxito (${sizeKb} KB) en raíz`);
