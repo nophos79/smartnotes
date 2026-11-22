@@ -682,6 +682,70 @@ body {
   margin-bottom: 1rem;
 }
 
+/* Botón Ocultar Formulario */
+.btn-close-form {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  padding: 0.38rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.btn-close-form:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+}
+
+.btn-close-form:active {
+  transform: scale(0.96);
+}
+
+body.light-theme .btn-close-form {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #64748b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .btn-close-form:hover {
+  background: #f8fafc;
+  border-color: var(--accent);
+  color: var(--text-main);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilo base para botones de acción genéricos */
+.btn-action {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.btn-action:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
+  border-color: var(--accent);
+}
+
 .form-title {
   font-size: 1.1rem;
   font-weight: 600;
@@ -1851,7 +1915,10 @@ body.light-theme #appTooltip {
         <div class="card">
           <div class="form-header-bar">
             <h2 class="form-title">➕ Crear Nueva Nota o Tarea</h2>
-            <button type="button" class="btn-action" id="closeFormBtn" title="Ocultar formulario">✕ Ocultar</button>
+            <button type="button" class="btn-close-form" id="closeFormBtn" title="Ocultar formulario">
+              <span>✕</span>
+              <span>Ocultar</span>
+            </button>
           </div>
           <form id="newNoteForm">
             <div class="input-row">
@@ -2986,6 +3053,87 @@ class NotesApp {
       this.checkSingleRowLayout();
       this.applyViewMode();
     });
+
+    // Navegación con Tabulador secuencial (Título -> Descripción -> Categoría -> Fecha)
+    this.setupFormTabNavigation();
+  }
+
+  setupFormTabNavigation() {
+    // 1. Formulario de Nueva Nota: Título -> Descripción -> Categoría -> Fecha
+    const newNoteFields = [
+      this.noteTitleInput,
+      this.noteContentInput,
+      this.noteCategorySelect,
+      this.noteDueDateInput
+    ];
+
+    newNoteFields.forEach((field, index) => {
+      if (!field) return;
+      field.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+          if (!e.shiftKey) {
+            // Tab hacia adelante
+            if (index < newNoteFields.length - 1) {
+              e.preventDefault();
+              newNoteFields[index + 1].focus();
+            }
+          } else {
+            // Shift + Tab hacia atrás
+            if (index > 0) {
+              e.preventDefault();
+              newNoteFields[index - 1].focus();
+            }
+          }
+        }
+      });
+    });
+
+    const newNoteSubmitBtn = this.newNoteForm.querySelector('button[type="submit"]');
+    if (newNoteSubmitBtn) {
+      newNoteSubmitBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab' && e.shiftKey) {
+          e.preventDefault();
+          this.noteDueDateInput.focus();
+        }
+      });
+    }
+
+    // 2. Formulario de Edición de Nota: Título -> Descripción -> Categoría -> Fecha
+    const editFields = [
+      this.editNoteTitle,
+      this.editNoteContent,
+      this.editNoteCategory,
+      this.editNoteDueDate
+    ];
+
+    editFields.forEach((field, index) => {
+      if (!field) return;
+      field.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+          if (!e.shiftKey) {
+            if (index < editFields.length - 1) {
+              e.preventDefault();
+              editFields[index + 1].focus();
+            }
+          } else {
+            if (index > 0) {
+              e.preventDefault();
+              editFields[index - 1].focus();
+            }
+          }
+        }
+      });
+    });
+
+    const editSubmitBtn = this.editNoteForm ? this.editNoteForm.querySelector('button[type="submit"]') : null;
+    if (editSubmitBtn) {
+      editSubmitBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab' && e.shiftKey) {
+          e.preventDefault();
+          this.editNoteDueDate.focus();
+        }
+      });
+    }
   }
 
   async handleAddNote() {

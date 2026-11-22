@@ -945,6 +945,87 @@ class NotesApp {
       this.checkSingleRowLayout();
       this.applyViewMode();
     });
+
+    // Navegación con Tabulador secuencial (Título -> Descripción -> Categoría -> Fecha)
+    this.setupFormTabNavigation();
+  }
+
+  setupFormTabNavigation() {
+    // 1. Formulario de Nueva Nota: Título -> Descripción -> Categoría -> Fecha
+    const newNoteFields = [
+      this.noteTitleInput,
+      this.noteContentInput,
+      this.noteCategorySelect,
+      this.noteDueDateInput
+    ];
+
+    newNoteFields.forEach((field, index) => {
+      if (!field) return;
+      field.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+          if (!e.shiftKey) {
+            // Tab hacia adelante
+            if (index < newNoteFields.length - 1) {
+              e.preventDefault();
+              newNoteFields[index + 1].focus();
+            }
+          } else {
+            // Shift + Tab hacia atrás
+            if (index > 0) {
+              e.preventDefault();
+              newNoteFields[index - 1].focus();
+            }
+          }
+        }
+      });
+    });
+
+    const newNoteSubmitBtn = this.newNoteForm.querySelector('button[type="submit"]');
+    if (newNoteSubmitBtn) {
+      newNoteSubmitBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab' && e.shiftKey) {
+          e.preventDefault();
+          this.noteDueDateInput.focus();
+        }
+      });
+    }
+
+    // 2. Formulario de Edición de Nota: Título -> Descripción -> Categoría -> Fecha
+    const editFields = [
+      this.editNoteTitle,
+      this.editNoteContent,
+      this.editNoteCategory,
+      this.editNoteDueDate
+    ];
+
+    editFields.forEach((field, index) => {
+      if (!field) return;
+      field.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+          if (!e.shiftKey) {
+            if (index < editFields.length - 1) {
+              e.preventDefault();
+              editFields[index + 1].focus();
+            }
+          } else {
+            if (index > 0) {
+              e.preventDefault();
+              editFields[index - 1].focus();
+            }
+          }
+        }
+      });
+    });
+
+    const editSubmitBtn = this.editNoteForm ? this.editNoteForm.querySelector('button[type="submit"]') : null;
+    if (editSubmitBtn) {
+      editSubmitBtn.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab' && e.shiftKey) {
+          e.preventDefault();
+          this.editNoteDueDate.focus();
+        }
+      });
+    }
   }
 
   async handleAddNote() {

@@ -139,3 +139,10 @@
 - [x] **T69**: Diseñar la estructura HTML y estilos CSS del modal de diálogo (`#customDialogModal`, `.custom-dialog-box`, animaciones, variantes de botón y soporte de tema).
 - [x] **T70**: Implementar los métodos asíncronos `showAlert` y `showConfirm` en `NotesApp` con manejo de promesas, foco accesible y atajos de teclado (`Enter`, `Escape`).
 - [x] **T71**: Reemplazar todas las invocaciones nativas a `alert()` y `confirm()` en `src/app.js`, recompilar `SmartNotes.html` y verificar funcionamiento visual.
+
+---
+
+## Phase 31: Estilización del Botón Ocultar y Flujo de Tabulación Ágil v8.2 (Completado)
+- [x] **T72**: Rediseñar el botón `#closeFormBtn` con la clase `.btn-close-form` integrando bordes redondeados (`8px`), microinteracciones hover y compatibilidad con temas oscuro y claro.
+- [x] **T73**: Implementar la navegación por teclado asistida con <kbd>Tab</kbd> y <kbd>Shift + Tab</kbd> en los formularios: Título -> Descripción -> Categoría -> Fecha -> Envío.
+- [x] **T74**: Recompilar el ejecutable `SmartNotes.html` y verificar la experiencia de redacción fluida.

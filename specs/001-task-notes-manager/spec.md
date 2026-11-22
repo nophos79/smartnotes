@@ -1,12 +1,27 @@
-# Feature Specification: Gestor de Tareas y Notas Inteligente (v8.1 - Diálogos del Sistema Integrados Visualmente)
+# Feature Specification: Gestor de Tareas y Notas Inteligente (v8.2 - Botón Ocultar Estilizado y Tabulación Secuencial de Formulario)
 
 **Feature Branch**: `001-task-notes-manager`  
 **Created**: 2026-11-20 | **Updated**: 2026-11-22  
-**Status**: Completed (v8.1 Custom Dialogs & Modal Unification)  
+**Status**: Completed (v8.2 Form Close Button Styling & Tab Navigation Order)  
 **Input**:
-1. Sustituir todos los cuadros de diálogo nativos del navegador (`window.alert` y `window.confirm`) por componentes modales estilizados con la misma estética visual de la aplicación.
-2. Homogeneizar colores, temas (modo claro y oscuro), tipografías, bordes redondeados y efectos visuales de desenfoque y animación.
-3. Asegurar soporte accesible por teclado (`Enter`, `Escape`) y personalización contextual de iconos, títulos y botones de acción.
+1. Modificar la apariencia del botón "Ocultar" del formulario de nueva nota para que tenga exactamente la misma estética visual pulida que el resto de los botones de la app.
+2. Modificar la secuencia de navegación con tabulador en los formularios para que el flujo sea: primero Título, luego Descripción, y posteriormente Categoría y Fecha límite.
+
+---
+
+## 1. User Story 39 - Estética del Botón Ocultar y Flujo de Tabulación Ágil
+Como usuario, quiero que el botón "Ocultar" del formulario tenga un aspecto integrado y estilizado acorde a la app, y que al pulsar Tabulador desde el título pase directamente a la descripción antes que a la categoría y fecha, para redactar mis notas más rápido con el teclado.
+
+* **Acceptance Criteria**:
+  - **Botón Ocultar Estilizado (`.btn-close-form`)**:
+    - Se elimina el aspecto tosco por defecto del navegador.
+    - Se aplica fondo de tarjeta, bordes suaves (`8px`), texto y sutil sombra en modo oscuro y claro, con realce en `--accent` al pasar el cursor.
+  - **Secuencia de Tabulación Asistida**:
+    - Al pulsar <kbd>Tab</kbd> desde el campo Título (`#noteTitle`), el foco pasa inmediatamente al campo Descripción (`#noteContent`).
+    - Al pulsar <kbd>Tab</kbd> desde Descripción, pasa a Categoría (`#noteCategory`).
+    - Al pulsar <kbd>Tab</kbd> desde Categoría, pasa a Fecha límite (`#noteDueDate`).
+    - Al pulsar <kbd>Tab</kbd> desde Fecha límite, pasa al botón de envío `Guardar Nota`.
+    - Soporte recíproco con <kbd>Shift + Tab</kbd> para retroceder en el orden inverso exacto.
 
 ---
 
@@ -65,3 +80,5 @@ Como usuario, quiero que mis tareas se guarden única y exclusivamente en un arc
 * **FR-066**: Reemplazo integral de `window.alert` y `window.confirm` por un componente de diálogo modal nativo de la aplicación.
 * **FR-067**: Soporte para variantes informativas (`showAlert`) y confirmaciones destructivas (`showConfirm`) con promesas asíncronas.
 * **FR-068**: Integración visual con temas (claro/oscuro), accesibilidad con teclado (`Enter`, `Escape`), animaciones y botones temáticos.
+* **FR-069**: Rediseño visual del botón "Ocultar" del formulario (`.btn-close-form`) con bordes redondeados, sombra, microinteracciones y armonía en temas claro/oscuro.
+* **FR-070**: Flujo de navegación por teclado bidireccional asistido con tabulador (Título -> Descripción -> Categoría -> Fecha -> Envío).
