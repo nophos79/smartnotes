@@ -179,3 +179,12 @@
 - [x] **T89**: Rediseñar el botón de desconexión `#disconnectDriveBtn` en la barra lateral con clase unificada `.btn-sync-disconnect`, icono SVG de salida y estilos visuales perfectamente armonizados con la tarjeta de sincronización y el sistema de temas (oscuro y claro).
 - [x] **T90**: Actualizar `src/app.js` para alternar la visualización con `display: 'inline-flex'`.
 - [x] **T91**: Recompilar el ejecutable `SmartNotes.html` e `index.html` con `scripts/build.js`, validar sintaxis con `node --check` y desplegar en GitHub Pages.
+
+---
+
+## Phase 36: Limpieza y Eliminación de Código y Archivos Obsoletos v9.4 (Completado)
+- [x] **T92**: Eliminar lanzador innecesario `Iniciar_SmartNotes.bat` y servidor local `scripts/server.js` (ya sustituidos al 100% por GitHub Pages y Google Drive Cloud API).
+- [x] **T93**: Eliminar el archivo huérfano `src/storage.js` (código inicial prototipo que no se utilizaba en ningún módulo).
+- [x] **T94**: Purgar en `src/app.js` las funciones residuales de handles físicos de Chromium en IndexedDB (`saveStoredDirHandle`, `getStoredDirHandle`, etc.) reduciendo más de 160 líneas de código muerto.
+- [x] **T95**: Actualizar la descripción visual de la tarjeta de inicio de sesión de Google Drive para especificar la carpeta oficial `SmartNotes / notas.json`.
+- [x] **T96**: Recompilar el bundle standalone `SmartNotes.html` y raíz `index.html` con `scripts/build.js`, validar con `node --check` y desplegar a producción.
