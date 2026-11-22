@@ -377,37 +377,6 @@ body {
   color: #4285f4;
 }
 
-.sync-btn.pwa-btn {
-  background: rgba(79, 70, 229, 0.12);
-  border: 1px solid rgba(79, 70, 229, 0.35);
-  color: var(--accent);
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.sync-btn.pwa-btn:hover {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
-}
-
-body.light-theme .sync-btn.pwa-btn {
-  background: #eef2ff;
-  border-color: #c7d2fe;
-  color: #4338ca;
-}
-
-body.light-theme .sync-btn.pwa-btn:hover {
-  background: var(--accent);
-  color: #fff;
-}
 
 .sync-filename {
   font-size: 0.75rem;
@@ -570,6 +539,42 @@ body.light-theme .btn-sync-disconnect:hover {
   cursor: pointer;
 }
 
+/* Botón Rápido Nueva Nota en Topbar */
+.topbar-new-note-btn {
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  height: 38px;
+  padding: 0 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.topbar-new-note-btn svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+}
+
+.topbar-new-note-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+}
+
+.topbar-new-note-btn:active {
+  transform: scale(0.94);
+}
+
 .search-box {
   flex: 1;
   position: relative;
@@ -703,6 +708,54 @@ body.light-theme .theme-toggle-btn:hover {
   background: #e2e8f0;
   border-color: var(--accent);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Botón Flotante de Acción Rápida (FAB) */
+.fab-new-note {
+  position: fixed;
+  bottom: calc(1.75rem + env(safe-area-inset-bottom, 0px));
+  right: calc(1.75rem + env(safe-area-inset-right, 0px));
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.45), 0 2px 6px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 99;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s, background 0.2s;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fab-new-note svg {
+  width: 28px;
+  height: 28px;
+  stroke: currentColor;
+  transition: transform 0.25s ease;
+}
+
+.fab-new-note:hover {
+  transform: scale(1.1) translateY(-2px);
+  box-shadow: 0 10px 28px rgba(5, 150, 105, 0.55), 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.fab-new-note:active {
+  transform: scale(0.92);
+}
+
+/* Cuando el formulario está abierto, el FAB rota 45° a '✕' y cambia a tono de cancelación */
+.fab-new-note.is-open {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.45), 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.fab-new-note.is-open svg {
+  transform: rotate(45deg);
 }
 
 /* Barra de Filtro Activo */
@@ -1851,7 +1904,7 @@ body.light-theme .due-today {
   }
 
   .main-content {
-    padding: 1rem 0.85rem;
+    padding: 1rem 0.85rem 5.5rem 0.85rem;
     gap: 1.1rem;
     width: 100%;
     max-width: 100%;
@@ -1871,6 +1924,23 @@ body.light-theme .due-today {
     width: 100%;
     min-width: 0;
     gap: 0.5rem;
+  }
+
+  .topbar-new-note-btn {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .topbar-new-note-btn .topbar-btn-text {
+    display: none;
+  }
+
+  .topbar-new-note-btn svg {
+    width: 18px;
+    height: 18px;
   }
 
   .search-box {
@@ -1935,7 +2005,7 @@ body.light-theme .due-today {
 
 @media (max-width: 600px) {
   .main-content {
-    padding: 0.75rem 0.6rem;
+    padding: 0.75rem 0.6rem 5.5rem 0.6rem;
   }
 
   .full-width-grid {
@@ -2176,18 +2246,6 @@ body.light-theme #appTooltip {
           </button>
         </div>
       </div>
-
-      <!-- Instalación como App PWA en Móvil / Escritorio -->
-      <div class="sidebar-section" id="pwaInstallSection" style="display: none;">
-        <button id="pwaInstallBtn" class="sync-btn pwa-btn" title="Instalar SmartNotes como aplicación en tu dispositivo">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          <span id="pwaInstallBtnText">Instalar App en el Móvil</span>
-        </button>
-      </div>
     </aside>
 
     <!-- Backdrop móvil -->
@@ -2199,6 +2257,13 @@ body.light-theme #appTooltip {
       <header class="topbar">
         <div class="topbar-left">
           <button class="mobile-menu-btn" id="mobileMenuBtn" title="Abrir barra lateral">☰</button>
+          <button class="topbar-new-note-btn" id="topbarNewNoteBtn" title="Crear nueva nota" aria-label="Crear nueva nota">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span class="topbar-btn-text">Nueva</span>
+          </button>
           <div class="search-box">
             <span class="search-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -2314,6 +2379,14 @@ body.light-theme #appTooltip {
         <!-- Se puebla dinámicamente con app.js -->
       </div>
     </main>
+
+    <!-- Botón Flotante de Acción Rápida (FAB) para Móvil / Tablet / Escritorio -->
+    <button class="fab-new-note" id="fabNewNoteBtn" title="Crear nueva nota" aria-label="Crear nueva nota">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    </button>
   </div>
 
   <!-- Modal de Detalle de Nota (Lectura Completa) -->
@@ -2592,6 +2665,8 @@ class NotesApp {
     this.newNoteSection = document.getElementById('newNoteSection');
     this.toggleFormBtn = document.getElementById('toggleFormBtn');
     this.toggleFormBtnText = document.getElementById('toggleFormBtnText');
+    this.topbarNewNoteBtn = document.getElementById('topbarNewNoteBtn');
+    this.fabNewNoteBtn = document.getElementById('fabNewNoteBtn');
     this.closeFormBtn = document.getElementById('closeFormBtn');
     this.newNoteForm = document.getElementById('newNoteForm');
     this.noteTitleInput = document.getElementById('noteTitle');
@@ -2658,11 +2733,6 @@ class NotesApp {
     this.syncDot = document.getElementById('syncDot');
     this.syncStatusText = document.getElementById('syncStatusText');
     this.syncFolderText = document.getElementById('syncFolderText');
-
-    // PWA Instalación
-    this.pwaInstallSection = document.getElementById('pwaInstallSection');
-    this.pwaInstallBtn = document.getElementById('pwaInstallBtn');
-    this.pwaInstallBtnText = document.getElementById('pwaInstallBtnText');
 
     // Modal de Diálogo Personalizado (Reemplazo estético de alert y confirm)
     this.customDialogModal = document.getElementById('customDialogModal');
@@ -3074,10 +3144,26 @@ class NotesApp {
     if (isOpen) {
       this.newNoteSection.classList.add('open');
       if (this.toggleFormBtnText) this.toggleFormBtnText.textContent = 'Cerrar Form';
-      this.noteTitleInput.focus();
+      if (this.fabNewNoteBtn) {
+        this.fabNewNoteBtn.classList.add('is-open');
+        this.fabNewNoteBtn.title = 'Cerrar formulario de nota';
+        this.fabNewNoteBtn.setAttribute('aria-label', 'Cerrar formulario de nota');
+      }
+      if (this.sidebar.classList.contains('open')) {
+        this.toggleSidebar(false);
+      }
+      setTimeout(() => {
+        this.newNoteSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (this.noteTitleInput) this.noteTitleInput.focus();
+      }, 50);
     } else {
       this.newNoteSection.classList.remove('open');
       if (this.toggleFormBtnText) this.toggleFormBtnText.textContent = 'Nueva Nota';
+      if (this.fabNewNoteBtn) {
+        this.fabNewNoteBtn.classList.remove('is-open');
+        this.fabNewNoteBtn.title = 'Crear nueva nota';
+        this.fabNewNoteBtn.setAttribute('aria-label', 'Crear nueva nota');
+      }
     }
   }
 
@@ -3235,9 +3321,11 @@ class NotesApp {
     this.mobileCloseSidebarBtn.addEventListener('click', () => this.toggleSidebar(false));
     this.sidebarBackdrop.addEventListener('click', () => this.toggleSidebar(false));
 
-    // Formulario Toggle
-    this.toggleFormBtn.addEventListener('click', () => this.toggleForm());
-    this.closeFormBtn.addEventListener('click', () => this.toggleForm(false));
+    // Formulario Toggle (Sidebar, Botón Superior y FAB Flotante)
+    if (this.toggleFormBtn) this.toggleFormBtn.addEventListener('click', () => this.toggleForm());
+    if (this.topbarNewNoteBtn) this.topbarNewNoteBtn.addEventListener('click', () => this.toggleForm());
+    if (this.fabNewNoteBtn) this.fabNewNoteBtn.addEventListener('click', () => this.toggleForm());
+    if (this.closeFormBtn) this.closeFormBtn.addEventListener('click', () => this.toggleForm(false));
 
     // Navegación por Estado en Sidebar
     this.navItems.forEach((item) => {
@@ -4008,62 +4096,10 @@ class NotesApp {
   }
 
   initPWA() {
-    if (!this.pwaInstallSection || !this.pwaInstallBtn) return;
-
-    let deferredPrompt = null;
-
-    // 1. Detección en Android / Chromium / Edge
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      this.pwaInstallSection.style.display = 'block';
-      if (this.pwaInstallBtnText) {
-        this.pwaInstallBtnText.textContent = 'Instalar App en el Móvil';
-      }
-    });
-
-    this.pwaInstallBtn.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const choice = await deferredPrompt.userChoice;
-        if (choice.outcome === 'accepted') {
-          this.pwaInstallSection.style.display = 'none';
-        }
-        deferredPrompt = null;
-      } else {
-        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-        if (isIOS) {
-          await this.showAlert({
-            title: 'Instalar en iPhone o iPad',
-            message: 'Para instalar SmartNotes en tu pantalla de inicio:<br><br>1. Pulsa el botón <strong>Compartir</strong> (icono de cuadrado con flecha hacia arriba ⬆️ en la barra del navegador).<br><br>2. Desliza hacia abajo y pulsa <strong>"Añadir a la pantalla de inicio"</strong> 📲.<br><br>¡Listo! SmartNotes funcionará a pantalla completa como una aplicación nativa.',
-            icon: '📲',
-            confirmText: 'Entendido'
-          });
-        } else {
-          await this.showAlert({
-            title: 'Instalar Aplicación',
-            message: 'Para instalar SmartNotes en este dispositivo:<br><br>1. Abre el menú de opciones del navegador (icono de 3 puntos <strong>⋮</strong> arriba a la derecha).<br><br>2. Pulsa en <strong>"Instalar aplicación"</strong> o <strong>"Añadir a la pantalla de inicio"</strong> 📲.',
-            icon: '📲',
-            confirmText: 'Entendido'
-          });
-        }
-      }
-    });
-
+    // La instalación de la PWA se realiza directamente desde el menú nativo del navegador (Chrome, Edge, Safari, Samsung Internet)
     window.addEventListener('appinstalled', () => {
-      this.pwaInstallSection.style.display = 'none';
-      console.log('[PWA] SmartNotes instalada con éxito');
+      console.log('[PWA] SmartNotes instalada con éxito en el dispositivo.');
     });
-
-    // En iOS Safari, si no está en modo standalone, mostrar el botón para guiar al usuario
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && navigator.standalone);
-    if (isIOS && !isStandalone) {
-      this.pwaInstallSection.style.display = 'block';
-      if (this.pwaInstallBtnText) {
-        this.pwaInstallBtnText.textContent = 'Añadir a Pantalla de Inicio';
-      }
-    }
   }
 
   refreshFavicon() {

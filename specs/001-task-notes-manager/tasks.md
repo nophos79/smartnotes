@@ -223,3 +223,9 @@
 - [x] **T113**: Actualizar `favicon.svg` y la etiqueta Data-URI en `<head>` con la paleta esmeralda.
 - [x] **T114**: Regenerar los iconos rasterizados `icon-192.png` y `icon-512.png` para la pantalla de inicio móvil PWA.
 - [x] **T115**: Recompilar ejecutables standalone `SmartNotes.html` e `index.html` con `scripts/build.js` y desplegar en GitHub Pages.
+
+## Fase 41: Accesibilidad Móvil para Creación de Notas (FAB + Topbar) y Limpieza de UI PWA (v9.10)
+- [x] **T116**: Diseñar e implementar el Botón Flotante de Acción Rápida (FAB `+`) fijo en la esquina inferior derecha con soporte de zona segura (`safe-area-inset`), auto-scroll suave hacia el formulario y microanimación de rotación a `✕` para cerrar.
+- [x] **T117**: Añadir botón compacto de creación rápida `+ Nueva` en la barra superior (`topbar-left`) accesible sin abrir el panel lateral.
+- [x] **T118**: Eliminar el botón redundante de instalación PWA en el menú lateral (`#pwaInstallSection`), delegando la instalación al menú nativo del navegador del usuario (Chrome, Safari, Edge) y preservando el motor `manifest.json` y `sw.js`.
+- [x] **T119**: Recompilar bundle standalone `SmartNotes.html` e `index.html`, y validar en navegador y móvil.

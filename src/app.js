@@ -155,6 +155,8 @@ class NotesApp {
     this.newNoteSection = document.getElementById('newNoteSection');
     this.toggleFormBtn = document.getElementById('toggleFormBtn');
     this.toggleFormBtnText = document.getElementById('toggleFormBtnText');
+    this.topbarNewNoteBtn = document.getElementById('topbarNewNoteBtn');
+    this.fabNewNoteBtn = document.getElementById('fabNewNoteBtn');
     this.closeFormBtn = document.getElementById('closeFormBtn');
     this.newNoteForm = document.getElementById('newNoteForm');
     this.noteTitleInput = document.getElementById('noteTitle');
@@ -221,11 +223,6 @@ class NotesApp {
     this.syncDot = document.getElementById('syncDot');
     this.syncStatusText = document.getElementById('syncStatusText');
     this.syncFolderText = document.getElementById('syncFolderText');
-
-    // PWA Instalación
-    this.pwaInstallSection = document.getElementById('pwaInstallSection');
-    this.pwaInstallBtn = document.getElementById('pwaInstallBtn');
-    this.pwaInstallBtnText = document.getElementById('pwaInstallBtnText');
 
     // Modal de Diálogo Personalizado (Reemplazo estético de alert y confirm)
     this.customDialogModal = document.getElementById('customDialogModal');
@@ -637,10 +634,26 @@ class NotesApp {
     if (isOpen) {
       this.newNoteSection.classList.add('open');
       if (this.toggleFormBtnText) this.toggleFormBtnText.textContent = 'Cerrar Form';
-      this.noteTitleInput.focus();
+      if (this.fabNewNoteBtn) {
+        this.fabNewNoteBtn.classList.add('is-open');
+        this.fabNewNoteBtn.title = 'Cerrar formulario de nota';
+        this.fabNewNoteBtn.setAttribute('aria-label', 'Cerrar formulario de nota');
+      }
+      if (this.sidebar.classList.contains('open')) {
+        this.toggleSidebar(false);
+      }
+      setTimeout(() => {
+        this.newNoteSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (this.noteTitleInput) this.noteTitleInput.focus();
+      }, 50);
     } else {
       this.newNoteSection.classList.remove('open');
       if (this.toggleFormBtnText) this.toggleFormBtnText.textContent = 'Nueva Nota';
+      if (this.fabNewNoteBtn) {
+        this.fabNewNoteBtn.classList.remove('is-open');
+        this.fabNewNoteBtn.title = 'Crear nueva nota';
+        this.fabNewNoteBtn.setAttribute('aria-label', 'Crear nueva nota');
+      }
     }
   }
 
@@ -798,9 +811,11 @@ class NotesApp {
     this.mobileCloseSidebarBtn.addEventListener('click', () => this.toggleSidebar(false));
     this.sidebarBackdrop.addEventListener('click', () => this.toggleSidebar(false));
 
-    // Formulario Toggle
-    this.toggleFormBtn.addEventListener('click', () => this.toggleForm());
-    this.closeFormBtn.addEventListener('click', () => this.toggleForm(false));
+    // Formulario Toggle (Sidebar, Botón Superior y FAB Flotante)
+    if (this.toggleFormBtn) this.toggleFormBtn.addEventListener('click', () => this.toggleForm());
+    if (this.topbarNewNoteBtn) this.topbarNewNoteBtn.addEventListener('click', () => this.toggleForm());
+    if (this.fabNewNoteBtn) this.fabNewNoteBtn.addEventListener('click', () => this.toggleForm());
+    if (this.closeFormBtn) this.closeFormBtn.addEventListener('click', () => this.toggleForm(false));
 
     // Navegación por Estado en Sidebar
     this.navItems.forEach((item) => {
@@ -1571,62 +1586,10 @@ class NotesApp {
   }
 
   initPWA() {
-    if (!this.pwaInstallSection || !this.pwaInstallBtn) return;
-
-    let deferredPrompt = null;
-
-    // 1. Detección en Android / Chromium / Edge
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      this.pwaInstallSection.style.display = 'block';
-      if (this.pwaInstallBtnText) {
-        this.pwaInstallBtnText.textContent = 'Instalar App en el Móvil';
-      }
-    });
-
-    this.pwaInstallBtn.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const choice = await deferredPrompt.userChoice;
-        if (choice.outcome === 'accepted') {
-          this.pwaInstallSection.style.display = 'none';
-        }
-        deferredPrompt = null;
-      } else {
-        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-        if (isIOS) {
-          await this.showAlert({
-            title: 'Instalar en iPhone o iPad',
-            message: 'Para instalar SmartNotes en tu pantalla de inicio:<br><br>1. Pulsa el botón <strong>Compartir</strong> (icono de cuadrado con flecha hacia arriba ⬆️ en la barra del navegador).<br><br>2. Desliza hacia abajo y pulsa <strong>"Añadir a la pantalla de inicio"</strong> 📲.<br><br>¡Listo! SmartNotes funcionará a pantalla completa como una aplicación nativa.',
-            icon: '📲',
-            confirmText: 'Entendido'
-          });
-        } else {
-          await this.showAlert({
-            title: 'Instalar Aplicación',
-            message: 'Para instalar SmartNotes en este dispositivo:<br><br>1. Abre el menú de opciones del navegador (icono de 3 puntos <strong>⋮</strong> arriba a la derecha).<br><br>2. Pulsa en <strong>"Instalar aplicación"</strong> o <strong>"Añadir a la pantalla de inicio"</strong> 📲.',
-            icon: '📲',
-            confirmText: 'Entendido'
-          });
-        }
-      }
-    });
-
+    // La instalación de la PWA se realiza directamente desde el menú nativo del navegador (Chrome, Edge, Safari, Samsung Internet)
     window.addEventListener('appinstalled', () => {
-      this.pwaInstallSection.style.display = 'none';
-      console.log('[PWA] SmartNotes instalada con éxito');
+      console.log('[PWA] SmartNotes instalada con éxito en el dispositivo.');
     });
-
-    // En iOS Safari, si no está en modo standalone, mostrar el botón para guiar al usuario
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && navigator.standalone);
-    if (isIOS && !isStandalone) {
-      this.pwaInstallSection.style.display = 'block';
-      if (this.pwaInstallBtnText) {
-        this.pwaInstallBtnText.textContent = 'Añadir a Pantalla de Inicio';
-      }
-    }
   }
 
   refreshFavicon() {

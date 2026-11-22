@@ -134,18 +134,6 @@
           </button>
         </div>
       </div>
-
-      <!-- Instalación como App PWA en Móvil / Escritorio -->
-      <div class="sidebar-section" id="pwaInstallSection" style="display: none;">
-        <button id="pwaInstallBtn" class="sync-btn pwa-btn" title="Instalar SmartNotes como aplicación en tu dispositivo">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          <span id="pwaInstallBtnText">Instalar App en el Móvil</span>
-        </button>
-      </div>
     </aside>
 
     <!-- Backdrop móvil -->
@@ -157,6 +145,13 @@
       <header class="topbar">
         <div class="topbar-left">
           <button class="mobile-menu-btn" id="mobileMenuBtn" title="Abrir barra lateral">☰</button>
+          <button class="topbar-new-note-btn" id="topbarNewNoteBtn" title="Crear nueva nota" aria-label="Crear nueva nota">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span class="topbar-btn-text">Nueva</span>
+          </button>
           <div class="search-box">
             <span class="search-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -272,6 +267,14 @@
         <!-- Se puebla dinámicamente con app.js -->
       </div>
     </main>
+
+    <!-- Botón Flotante de Acción Rápida (FAB) para Móvil / Tablet / Escritorio -->
+    <button class="fab-new-note" id="fabNewNoteBtn" title="Crear nueva nota" aria-label="Crear nueva nota">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="12" y1="5" x2="12" y2="19"></line>
+        <line x1="5" y1="12" x2="19" y2="12"></line>
+      </svg>
+    </button>
   </div>
 
   <!-- Modal de Detalle de Nota (Lectura Completa) -->
