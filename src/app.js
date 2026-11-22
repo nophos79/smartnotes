@@ -1,8 +1,10 @@
 /**
- * SmartNotes - Spec-Driven Development (v8.0)
- * Almacenamiento exclusivo en carpeta física (Google Drive / OneDrive / Disco Local)
- * con archivo notas.json automático. Cero persistencia de notas en el navegador.
+ * SmartNotes - Gestor de Notas y Tareas con Google Drive (v9.1)
+ * Sincronización oficial con Google Drive API v3 (OAuth 2.0 / GIS).
+ * Acceso privado y seguro desde PC y Móvil.
  */
+
+const GOOGLE_CLIENT_ID = '271897859589-s3qq098gbqn4kct6csmofn3psprqqac6.apps.googleusercontent.com';
 
 const STORAGE_KEY_THEME = 'speckit_theme_v1';
 const STORAGE_KEY_CARD_SIZE = 'speckit_card_size_v1';
@@ -278,7 +280,7 @@ class NotesApp {
     this.viewMode = StorageService.loadViewMode();
 
     // Google Drive Cloud Sync
-    this.googleClientId = localStorage.getItem('smartnotes_gclient_id') || '';
+    this.googleClientId = GOOGLE_CLIENT_ID;
     this.driveAccessToken = null;
     this.driveTokenClient = null;
     this.driveFileId = localStorage.getItem('smartnotes_gdrive_file_id') || null;
@@ -374,12 +376,6 @@ class NotesApp {
     this.connectDriveBtn = document.getElementById('connectDriveBtn');
     this.connectDriveBtnLabel = document.getElementById('connectDriveBtnLabel');
     this.disconnectDriveBtn = document.getElementById('disconnectDriveBtn');
-    this.openGoogleConfigBtn = document.getElementById('openGoogleConfigBtn');
-    this.googleConfigModal = document.getElementById('googleConfigModal');
-    this.closeGoogleConfigModalBtn = document.getElementById('closeGoogleConfigModalBtn');
-    this.cancelGoogleConfigBtn = document.getElementById('cancelGoogleConfigBtn');
-    this.saveGoogleConfigBtn = document.getElementById('saveGoogleConfigBtn');
-    this.googleClientIdInput = document.getElementById('googleClientIdInput');
     this.syncDot = document.getElementById('syncDot');
     this.syncStatusText = document.getElementById('syncStatusText');
     this.syncFolderText = document.getElementById('syncFolderText');
@@ -1011,18 +1007,6 @@ class NotesApp {
     if (this.disconnectDriveBtn) {
       this.disconnectDriveBtn.addEventListener('click', () => this.disconnectGoogleDrive());
     }
-    if (this.openGoogleConfigBtn) {
-      this.openGoogleConfigBtn.addEventListener('click', () => this.openGoogleConfigModal());
-    }
-    if (this.closeGoogleConfigModalBtn) {
-      this.closeGoogleConfigModalBtn.addEventListener('click', () => this.closeGoogleConfigModal());
-    }
-    if (this.cancelGoogleConfigBtn) {
-      this.cancelGoogleConfigBtn.addEventListener('click', () => this.closeGoogleConfigModal());
-    }
-    if (this.saveGoogleConfigBtn) {
-      this.saveGoogleConfigBtn.addEventListener('click', () => this.saveGoogleConfig());
-    }
 
     // Escala de texto
     if (this.textSizeSelect) {
@@ -1329,12 +1313,7 @@ class NotesApp {
 
   // --- Sincronización en la Nube con Google Drive (OAuth 2.0 / GIS) ---
   initGoogleDrive() {
-    this.googleClientId = localStorage.getItem('smartnotes_gclient_id') || '';
-    if (!this.googleClientId) {
-      this.updateGoogleSyncUI('config_needed');
-      return;
-    }
-
+    this.googleClientId = GOOGLE_CLIENT_ID;
     this.updateGoogleSyncUI('disconnected');
     this.setupGisClient();
   }
@@ -1368,55 +1347,7 @@ class NotesApp {
     }
   }
 
-  openGoogleConfigModal() {
-    if (this.googleClientIdInput) {
-      this.googleClientIdInput.value = this.googleClientId || '';
-    }
-    if (this.googleConfigModal) {
-      this.googleConfigModal.classList.add('active');
-      this.googleConfigModal.setAttribute('aria-hidden', 'false');
-    }
-    if (this.googleClientIdInput) this.googleClientIdInput.focus();
-  }
-
-  closeGoogleConfigModal() {
-    if (this.googleConfigModal) {
-      this.googleConfigModal.classList.remove('active');
-      this.googleConfigModal.setAttribute('aria-hidden', 'true');
-    }
-  }
-
-  saveGoogleConfig() {
-    const val = (this.googleClientIdInput ? this.googleClientIdInput.value : '').trim();
-    if (!val) {
-      this.showAlert({
-        title: 'Client ID Vacío',
-        message: 'Por favor introduce tu Google Client ID para poder sincronizar tus notas.',
-        icon: '⚠️'
-      });
-      return;
-    }
-
-    this.googleClientId = val;
-    localStorage.setItem('smartnotes_gclient_id', val);
-    this.closeGoogleConfigModal();
-    this.setupGisClient();
-    this.updateGoogleSyncUI('disconnected');
-    this.showAlert({
-      title: 'Configuración Guardada',
-      message: 'Google Client ID guardado con éxito. Ahora pulsa en "Conectar con Google" para iniciar sesión.',
-      icon: '✅'
-    });
-    this.render();
-  }
-
   handleConnectGoogleDrive() {
-    this.googleClientId = localStorage.getItem('smartnotes_gclient_id') || '';
-    if (!this.googleClientId) {
-      this.openGoogleConfigModal();
-      return;
-    }
-
     if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
       this.showAlert({
         title: 'Cargando Servicios de Google',
@@ -1620,13 +1551,6 @@ class NotesApp {
       this.syncFolderText.textContent = extraText || 'Sincronizando notas...';
       if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'none';
       if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'none';
-    } else if (state === 'config_needed') {
-      this.syncDot.className = 'sync-dot';
-      this.syncStatusText.textContent = 'Falta Client ID';
-      this.syncFolderText.textContent = 'Configura tu Client ID';
-      if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'flex';
-      if (this.connectDriveBtnLabel) this.connectDriveBtnLabel.textContent = '⚙️ Configurar Client ID';
-      if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'none';
     } else {
       // disconnected
       this.syncDot.className = 'sync-dot';
@@ -1754,7 +1678,6 @@ class NotesApp {
       this.currentFilterTitle.innerHTML = `<span>Sincronización en la Nube</span>`;
       this.currentFilterCount.textContent = '';
 
-      const hasClientId = !!this.googleClientId;
       this.notesGrid.innerHTML = `
         <div class="folder-state-card">
           <div class="folder-state-icon">☁️</div>
@@ -1763,21 +1686,14 @@ class NotesApp {
             Tus notas y tareas se guardan de forma privada y cifrada en tu cuenta personal de Google Drive (en un archivo <code>notas.json</code>).<br>
             Accede a ellas desde tu ordenador o tu móvil con total seguridad y privacidad.
           </p>
-          <div style="display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;">
-            <button class="folder-state-btn" id="mainConnectDriveBtn">
-              <span>🟢</span> Conectar con Google Drive
-            </button>
-            <button class="folder-state-btn" id="mainConfigDriveBtn" style="background: var(--bg-hover); color: var(--text-main); border: 1px solid var(--border-color);">
-              <span>⚙️</span> ${hasClientId ? 'Cambiar Client ID' : 'Configurar Client ID'}
-            </button>
-          </div>
+          <button class="folder-state-btn" id="mainConnectDriveBtn">
+            <span>🟢</span> Conectar con Google Drive
+          </button>
         </div>
       `;
 
       const connBtn = document.getElementById('mainConnectDriveBtn');
       if (connBtn) connBtn.addEventListener('click', () => this.handleConnectGoogleDrive());
-      const cfgBtn = document.getElementById('mainConfigDriveBtn');
-      if (cfgBtn) cfgBtn.addEventListener('click', () => this.openGoogleConfigModal());
       return;
     }
 

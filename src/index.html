@@ -82,10 +82,7 @@
 
       <!-- Nube Google Drive (Sincronización PC y Móvil Privada) -->
       <div class="sidebar-section">
-        <div class="sidebar-section-header">
-          <span class="sidebar-section-title">Nube Google Drive</span>
-          <button id="openGoogleConfigBtn" class="btn-add-cat" title="Configurar Client ID de Google">⚙️ Config</button>
-        </div>
+        <span class="sidebar-section-title">Nube Google Drive</span>
         <div class="sync-card" id="googleDriveCard">
           <div class="sync-status-row">
             <span class="sync-indicator">
@@ -349,40 +346,6 @@
       <div class="modal-footer custom-dialog-footer" id="dialogFooter">
         <button type="button" class="btn-secondary" id="dialogCancelBtn">Cancelar</button>
         <button type="button" class="btn" id="dialogConfirmBtn">Aceptar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal para Configurar Google Client ID -->
-  <div class="modal-overlay" id="googleConfigModal" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="modal-box" style="max-width: 540px;">
-      <div class="modal-header">
-        <h3>⚙️ Configuración de Google Drive</h3>
-        <button class="btn-action" id="closeGoogleConfigModalBtn">✕</button>
-      </div>
-      <div class="modal-body" style="display: flex; flex-direction: column; gap: 0.85rem; font-size: 0.88rem; line-height: 1.45;">
-        <p style="color: var(--text-muted); margin-bottom: 0;">
-          Para sincronizar tus notas con tu Google Drive privado desde el PC o móvil, introduce tu <strong>Client ID de Google Cloud</strong>:
-        </p>
-        <div>
-          <label style="font-weight: 600; display: block; margin-bottom: 0.35rem;">Google Client ID:</label>
-          <input type="text" id="googleClientIdInput" placeholder="Ej: 1234567890-abcdef.apps.googleusercontent.com" style="width: 100%; font-family: monospace; font-size: 0.82rem; padding: 0.55rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-card); color: var(--text-main);">
-        </div>
-        <div style="background: var(--bg-hover); padding: 0.85rem; border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.8rem;">
-          <strong style="color: var(--text-main);">📋 Pasos rápidos para obtenerlo en 3 minutos:</strong>
-          <ol style="margin: 0.4rem 0 0 1.15rem; padding: 0; color: var(--text-muted);">
-            <li>Entra en <a href="https://console.cloud.google.com" target="_blank" style="color: var(--accent); text-decoration: underline;">Google Cloud Console</a>.</li>
-            <li>Crea un proyecto (ej: <em>SmartNotes</em>) y activa la API <strong>Google Drive API</strong>.</li>
-            <li>En <strong>Pantalla de consentimiento de OAuth</strong>, elige <em>Externo</em> y en <em>Usuarios de prueba</em> añade tu Gmail.</li>
-            <li>En <strong>Credenciales</strong>, pulsa <em>Crear credenciales -> ID de cliente de OAuth</em> (tipo: <em>Aplicación web</em>).</li>
-            <li>En <em>Orígenes de JavaScript autorizados</em> añade la URL donde abres la app (ej: <code>https://tu-usuario.github.io</code> o <code>http://localhost:3000</code>).</li>
-            <li>Copia el <strong>ID de cliente</strong> resultante y pégalo aquí.</li>
-          </ol>
-        </div>
-      </div>
-      <div class="modal-footer" style="margin-top: 1rem;">
-        <button type="button" class="btn-secondary" id="cancelGoogleConfigBtn">Cancelar</button>
-        <button type="button" class="btn" id="saveGoogleConfigBtn">Guardar Client ID</button>
       </div>
     </div>
   </div>
