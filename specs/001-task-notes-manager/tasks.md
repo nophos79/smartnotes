@@ -229,3 +229,10 @@
 - [x] **T117**: Añadir botón compacto de creación rápida `+ Nueva` en la barra superior (`topbar-left`) accesible sin abrir el panel lateral.
 - [x] **T118**: Eliminar el botón redundante de instalación PWA en el menú lateral (`#pwaInstallSection`), delegando la instalación al menú nativo del navegador del usuario (Chrome, Safari, Edge) y preservando el motor `manifest.json` y `sw.js`.
 - [x] **T119**: Recompilar bundle standalone `SmartNotes.html` e `index.html`, y validar en navegador y móvil.
+
+## Fase 42: Unificación Visual de Listas Desplegables y Persistencia de Sincronización Google Drive (v9.11)
+- [x] **T120**: Unificar visualmente todos los `<select>` de la aplicación (`#textSizeSelect`, `#sortSelect`, `#noteCategory`, `#editNoteCategory`) con chevron SVG esmeralda reactivo, `appearance: none`, alturas homogéneas y compatibilidad total claro/oscuro.
+- [x] **T121**: Implementar persistencia de token de acceso y expiración (`smartnotes_gdrive_token`, `smartnotes_gdrive_expires_at`) en `localStorage`.
+- [x] **T122**: Implementar caché local offline (`smartnotes_cached_notes`) para que al abrir y cerrar la app las notas se visualicen al instante sin demoras ni pantallas en blanco.
+- [x] **T123**: Configurar reconexión automática silenciosa (`prompt: ''`) al reabrir la app y diálogo de confirmación antes de cerrar sesión.
+- [x] **T124**: Recompilar `SmartNotes.html` e `index.html` con `scripts/build.js` y desplegar en producción.

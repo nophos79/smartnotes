@@ -65,7 +65,7 @@ body.light-theme .sidebar {
 }
 
 body.light-theme .btn-new-note {
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.25);
 }
 
 body.light-theme input[type="text"],
@@ -80,7 +80,7 @@ body.light-theme input[type="date"]:focus,
 body.light-theme textarea:focus,
 body.light-theme select:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.18);
 }
 
 * {
@@ -638,33 +638,20 @@ body.light-theme .btn-sync-disconnect:hover {
   color: var(--text-muted);
 }
 
-.text-size-box select {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 0.45rem 0.65rem;
-  color: var(--text-main);
-  outline: none;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.sort-box {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-
+.text-size-box select,
 .sort-box select {
-  background: var(--bg-secondary);
+  height: 38px;
+  background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  padding: 0.5rem 0.85rem;
+  padding: 0 2.25rem 0 0.85rem;
   color: var(--text-main);
   outline: none;
   cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
 }
 
 /* Botón Icono Modo Oscuro / Claro en Topbar */
@@ -933,7 +920,7 @@ form {
   flex-wrap: wrap;
 }
 
-input[type="text"], input[type="date"], textarea, select {
+input[type="text"], input[type="date"], textarea {
   background-color: var(--input-bg);
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -944,8 +931,83 @@ input[type="text"], input[type="date"], textarea, select {
   transition: border-color 0.2s;
 }
 
-input[type="text"]:focus, input[type="date"]:focus, textarea:focus, select:focus {
+input[type="text"]:focus, input[type="date"]:focus, textarea:focus {
   border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+/* ========================================================
+   ESTILOS UNIFICADOS PARA LISTAS DESPLEGABLES (SELECT)
+   ======================================================== */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: var(--input-bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 14px 14px;
+  padding: 0.65rem 2.25rem 0.65rem 0.85rem !important;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 0.9rem;
+  font-weight: 500;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+select:hover {
+  border-color: var(--accent);
+  background-color: var(--bg-hover);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2310b981' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+select option {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  padding: 0.6rem 0.8rem;
+  font-size: 0.9rem;
+}
+
+/* En Modo Claro */
+body.light-theme select {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #1e293b;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+body.light-theme select:hover {
+  background-color: #f8fafc;
+  border-color: var(--accent);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+body.light-theme select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.18);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23059669' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+body.light-theme select option {
+  background-color: #ffffff;
+  color: #1e293b;
+}
+
+#newNoteForm select,
+#editNoteForm select {
+  height: 44px;
 }
 
 .flex-1 {
@@ -1970,30 +2032,15 @@ body.light-theme .due-today {
     display: none;
   }
 
-  .text-size-box select {
-    width: 100%;
-    min-width: 0;
-    padding: 0.45rem 0.35rem;
-    font-size: 0.8rem;
-  }
-
-  .sort-box {
-    flex: 1.35;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .sort-box label {
-    display: none;
-  }
-
+  .text-size-box select,
   .sort-box select {
     width: 100%;
     min-width: 0;
-    padding: 0.45rem 0.35rem;
-    font-size: 0.8rem;
+    height: 36px;
+    padding: 0 1.6rem 0 0.5rem !important;
+    background-position: right 0.45rem center;
+    background-size: 12px 12px;
+    font-size: 0.78rem;
   }
 
   .theme-toggle-btn {
@@ -2613,12 +2660,6 @@ class StorageService {
 // --- Aplicación Principal ---
 class NotesApp {
   constructor() {
-    // Limpieza estricta: cero notas o categorías en localStorage
-    try {
-      localStorage.removeItem('speckit_notes_data_v1');
-      localStorage.removeItem('speckit_categories_v1');
-    } catch {}
-
     this.notes = [];
     this.categories = [...DEFAULT_CATEGORIES];
     this.activeCategoryFilter = 'all'; // all o nombre de la categoría
@@ -2629,13 +2670,35 @@ class NotesApp {
     this.textScale = StorageService.loadTextScale();
     this.viewMode = StorageService.loadViewMode();
 
-    // Google Drive Cloud Sync
+    // Google Drive Cloud Sync y Persistencia
     this.googleClientId = GOOGLE_CLIENT_ID;
     this.driveAccessToken = null;
     this.driveTokenClient = null;
     this.driveFileId = localStorage.getItem('smartnotes_gdrive_file_id') || null;
     this.driveUser = null;
     this.driveSaveTimeout = null;
+
+    // Restauración inmediata desde caché local para que al abrir la app nunca se vea vacía
+    if (localStorage.getItem('smartnotes_gdrive_connected') === 'true') {
+      try {
+        const cachedNotes = localStorage.getItem('smartnotes_cached_notes');
+        if (cachedNotes) {
+          const parsed = JSON.parse(cachedNotes);
+          if (Array.isArray(parsed)) this.notes = parsed;
+        }
+        const cachedCats = localStorage.getItem('smartnotes_cached_categories');
+        if (cachedCats) {
+          const parsedCats = JSON.parse(cachedCats);
+          if (Array.isArray(parsedCats) && parsedCats.length) this.categories = parsedCats;
+        }
+        const cachedUser = localStorage.getItem('smartnotes_gdrive_user');
+        if (cachedUser) {
+          this.driveUser = JSON.parse(cachedUser);
+        }
+      } catch (e) {
+        console.warn('Error leyendo caché local de SmartNotes:', e);
+      }
+    }
 
     this.cacheElements();
     this.initTheme();
@@ -3390,7 +3453,18 @@ class NotesApp {
       this.connectDriveBtn.addEventListener('click', () => this.handleConnectGoogleDrive());
     }
     if (this.disconnectDriveBtn) {
-      this.disconnectDriveBtn.addEventListener('click', () => this.disconnectGoogleDrive());
+      this.disconnectDriveBtn.addEventListener('click', async () => {
+        const confirmed = await this.showConfirm({
+          title: 'Cerrar Sesión de Google Drive',
+          message: 'Tus notas están guardadas en tu Google Drive (carpeta <strong>SmartNotes/notas.json</strong>).<br><br>Al cerrar sesión en este dispositivo, las notas se ocultarán de la pantalla hasta que vuelvas a conectar tu cuenta de Google.<br><br>¿Deseas cerrar la sesión ahora?',
+          icon: '☁️',
+          confirmText: 'Cerrar Sesión',
+          cancelText: 'Continuar Conectado'
+        });
+        if (confirmed) {
+          this.disconnectGoogleDrive();
+        }
+      });
     }
 
     // Escala de texto
@@ -3699,7 +3773,25 @@ class NotesApp {
   // --- Sincronización en la Nube con Google Drive (OAuth 2.0 / GIS) ---
   initGoogleDrive() {
     this.googleClientId = GOOGLE_CLIENT_ID;
-    this.updateGoogleSyncUI('disconnected');
+    const isDriveConnected = localStorage.getItem('smartnotes_gdrive_connected') === 'true';
+
+    if (isDriveConnected) {
+      const token = localStorage.getItem('smartnotes_gdrive_token');
+      const expiresAt = parseInt(localStorage.getItem('smartnotes_gdrive_expires_at') || '0', 10);
+      const isTokenValid = token && Date.now() < (expiresAt - 60000); // 1 minuto de margen de seguridad
+
+      if (isTokenValid) {
+        this.driveAccessToken = token;
+        this.updateGoogleSyncUI('connected');
+        setTimeout(() => this.syncWithGoogleDrive(), 300);
+      } else {
+        // Token expirado: sesión pausada manteniendo notas visibles de caché
+        this.updateGoogleSyncUI('reconnect', 'Sesión pausada');
+      }
+    } else {
+      this.updateGoogleSyncUI('disconnected');
+    }
+
     this.setupGisClient();
   }
 
@@ -3712,18 +3804,32 @@ class NotesApp {
           scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
           callback: (tokenResponse) => {
             if (tokenResponse && tokenResponse.access_token) {
-              this.handleDriveTokenReceived(tokenResponse.access_token);
+              this.handleDriveTokenReceived(tokenResponse.access_token, tokenResponse.expires_in);
             } else if (tokenResponse && tokenResponse.error) {
-              console.error('Error Google OAuth:', tokenResponse.error);
-              this.updateGoogleSyncUI('disconnected');
-              this.showAlert({
-                title: 'Error de Autenticación',
-                message: 'No se pudo iniciar sesión con Google: ' + tokenResponse.error,
-                icon: '⚠️'
-              });
+              console.log('[Google OAuth status]:', tokenResponse.error);
+              if (localStorage.getItem('smartnotes_gdrive_connected') === 'true') {
+                this.updateGoogleSyncUI('reconnect', 'Sesión expirada');
+              } else {
+                this.updateGoogleSyncUI('disconnected');
+                this.showAlert({
+                  title: 'Error de Autenticación',
+                  message: 'No se pudo iniciar sesión con Google: ' + tokenResponse.error,
+                  icon: '⚠️'
+                });
+              }
             }
           }
         });
+
+        // Si el usuario ya estaba conectado y el token expiró, intentar renovación silenciosa en segundo plano
+        const isDriveConnected = localStorage.getItem('smartnotes_gdrive_connected') === 'true';
+        if (isDriveConnected && !this.driveAccessToken) {
+          try {
+            this.driveTokenClient.requestAccessToken({ prompt: '' });
+          } catch (e) {
+            console.log('Renovación automática silenciosa requiere interacción del usuario');
+          }
+        }
       } catch (err) {
         console.warn('Fallo al inicializar Google Identity Client:', err);
       }
@@ -3748,12 +3854,22 @@ class NotesApp {
 
     if (this.driveTokenClient) {
       this.updateGoogleSyncUI('syncing', 'Iniciando sesión...');
+      // Si ya estaba conectado, intentar primero silencioso o directo
       this.driveTokenClient.requestAccessToken({ prompt: '' });
     }
   }
 
-  async handleDriveTokenReceived(accessToken) {
+  async handleDriveTokenReceived(accessToken, expiresIn = 3600) {
     this.driveAccessToken = accessToken;
+    try {
+      localStorage.setItem('smartnotes_gdrive_connected', 'true');
+      localStorage.setItem('smartnotes_gdrive_token', accessToken);
+      const exp = Date.now() + (Number(expiresIn) || 3600) * 1000;
+      localStorage.setItem('smartnotes_gdrive_expires_at', String(exp));
+    } catch (e) {
+      console.warn('Error guardando token de sesión:', e);
+    }
+
     this.updateGoogleSyncUI('syncing', 'Obteniendo perfil...');
 
     try {
@@ -3762,6 +3878,9 @@ class NotesApp {
       });
       if (userRes.ok) {
         this.driveUser = await userRes.json();
+        try {
+          localStorage.setItem('smartnotes_gdrive_user', JSON.stringify(this.driveUser));
+        } catch {}
       }
     } catch (e) {
       console.warn('No se pudo obtener información del perfil:', e);
@@ -3892,16 +4011,32 @@ class NotesApp {
 
       this.populateCategoryOptions();
       this.renderSidebarCategories();
+      this.cacheLocalData();
       this.updateGoogleSyncUI('connected');
       this.render();
     } catch (err) {
       console.error('Error sincronizando con Google Drive:', err);
-      this.updateGoogleSyncUI('disconnected');
+      if (localStorage.getItem('smartnotes_gdrive_connected') === 'true') {
+        this.updateGoogleSyncUI('reconnect', 'Error de conexión');
+      } else {
+        this.updateGoogleSyncUI('disconnected');
+      }
       await this.showAlert({
         title: 'Error de Google Drive',
         message: 'Ocurrió un problema al sincronizar con tu Google Drive:\n' + err.message,
         icon: '⚠️'
       });
+    }
+  }
+
+  cacheLocalData() {
+    try {
+      if (localStorage.getItem('smartnotes_gdrive_connected') === 'true') {
+        localStorage.setItem('smartnotes_cached_notes', JSON.stringify(this.notes));
+        localStorage.setItem('smartnotes_cached_categories', JSON.stringify(this.categories));
+      }
+    } catch (e) {
+      console.warn('Error guardando copia local en caché:', e);
     }
   }
 
@@ -3935,7 +4070,7 @@ class NotesApp {
 
       if (!res.ok) {
         if (res.status === 401) {
-          this.updateGoogleSyncUI('disconnected', 'Sesión expirada');
+          this.updateGoogleSyncUI('reconnect', 'Sesión expirada');
           return;
         }
         throw new Error('Error al guardar en Drive: ' + res.statusText);
@@ -3949,6 +4084,7 @@ class NotesApp {
   }
 
   async saveData() {
+    this.cacheLocalData();
     if (this.driveAccessToken && this.driveFileId) {
       this.scheduleDriveSave();
     }
@@ -3958,7 +4094,15 @@ class NotesApp {
     this.driveAccessToken = null;
     this.driveUser = null;
     this.driveFileId = null;
-    localStorage.removeItem('smartnotes_gdrive_file_id');
+    try {
+      localStorage.removeItem('smartnotes_gdrive_connected');
+      localStorage.removeItem('smartnotes_gdrive_token');
+      localStorage.removeItem('smartnotes_gdrive_expires_at');
+      localStorage.removeItem('smartnotes_gdrive_user');
+      localStorage.removeItem('smartnotes_gdrive_file_id');
+      localStorage.removeItem('smartnotes_cached_notes');
+      localStorage.removeItem('smartnotes_cached_categories');
+    } catch {}
     this.notes = [];
     this.updateGoogleSyncUI('disconnected');
     this.render();
@@ -3985,6 +4129,14 @@ class NotesApp {
       this.syncFolderText.textContent = extraText || 'Sincronizando notas...';
       if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'none';
       if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'none';
+    } else if (state === 'reconnect') {
+      this.syncDot.className = 'sync-dot pending';
+      this.syncStatusText.textContent = 'Reconectar';
+      const userLabel = this.driveUser ? (this.driveUser.email || this.driveUser.name) : '';
+      this.syncFolderText.textContent = userLabel ? `Sesión pausada (${userLabel})` : (extraText || 'Sesión expirada');
+      if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'flex';
+      if (this.connectDriveBtnLabel) this.connectDriveBtnLabel.textContent = 'Reconectar con Google';
+      if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'inline-flex';
     } else {
       // disconnected
       this.syncDot.className = 'sync-dot';

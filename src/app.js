@@ -103,12 +103,6 @@ class StorageService {
 // --- Aplicación Principal ---
 class NotesApp {
   constructor() {
-    // Limpieza estricta: cero notas o categorías en localStorage
-    try {
-      localStorage.removeItem('speckit_notes_data_v1');
-      localStorage.removeItem('speckit_categories_v1');
-    } catch {}
-
     this.notes = [];
     this.categories = [...DEFAULT_CATEGORIES];
     this.activeCategoryFilter = 'all'; // all o nombre de la categoría
@@ -119,13 +113,35 @@ class NotesApp {
     this.textScale = StorageService.loadTextScale();
     this.viewMode = StorageService.loadViewMode();
 
-    // Google Drive Cloud Sync
+    // Google Drive Cloud Sync y Persistencia
     this.googleClientId = GOOGLE_CLIENT_ID;
     this.driveAccessToken = null;
     this.driveTokenClient = null;
     this.driveFileId = localStorage.getItem('smartnotes_gdrive_file_id') || null;
     this.driveUser = null;
     this.driveSaveTimeout = null;
+
+    // Restauración inmediata desde caché local para que al abrir la app nunca se vea vacía
+    if (localStorage.getItem('smartnotes_gdrive_connected') === 'true') {
+      try {
+        const cachedNotes = localStorage.getItem('smartnotes_cached_notes');
+        if (cachedNotes) {
+          const parsed = JSON.parse(cachedNotes);
+          if (Array.isArray(parsed)) this.notes = parsed;
+        }
+        const cachedCats = localStorage.getItem('smartnotes_cached_categories');
+        if (cachedCats) {
+          const parsedCats = JSON.parse(cachedCats);
+          if (Array.isArray(parsedCats) && parsedCats.length) this.categories = parsedCats;
+        }
+        const cachedUser = localStorage.getItem('smartnotes_gdrive_user');
+        if (cachedUser) {
+          this.driveUser = JSON.parse(cachedUser);
+        }
+      } catch (e) {
+        console.warn('Error leyendo caché local de SmartNotes:', e);
+      }
+    }
 
     this.cacheElements();
     this.initTheme();
@@ -880,7 +896,18 @@ class NotesApp {
       this.connectDriveBtn.addEventListener('click', () => this.handleConnectGoogleDrive());
     }
     if (this.disconnectDriveBtn) {
-      this.disconnectDriveBtn.addEventListener('click', () => this.disconnectGoogleDrive());
+      this.disconnectDriveBtn.addEventListener('click', async () => {
+        const confirmed = await this.showConfirm({
+          title: 'Cerrar Sesión de Google Drive',
+          message: 'Tus notas están guardadas en tu Google Drive (carpeta <strong>SmartNotes/notas.json</strong>).<br><br>Al cerrar sesión en este dispositivo, las notas se ocultarán de la pantalla hasta que vuelvas a conectar tu cuenta de Google.<br><br>¿Deseas cerrar la sesión ahora?',
+          icon: '☁️',
+          confirmText: 'Cerrar Sesión',
+          cancelText: 'Continuar Conectado'
+        });
+        if (confirmed) {
+          this.disconnectGoogleDrive();
+        }
+      });
     }
 
     // Escala de texto
@@ -1189,7 +1216,25 @@ class NotesApp {
   // --- Sincronización en la Nube con Google Drive (OAuth 2.0 / GIS) ---
   initGoogleDrive() {
     this.googleClientId = GOOGLE_CLIENT_ID;
-    this.updateGoogleSyncUI('disconnected');
+    const isDriveConnected = localStorage.getItem('smartnotes_gdrive_connected') === 'true';
+
+    if (isDriveConnected) {
+      const token = localStorage.getItem('smartnotes_gdrive_token');
+      const expiresAt = parseInt(localStorage.getItem('smartnotes_gdrive_expires_at') || '0', 10);
+      const isTokenValid = token && Date.now() < (expiresAt - 60000); // 1 minuto de margen de seguridad
+
+      if (isTokenValid) {
+        this.driveAccessToken = token;
+        this.updateGoogleSyncUI('connected');
+        setTimeout(() => this.syncWithGoogleDrive(), 300);
+      } else {
+        // Token expirado: sesión pausada manteniendo notas visibles de caché
+        this.updateGoogleSyncUI('reconnect', 'Sesión pausada');
+      }
+    } else {
+      this.updateGoogleSyncUI('disconnected');
+    }
+
     this.setupGisClient();
   }
 
@@ -1202,18 +1247,32 @@ class NotesApp {
           scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
           callback: (tokenResponse) => {
             if (tokenResponse && tokenResponse.access_token) {
-              this.handleDriveTokenReceived(tokenResponse.access_token);
+              this.handleDriveTokenReceived(tokenResponse.access_token, tokenResponse.expires_in);
             } else if (tokenResponse && tokenResponse.error) {
-              console.error('Error Google OAuth:', tokenResponse.error);
-              this.updateGoogleSyncUI('disconnected');
-              this.showAlert({
-                title: 'Error de Autenticación',
-                message: 'No se pudo iniciar sesión con Google: ' + tokenResponse.error,
-                icon: '⚠️'
-              });
+              console.log('[Google OAuth status]:', tokenResponse.error);
+              if (localStorage.getItem('smartnotes_gdrive_connected') === 'true') {
+                this.updateGoogleSyncUI('reconnect', 'Sesión expirada');
+              } else {
+                this.updateGoogleSyncUI('disconnected');
+                this.showAlert({
+                  title: 'Error de Autenticación',
+                  message: 'No se pudo iniciar sesión con Google: ' + tokenResponse.error,
+                  icon: '⚠️'
+                });
+              }
             }
           }
         });
+
+        // Si el usuario ya estaba conectado y el token expiró, intentar renovación silenciosa en segundo plano
+        const isDriveConnected = localStorage.getItem('smartnotes_gdrive_connected') === 'true';
+        if (isDriveConnected && !this.driveAccessToken) {
+          try {
+            this.driveTokenClient.requestAccessToken({ prompt: '' });
+          } catch (e) {
+            console.log('Renovación automática silenciosa requiere interacción del usuario');
+          }
+        }
       } catch (err) {
         console.warn('Fallo al inicializar Google Identity Client:', err);
       }
@@ -1238,12 +1297,22 @@ class NotesApp {
 
     if (this.driveTokenClient) {
       this.updateGoogleSyncUI('syncing', 'Iniciando sesión...');
+      // Si ya estaba conectado, intentar primero silencioso o directo
       this.driveTokenClient.requestAccessToken({ prompt: '' });
     }
   }
 
-  async handleDriveTokenReceived(accessToken) {
+  async handleDriveTokenReceived(accessToken, expiresIn = 3600) {
     this.driveAccessToken = accessToken;
+    try {
+      localStorage.setItem('smartnotes_gdrive_connected', 'true');
+      localStorage.setItem('smartnotes_gdrive_token', accessToken);
+      const exp = Date.now() + (Number(expiresIn) || 3600) * 1000;
+      localStorage.setItem('smartnotes_gdrive_expires_at', String(exp));
+    } catch (e) {
+      console.warn('Error guardando token de sesión:', e);
+    }
+
     this.updateGoogleSyncUI('syncing', 'Obteniendo perfil...');
 
     try {
@@ -1252,6 +1321,9 @@ class NotesApp {
       });
       if (userRes.ok) {
         this.driveUser = await userRes.json();
+        try {
+          localStorage.setItem('smartnotes_gdrive_user', JSON.stringify(this.driveUser));
+        } catch {}
       }
     } catch (e) {
       console.warn('No se pudo obtener información del perfil:', e);
@@ -1382,16 +1454,32 @@ class NotesApp {
 
       this.populateCategoryOptions();
       this.renderSidebarCategories();
+      this.cacheLocalData();
       this.updateGoogleSyncUI('connected');
       this.render();
     } catch (err) {
       console.error('Error sincronizando con Google Drive:', err);
-      this.updateGoogleSyncUI('disconnected');
+      if (localStorage.getItem('smartnotes_gdrive_connected') === 'true') {
+        this.updateGoogleSyncUI('reconnect', 'Error de conexión');
+      } else {
+        this.updateGoogleSyncUI('disconnected');
+      }
       await this.showAlert({
         title: 'Error de Google Drive',
         message: 'Ocurrió un problema al sincronizar con tu Google Drive:\n' + err.message,
         icon: '⚠️'
       });
+    }
+  }
+
+  cacheLocalData() {
+    try {
+      if (localStorage.getItem('smartnotes_gdrive_connected') === 'true') {
+        localStorage.setItem('smartnotes_cached_notes', JSON.stringify(this.notes));
+        localStorage.setItem('smartnotes_cached_categories', JSON.stringify(this.categories));
+      }
+    } catch (e) {
+      console.warn('Error guardando copia local en caché:', e);
     }
   }
 
@@ -1425,7 +1513,7 @@ class NotesApp {
 
       if (!res.ok) {
         if (res.status === 401) {
-          this.updateGoogleSyncUI('disconnected', 'Sesión expirada');
+          this.updateGoogleSyncUI('reconnect', 'Sesión expirada');
           return;
         }
         throw new Error('Error al guardar en Drive: ' + res.statusText);
@@ -1439,6 +1527,7 @@ class NotesApp {
   }
 
   async saveData() {
+    this.cacheLocalData();
     if (this.driveAccessToken && this.driveFileId) {
       this.scheduleDriveSave();
     }
@@ -1448,7 +1537,15 @@ class NotesApp {
     this.driveAccessToken = null;
     this.driveUser = null;
     this.driveFileId = null;
-    localStorage.removeItem('smartnotes_gdrive_file_id');
+    try {
+      localStorage.removeItem('smartnotes_gdrive_connected');
+      localStorage.removeItem('smartnotes_gdrive_token');
+      localStorage.removeItem('smartnotes_gdrive_expires_at');
+      localStorage.removeItem('smartnotes_gdrive_user');
+      localStorage.removeItem('smartnotes_gdrive_file_id');
+      localStorage.removeItem('smartnotes_cached_notes');
+      localStorage.removeItem('smartnotes_cached_categories');
+    } catch {}
     this.notes = [];
     this.updateGoogleSyncUI('disconnected');
     this.render();
@@ -1475,6 +1572,14 @@ class NotesApp {
       this.syncFolderText.textContent = extraText || 'Sincronizando notas...';
       if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'none';
       if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'none';
+    } else if (state === 'reconnect') {
+      this.syncDot.className = 'sync-dot pending';
+      this.syncStatusText.textContent = 'Reconectar';
+      const userLabel = this.driveUser ? (this.driveUser.email || this.driveUser.name) : '';
+      this.syncFolderText.textContent = userLabel ? `Sesión pausada (${userLabel})` : (extraText || 'Sesión expirada');
+      if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'flex';
+      if (this.connectDriveBtnLabel) this.connectDriveBtnLabel.textContent = 'Reconectar con Google';
+      if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'inline-flex';
     } else {
       // disconnected
       this.syncDot.className = 'sync-dot';
