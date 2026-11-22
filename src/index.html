@@ -10,7 +10,8 @@
   <meta name="theme-color" content="#4f46e5">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M8 16.5l5 5 11-11' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link rel="alternate icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M8 16.5l5 5 11-11' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.json">
   <title>SmartNotes - Gestor Inteligente con Google Drive</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -111,6 +112,18 @@
             <span id="connectDriveBtnLabel">Conectar con Google</span>
           </button>
         </div>
+      </div>
+
+      <!-- Instalación como App PWA en Móvil / Escritorio -->
+      <div class="sidebar-section" id="pwaInstallSection" style="display: none;">
+        <button id="pwaInstallBtn" class="sync-btn pwa-btn" title="Instalar SmartNotes como aplicación en tu dispositivo">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span id="pwaInstallBtnText">Instalar App en el Móvil</span>
+        </button>
       </div>
     </aside>
 

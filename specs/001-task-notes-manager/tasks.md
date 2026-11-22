@@ -205,3 +205,12 @@
 - [x] **T103**: Ocultar etiquetas fijas "Texto:" y "Ordenar por:" en pantallas pequeñas (< 850px / 600px) permitiendo que los selectores y el botón de tema encajen en el 100% del ancho sin recortes.
 - [x] **T104**: Configurar rejilla automática de 1 columna (`grid-template-columns: 1fr`) para smartphones (< 600px) y apilamiento vertical para los campos del formulario.
 - [x] **T105**: Recompilar ejecutables standalone `SmartNotes.html` e `index.html`, validar sintaxis y desplegar en GitHub Pages.
+
+---
+
+## Phase 39: Implementación de PWA e Instalabilidad Nativa en Móvil v9.7 (Completado)
+- [x] **T106**: Crear el archivo de manifiesto de aplicación web `manifest.json` en raíz y `src/` con configuración `standalone`, colores oficiales (`#4f46e5`, `#0f172a`) y vinculación de iconos.
+- [x] **T107**: Desarrollar el Service Worker `sw.js` con ciclo de vida completo (`install`, `activate`, `fetch`) y estrategia network-first excluyendo peticiones a dominios de Google OAuth / Drive.
+- [x] **T108**: Generar los iconos PNG de alta resolución (`icon-192.png` y `icon-512.png` maskable) con la identidad de marca de SmartNotes.
+- [x] **T109**: Implementar el registro del Service Worker y el asistente de instalación interactivo `#pwaInstallBtn` en `src/app.js` (soporte `beforeinstallprompt` en Android y guía modal asistida en iOS Safari).
+- [x] **T110**: Recompilar `SmartNotes.html` e `index.html`, validar sintaxis y desplegar en GitHub Pages.

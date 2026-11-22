@@ -10,7 +10,8 @@
   <meta name="theme-color" content="#4f46e5">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M8 16.5l5 5 11-11' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link rel="alternate icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M8 16.5l5 5 11-11' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.json">
   <title>SmartNotes - Gestor Inteligente con Google Drive</title>
   <style>
 :root {
@@ -368,6 +369,38 @@ body {
   background: rgba(66, 133, 244, 0.12);
   border-color: rgba(66, 133, 244, 0.4);
   color: #4285f4;
+}
+
+.sync-btn.pwa-btn {
+  background: rgba(79, 70, 229, 0.12);
+  border: 1px solid rgba(79, 70, 229, 0.35);
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sync-btn.pwa-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+}
+
+body.light-theme .sync-btn.pwa-btn {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4338ca;
+}
+
+body.light-theme .sync-btn.pwa-btn:hover {
+  background: var(--accent);
+  color: #fff;
 }
 
 .sync-filename {
@@ -2117,6 +2150,18 @@ body.light-theme #appTooltip {
           </button>
         </div>
       </div>
+
+      <!-- Instalación como App PWA en Móvil / Escritorio -->
+      <div class="sidebar-section" id="pwaInstallSection" style="display: none;">
+        <button id="pwaInstallBtn" class="sync-btn pwa-btn" title="Instalar SmartNotes como aplicación en tu dispositivo">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span id="pwaInstallBtnText">Instalar App en el Móvil</span>
+        </button>
+      </div>
     </aside>
 
     <!-- Backdrop móvil -->
@@ -2502,6 +2547,7 @@ class NotesApp {
     this.bindEvents();
     this.initTooltips();
     this.initGoogleDrive();
+    this.initPWA();
     this.render();
   }
 
@@ -2585,6 +2631,11 @@ class NotesApp {
     this.syncDot = document.getElementById('syncDot');
     this.syncStatusText = document.getElementById('syncStatusText');
     this.syncFolderText = document.getElementById('syncFolderText');
+
+    // PWA Instalación
+    this.pwaInstallSection = document.getElementById('pwaInstallSection');
+    this.pwaInstallBtn = document.getElementById('pwaInstallBtn');
+    this.pwaInstallBtnText = document.getElementById('pwaInstallBtnText');
 
     // Modal de Diálogo Personalizado (Reemplazo estético de alert y confirm)
     this.customDialogModal = document.getElementById('customDialogModal');
@@ -3929,6 +3980,65 @@ class NotesApp {
     return dateStr;
   }
 
+  initPWA() {
+    if (!this.pwaInstallSection || !this.pwaInstallBtn) return;
+
+    let deferredPrompt = null;
+
+    // 1. Detección en Android / Chromium / Edge
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      this.pwaInstallSection.style.display = 'block';
+      if (this.pwaInstallBtnText) {
+        this.pwaInstallBtnText.textContent = 'Instalar App en el Móvil';
+      }
+    });
+
+    this.pwaInstallBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const choice = await deferredPrompt.userChoice;
+        if (choice.outcome === 'accepted') {
+          this.pwaInstallSection.style.display = 'none';
+        }
+        deferredPrompt = null;
+      } else {
+        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        if (isIOS) {
+          await this.showAlert({
+            title: 'Instalar en iPhone o iPad',
+            message: 'Para instalar SmartNotes en tu pantalla de inicio:<br><br>1. Pulsa el botón <strong>Compartir</strong> (icono de cuadrado con flecha hacia arriba ⬆️ en la barra del navegador).<br><br>2. Desliza hacia abajo y pulsa <strong>"Añadir a la pantalla de inicio"</strong> 📲.<br><br>¡Listo! SmartNotes funcionará a pantalla completa como una aplicación nativa.',
+            icon: '📲',
+            confirmText: 'Entendido'
+          });
+        } else {
+          await this.showAlert({
+            title: 'Instalar Aplicación',
+            message: 'Para instalar SmartNotes en este dispositivo:<br><br>1. Abre el menú de opciones del navegador (icono de 3 puntos <strong>⋮</strong> arriba a la derecha).<br><br>2. Pulsa en <strong>"Instalar aplicación"</strong> o <strong>"Añadir a la pantalla de inicio"</strong> 📲.',
+            icon: '📲',
+            confirmText: 'Entendido'
+          });
+        }
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      this.pwaInstallSection.style.display = 'none';
+      console.log('[PWA] SmartNotes instalada con éxito');
+    });
+
+    // En iOS Safari, si no está en modo standalone, mostrar el botón para guiar al usuario
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && navigator.standalone);
+    if (isIOS && !isStandalone) {
+      this.pwaInstallSection.style.display = 'block';
+      if (this.pwaInstallBtnText) {
+        this.pwaInstallBtnText.textContent = 'Añadir a Pantalla de Inicio';
+      }
+    }
+  }
+
   escapeHTML(str) {
     return (str || '')
       .replace(/&/g, '&amp;')
@@ -4203,6 +4313,19 @@ class NotesApp {
 window.addEventListener('DOMContentLoaded', () => {
   new NotesApp();
 });
+
+// Registro de Service Worker para PWA (Instalación en Móvil y Escritorio)
+if ('serviceWorker' in navigator && (window.location.protocol.startsWith('http') || window.location.protocol.startsWith('https'))) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg) => {
+        console.log('[PWA] Service Worker registrado en:', reg.scope);
+      })
+      .catch((err) => {
+        console.warn('[PWA] Error registrando Service Worker:', err);
+      });
+  });
+}
 
 </script>
 </body>

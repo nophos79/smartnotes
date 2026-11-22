@@ -136,6 +136,7 @@ class NotesApp {
     this.bindEvents();
     this.initTooltips();
     this.initGoogleDrive();
+    this.initPWA();
     this.render();
   }
 
@@ -219,6 +220,11 @@ class NotesApp {
     this.syncDot = document.getElementById('syncDot');
     this.syncStatusText = document.getElementById('syncStatusText');
     this.syncFolderText = document.getElementById('syncFolderText');
+
+    // PWA Instalación
+    this.pwaInstallSection = document.getElementById('pwaInstallSection');
+    this.pwaInstallBtn = document.getElementById('pwaInstallBtn');
+    this.pwaInstallBtnText = document.getElementById('pwaInstallBtnText');
 
     // Modal de Diálogo Personalizado (Reemplazo estético de alert y confirm)
     this.customDialogModal = document.getElementById('customDialogModal');
@@ -1563,6 +1569,65 @@ class NotesApp {
     return dateStr;
   }
 
+  initPWA() {
+    if (!this.pwaInstallSection || !this.pwaInstallBtn) return;
+
+    let deferredPrompt = null;
+
+    // 1. Detección en Android / Chromium / Edge
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      this.pwaInstallSection.style.display = 'block';
+      if (this.pwaInstallBtnText) {
+        this.pwaInstallBtnText.textContent = 'Instalar App en el Móvil';
+      }
+    });
+
+    this.pwaInstallBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const choice = await deferredPrompt.userChoice;
+        if (choice.outcome === 'accepted') {
+          this.pwaInstallSection.style.display = 'none';
+        }
+        deferredPrompt = null;
+      } else {
+        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        if (isIOS) {
+          await this.showAlert({
+            title: 'Instalar en iPhone o iPad',
+            message: 'Para instalar SmartNotes en tu pantalla de inicio:<br><br>1. Pulsa el botón <strong>Compartir</strong> (icono de cuadrado con flecha hacia arriba ⬆️ en la barra del navegador).<br><br>2. Desliza hacia abajo y pulsa <strong>"Añadir a la pantalla de inicio"</strong> 📲.<br><br>¡Listo! SmartNotes funcionará a pantalla completa como una aplicación nativa.',
+            icon: '📲',
+            confirmText: 'Entendido'
+          });
+        } else {
+          await this.showAlert({
+            title: 'Instalar Aplicación',
+            message: 'Para instalar SmartNotes en este dispositivo:<br><br>1. Abre el menú de opciones del navegador (icono de 3 puntos <strong>⋮</strong> arriba a la derecha).<br><br>2. Pulsa en <strong>"Instalar aplicación"</strong> o <strong>"Añadir a la pantalla de inicio"</strong> 📲.',
+            icon: '📲',
+            confirmText: 'Entendido'
+          });
+        }
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      this.pwaInstallSection.style.display = 'none';
+      console.log('[PWA] SmartNotes instalada con éxito');
+    });
+
+    // En iOS Safari, si no está en modo standalone, mostrar el botón para guiar al usuario
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || ('standalone' in navigator && navigator.standalone);
+    if (isIOS && !isStandalone) {
+      this.pwaInstallSection.style.display = 'block';
+      if (this.pwaInstallBtnText) {
+        this.pwaInstallBtnText.textContent = 'Añadir a Pantalla de Inicio';
+      }
+    }
+  }
+
   escapeHTML(str) {
     return (str || '')
       .replace(/&/g, '&amp;')
@@ -1837,3 +1902,16 @@ class NotesApp {
 window.addEventListener('DOMContentLoaded', () => {
   new NotesApp();
 });
+
+// Registro de Service Worker para PWA (Instalación en Móvil y Escritorio)
+if ('serviceWorker' in navigator && (window.location.protocol.startsWith('http') || window.location.protocol.startsWith('https'))) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg) => {
+        console.log('[PWA] Service Worker registrado en:', reg.scope);
+      })
+      .catch((err) => {
+        console.warn('[PWA] Error registrando Service Worker:', err);
+      });
+  });
+}
