@@ -188,3 +188,11 @@
 - [x] **T94**: Purgar en `src/app.js` las funciones residuales de handles físicos de Chromium en IndexedDB (`saveStoredDirHandle`, `getStoredDirHandle`, etc.) reduciendo más de 160 líneas de código muerto.
 - [x] **T95**: Actualizar la descripción visual de la tarjeta de inicio de sesión de Google Drive para especificar la carpeta oficial `SmartNotes / notas.json`.
 - [x] **T96**: Recompilar el bundle standalone `SmartNotes.html` y raíz `index.html` con `scripts/build.js`, validar con `node --check` y desplegar a producción.
+
+---
+
+## Phase 37: Reubicación de Botón de Tema a Barra Superior y Modo Solo Símbolo v9.5 (Completado)
+- [x] **T97**: Trasladar `#themeToggleBtn` desde el pie del sidebar a la barra superior derecha (`.topbar-right`), haciéndolo 100% visible sin necesidad de abrir el menú lateral en móviles ni hacer scroll.
+- [x] **T98**: Rediseñar el botón con la clase `.theme-toggle-btn` en formato cuadrado redondeado (`38px x 38px`), conteniendo únicamente el símbolo (`🌙` / `☀️`) y tooltips modernos flotantes dinámicos.
+- [x] **T99**: Limpiar estilos obsoletos de `.sidebar-footer` y actualizar `src/app.js` con soporte para atributos accesibles (`aria-label`, `data-tooltip`).
+- [x] **T100**: Recompilar `SmartNotes.html` e `index.html` con `scripts/build.js`, validar sintaxis y desplegar en GitHub Pages.

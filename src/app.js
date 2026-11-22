@@ -375,14 +375,20 @@ class NotesApp {
 
   initTheme() {
     const currentTheme = StorageService.getTheme();
-    if (currentTheme === 'light') {
+    const isLight = currentTheme === 'light';
+    if (isLight) {
       document.body.classList.add('light-theme');
-      this.themeIcon.textContent = '☀️';
-      this.themeLabel.textContent = 'Modo Claro';
     } else {
       document.body.classList.remove('light-theme');
-      this.themeIcon.textContent = '🌙';
-      this.themeLabel.textContent = 'Modo Oscuro';
+    }
+    const icon = isLight ? '☀️' : '🌙';
+    const nextTip = isLight ? 'Cambiar a Modo Oscuro' : 'Cambiar a Modo Claro';
+    if (this.themeIcon) this.themeIcon.textContent = icon;
+    if (this.themeLabel) this.themeLabel.textContent = isLight ? 'Modo Claro' : 'Modo Oscuro';
+    if (this.themeToggleBtn) {
+      this.themeToggleBtn.title = nextTip;
+      this.themeToggleBtn.setAttribute('data-tooltip', nextTip);
+      this.themeToggleBtn.setAttribute('aria-label', nextTip);
     }
   }
 
@@ -390,8 +396,15 @@ class NotesApp {
     const isLight = document.body.classList.toggle('light-theme');
     const newTheme = isLight ? 'light' : 'dark';
     StorageService.setTheme(newTheme);
-    this.themeIcon.textContent = isLight ? '☀️' : '🌙';
-    this.themeLabel.textContent = isLight ? 'Modo Claro' : 'Modo Oscuro';
+    const icon = isLight ? '☀️' : '🌙';
+    const nextTip = isLight ? 'Cambiar a Modo Oscuro' : 'Cambiar a Modo Claro';
+    if (this.themeIcon) this.themeIcon.textContent = icon;
+    if (this.themeLabel) this.themeLabel.textContent = isLight ? 'Modo Claro' : 'Modo Oscuro';
+    if (this.themeToggleBtn) {
+      this.themeToggleBtn.title = nextTip;
+      this.themeToggleBtn.setAttribute('data-tooltip', nextTip);
+      this.themeToggleBtn.setAttribute('aria-label', nextTip);
+    }
   }
 
   initViewMode() {
