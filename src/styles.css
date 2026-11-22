@@ -137,14 +137,6 @@ body {
   line-height: 1.1;
 }
 
-.version-tag {
-  font-size: 0.7rem;
-  color: var(--accent);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
 .mobile-close-btn {
   display: none;
 }
