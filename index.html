@@ -8,6 +8,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SmartNotes">
   <meta name="theme-color" content="#4f46e5">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M8 16.5l5 5 11-11' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="alternate icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M8 16.5l5 5 11-11' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <title>SmartNotes - Gestor Inteligente con Google Drive</title>
   <style>
 :root {
@@ -371,6 +374,55 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.btn-sync-disconnect {
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.74rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1;
+}
+
+.btn-sync-disconnect svg {
+  flex-shrink: 0;
+  stroke: currentColor;
+  transition: transform 0.15s ease;
+}
+
+.btn-sync-disconnect:hover {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.38);
+  color: #f87171;
+  transform: translateY(-0.5px);
+}
+
+.btn-sync-disconnect:hover svg {
+  transform: translateX(1px);
+}
+
+.btn-sync-disconnect:active {
+  transform: scale(0.96);
+}
+
+body.light-theme .btn-sync-disconnect {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #64748b;
+}
+
+body.light-theme .btn-sync-disconnect:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
 }
 
 /* Estado de Bienvenida / Reconexión de Carpeta en Rejilla */
@@ -1870,7 +1922,14 @@ body.light-theme #appTooltip {
               <span class="sync-dot" id="syncDot"></span>
               <span id="syncStatusText">Desconectado</span>
             </span>
-            <button class="btn-action" id="disconnectDriveBtn" style="display: none; padding: 0.1rem 0.35rem;" title="Cerrar sesión de Google">✕ Salir</button>
+            <button class="btn-sync-disconnect" id="disconnectDriveBtn" style="display: none;" title="Cerrar sesión de Google">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              <span>Salir</span>
+            </button>
           </div>
           <div class="sync-filename" id="syncFolderText">Inicia sesión con tu cuenta</div>
           <button id="connectDriveBtn" class="sync-btn gdrive-btn" title="Iniciar sesión con Google para sincronizar tus notas">
@@ -3727,7 +3786,7 @@ class NotesApp {
       this.syncFolderText.textContent = `📁 SmartNotes / notas.json`;
       this.syncFolderText.title = `Conectado como ${userLabel}`;
       if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'none';
-      if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'block';
+      if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'inline-flex';
     } else if (state === 'saving') {
       this.syncDot.className = 'sync-dot pending';
       this.syncStatusText.textContent = 'Guardando...';

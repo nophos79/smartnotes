@@ -361,6 +361,55 @@ body {
   white-space: nowrap;
 }
 
+.btn-sync-disconnect {
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 0.22rem 0.55rem;
+  font-size: 0.74rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1;
+}
+
+.btn-sync-disconnect svg {
+  flex-shrink: 0;
+  stroke: currentColor;
+  transition: transform 0.15s ease;
+}
+
+.btn-sync-disconnect:hover {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.38);
+  color: #f87171;
+  transform: translateY(-0.5px);
+}
+
+.btn-sync-disconnect:hover svg {
+  transform: translateX(1px);
+}
+
+.btn-sync-disconnect:active {
+  transform: scale(0.96);
+}
+
+body.light-theme .btn-sync-disconnect {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #64748b;
+}
+
+body.light-theme .btn-sync-disconnect:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
 /* Estado de Bienvenida / Reconexión de Carpeta en Rejilla */
 .folder-state-card {
   grid-column: 1 / -1;

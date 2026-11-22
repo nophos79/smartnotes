@@ -1590,7 +1590,7 @@ class NotesApp {
       this.syncFolderText.textContent = `📁 SmartNotes / notas.json`;
       this.syncFolderText.title = `Conectado como ${userLabel}`;
       if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'none';
-      if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'block';
+      if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'inline-flex';
     } else if (state === 'saving') {
       this.syncDot.className = 'sync-dot pending';
       this.syncStatusText.textContent = 'Guardando...';

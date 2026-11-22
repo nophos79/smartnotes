@@ -8,6 +8,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="SmartNotes">
   <meta name="theme-color" content="#4f46e5">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M8 16.5l5 5 11-11' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="alternate icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Cpath d='M8 16.5l5 5 11-11' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <title>SmartNotes - Gestor Inteligente con Google Drive</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -89,7 +92,14 @@
               <span class="sync-dot" id="syncDot"></span>
               <span id="syncStatusText">Desconectado</span>
             </span>
-            <button class="btn-action" id="disconnectDriveBtn" style="display: none; padding: 0.1rem 0.35rem;" title="Cerrar sesión de Google">✕ Salir</button>
+            <button class="btn-sync-disconnect" id="disconnectDriveBtn" style="display: none;" title="Cerrar sesión de Google">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              <span>Salir</span>
+            </button>
           </div>
           <div class="sync-filename" id="syncFolderText">Inicia sesión con tu cuenta</div>
           <button id="connectDriveBtn" class="sync-btn gdrive-btn" title="Iniciar sesión con Google para sincronizar tus notas">

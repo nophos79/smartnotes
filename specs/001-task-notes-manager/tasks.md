@@ -171,3 +171,11 @@
 - [x] **T85**: Implementar el modal interactivo de configuración de Google Client ID (`#googleConfigModal`) con instrucciones paso a paso y persistencia en `localStorage`.
 - [x] **T86**: Desarrollar el módulo de sincronización con Google Drive API v3 (`drive.file`) en `src/app.js`: login, obtención de token, búsqueda/creación de `notas.json`, lectura y guardado automático con debouncing.
 - [x] **T87**: Recompilar el ejecutable `SmartNotes.html` e `index.html` con `scripts/build.js` y verificar compatibilidad en PC y móvil.
+
+---
+
+## Phase 35: Favicon Oficial de Marca y Rediseño del Botón Salir v9.3 (Completado)
+- [x] **T88**: Crear e incorporar el favicon SVG oficial con la marca de SmartNotes (`#4f46e5` con checkmark blanco `✓`) en formato vectorial inline data-URI y archivo `favicon.svg` en raíz y `src/`, eliminando favicons residuales o de otras apps en el navegador.
+- [x] **T89**: Rediseñar el botón de desconexión `#disconnectDriveBtn` en la barra lateral con clase unificada `.btn-sync-disconnect`, icono SVG de salida y estilos visuales perfectamente armonizados con la tarjeta de sincronización y el sistema de temas (oscuro y claro).
+- [x] **T90**: Actualizar `src/app.js` para alternar la visualización con `display: 'inline-flex'`.
+- [x] **T91**: Recompilar el ejecutable `SmartNotes.html` e `index.html` con `scripts/build.js`, validar sintaxis con `node --check` y desplegar en GitHub Pages.
