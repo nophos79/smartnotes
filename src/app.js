@@ -5,6 +5,7 @@
  */
 
 const GOOGLE_CLIENT_ID = '271897859589-s3qq098gbqn4kct6csmofn3psprqqac6.apps.googleusercontent.com';
+const DRIVE_FOLDER_NAME = 'SmartNotes';
 
 const STORAGE_KEY_THEME = 'speckit_theme_v1';
 const STORAGE_KEY_CARD_SIZE = 'speckit_card_size_v1';
@@ -1385,13 +1386,57 @@ class NotesApp {
     await this.syncWithGoogleDrive();
   }
 
+  async getOrCreateDriveFolder() {
+    try {
+      const q = encodeURIComponent(`name = '${DRIVE_FOLDER_NAME}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
+      const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`, {
+        headers: { Authorization: `Bearer ${this.driveAccessToken}` }
+      });
+      if (searchRes.ok) {
+        const data = await searchRes.json();
+        if (data.files && data.files.length > 0) {
+          return data.files[0].id;
+        }
+      }
+
+      // No existe la carpeta SmartNotes: crearla
+      const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${this.driveAccessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: DRIVE_FOLDER_NAME,
+          mimeType: 'application/vnd.google-apps.folder'
+        })
+      });
+      if (createRes.ok) {
+        const folder = await createRes.json();
+        return folder.id;
+      }
+    } catch (e) {
+      console.warn('Error gestionando carpeta SmartNotes en Drive:', e);
+    }
+    return null;
+  }
+
   async syncWithGoogleDrive() {
     if (!this.driveAccessToken) return;
-    this.updateGoogleSyncUI('syncing', 'Buscando notas.json en Drive...');
+    this.updateGoogleSyncUI('syncing', 'Buscando carpeta SmartNotes...');
 
     try {
-      const q = encodeURIComponent("name = 'notas.json' and trashed = false");
-      const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime)`, {
+      const folderId = await this.getOrCreateDriveFolder();
+      this.driveFolderId = folderId;
+
+      this.updateGoogleSyncUI('syncing', 'Buscando notas.json...');
+
+      let q = "name = 'notas.json' and trashed = false";
+      if (folderId) {
+        q = `name = 'notas.json' and '${folderId}' in parents and trashed = false`;
+      }
+
+      const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,modifiedTime)`, {
         headers: { Authorization: `Bearer ${this.driveAccessToken}` }
       });
 
@@ -1427,12 +1472,16 @@ class NotesApp {
           }
         }
       } else {
-        // Crear notas.json en Google Drive
-        this.updateGoogleSyncUI('syncing', 'Creando notas.json en Drive...');
+        // Crear notas.json dentro de la carpeta SmartNotes
+        this.updateGoogleSyncUI('syncing', 'Creando notas.json en SmartNotes...');
         const metadata = {
           name: 'notas.json',
           mimeType: 'application/json'
         };
+        if (folderId) {
+          metadata.parents = [folderId];
+        }
+
         const payload = {
           version: 1,
           created_at: new Date().toISOString(),
@@ -1538,7 +1587,8 @@ class NotesApp {
       this.syncDot.className = 'sync-dot connected';
       this.syncStatusText.textContent = 'Sincronizado';
       const userLabel = this.driveUser ? (this.driveUser.email || this.driveUser.name) : 'Google Drive';
-      this.syncFolderText.textContent = `☁️ ${userLabel}`;
+      this.syncFolderText.textContent = `📁 SmartNotes / notas.json`;
+      this.syncFolderText.title = `Conectado como ${userLabel}`;
       if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'none';
       if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'block';
     } else if (state === 'saving') {
