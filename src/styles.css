@@ -1436,6 +1436,96 @@ body.light-theme .due-today {
   background: var(--bg-card-hover);
 }
 
+.btn-danger {
+  background-color: #ef4444;
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1.15rem;
+  font-size: 0.92rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  transition: all 0.2s;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+}
+
+/* Diálogo Personalizado (Reemplazo estético de alert() y confirm()) */
+.custom-dialog-box {
+  max-width: 440px;
+  padding: 1.4rem;
+  border-radius: 14px;
+  gap: 1rem;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+  animation: dialogScaleIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dialogScaleIn {
+  from {
+    transform: scale(0.93);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.custom-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+.custom-dialog-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.custom-dialog-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.custom-dialog-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.custom-dialog-body {
+  padding: 0.35rem 0.2rem;
+}
+
+.custom-dialog-message {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  margin: 0;
+  white-space: pre-line;
+  word-break: break-word;
+}
+
+.custom-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border-color);
+}
+
 /* Modal de Detalle de Nota */
 .detail-content-box {
   background: var(--input-bg);

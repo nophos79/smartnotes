@@ -1,13 +1,29 @@
-# Feature Specification: Gestor de Tareas y Notas Inteligente (v8.0 - Persistencia Exclusiva en Carpeta Física y Cero Guardado en Navegador)
+# Feature Specification: Gestor de Tareas y Notas Inteligente (v8.1 - Diálogos del Sistema Integrados Visualmente)
 
 **Feature Branch**: `001-task-notes-manager`  
-**Created**: 2026-11-20 | **Updated**: 2026-11-21  
-**Status**: Completed (v8.0 Exclusive Folder-Based Storage without Browser Persistence)  
+**Created**: 2026-11-20 | **Updated**: 2026-11-22  
+**Status**: Completed (v8.1 Custom Dialogs & Modal Unification)  
 **Input**:
-1. Cambiar el enfoque de guardado: eliminar por completo el almacenamiento de notas en el navegador (`localStorage`). Las notas no deben residir nunca en la memoria del navegador.
-2. Almacenamiento exclusivo en fichero (`notas.json`) dentro de una carpeta a seleccionar por el usuario (por ejemplo, en su Google Drive, OneDrive o disco local).
-3. Si no hay ninguna carpeta seleccionada previamente, solicitar de forma directa y limpia al usuario que elija su carpeta de notas, eliminando modales complejos, opciones ambiguas (abrir vs crear) y botones innecesarios de importación/exportación.
-4. Si ya existe una carpeta vinculada en sesiones previas, reconectar con un solo clic o de forma automática.
+1. Sustituir todos los cuadros de diálogo nativos del navegador (`window.alert` y `window.confirm`) por componentes modales estilizados con la misma estética visual de la aplicación.
+2. Homogeneizar colores, temas (modo claro y oscuro), tipografías, bordes redondeados y efectos visuales de desenfoque y animación.
+3. Asegurar soporte accesible por teclado (`Enter`, `Escape`) y personalización contextual de iconos, títulos y botones de acción.
+
+---
+
+## 1. User Story 38 - Diálogos del Sistema Homogéneos e Integrados Visualmente
+Como usuario, quiero que todos los mensajes de aviso, errores y confirmaciones de eliminación se muestren con el mismo diseño visual moderno y coherente que el resto de la aplicación, en lugar de ventanas emergentes blancas y toscas del navegador.
+
+* **Acceptance Criteria**:
+  - **Componente Modal Unificado**:
+    - Se reemplazan todas las invocaciones a `alert()` y `confirm()` por modales nativos de la aplicación.
+    - Soporte completo para el tema activo (oscuro y claro), con bordes estilizados, desenfoque de fondo y sombras acordes al diseño.
+  - **Variantes Informativas y de Confirmación**:
+    - Diálogos informativos / advertencia (`showAlert`): icono contextual, título claro, mensaje formateado y botón de aceptación contextual.
+    - Diálogos de confirmación (`showConfirm`): soporte para acciones estándar y destructivas (`btn-danger`), con botones de confirmación y cancelación retornando promesas booleanas.
+  - **Experiencia de Usuario y Accesibilidad**:
+    - Cierre rápido con tecla `Escape` o clic en el backdrop.
+    - Aceptación inmediata con tecla `Enter`.
+    - Auto-enfoque automático del botón principal para máxima agilidad operativa.
 
 ---
 
@@ -46,3 +62,6 @@ Como usuario, quiero que mis tareas se guarden única y exclusivamente en un arc
 * **FR-063**: Supresión completa del almacenamiento de notas y categorías en `localStorage`.
 * **FR-064**: Integración con `showDirectoryPicker` para selección única de carpeta física y gestión automática de `notas.json`.
 * **FR-065**: Simplificación de la interfaz: eliminación de modales de archivo, botones de backup redundantes y presentación del estado de carpeta.
+* **FR-066**: Reemplazo integral de `window.alert` y `window.confirm` por un componente de diálogo modal nativo de la aplicación.
+* **FR-067**: Soporte para variantes informativas (`showAlert`) y confirmaciones destructivas (`showConfirm`) con promesas asíncronas.
+* **FR-068**: Integración visual con temas (claro/oscuro), accesibilidad con teclado (`Enter`, `Escape`), animaciones y botones temáticos.

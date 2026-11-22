@@ -132,3 +132,10 @@
 - [x] **T66**: Eliminar por completo el guardado y carga de notas y categorías en `localStorage` (cero persistencia en navegador).
 - [x] **T67**: Implementar selección directa de carpeta con `window.showDirectoryPicker` y gestión automática de `notas.json` dentro de la carpeta con persistencia de `FileSystemDirectoryHandle` en IndexedDB.
 - [x] **T68**: Simplificar la interfaz de usuario: eliminar modal redundante de archivos, suprimir botones de exportar/importar JSON y presentar estado limpio de conexión y bienvenida.
+
+---
+
+## Phase 30: Diálogos Nativos Reemplazados por Componente Modal Integrado v8.1 (Completado)
+- [x] **T69**: Diseñar la estructura HTML y estilos CSS del modal de diálogo (`#customDialogModal`, `.custom-dialog-box`, animaciones, variantes de botón y soporte de tema).
+- [x] **T70**: Implementar los métodos asíncronos `showAlert` y `showConfirm` en `NotesApp` con manejo de promesas, foco accesible y atajos de teclado (`Enter`, `Escape`).
+- [x] **T71**: Reemplazar todas las invocaciones nativas a `alert()` y `confirm()` en `src/app.js`, recompilar `SmartNotes.html` y verificar funcionamiento visual.

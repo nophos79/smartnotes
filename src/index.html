@@ -316,6 +316,26 @@
     </div>
   </div>
 
+  <!-- Modal de Diálogo Personalizado (Reemplazo estético de alert y confirm nativos) -->
+  <div class="modal-overlay" id="customDialogModal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal-box custom-dialog-box">
+      <div class="custom-dialog-header">
+        <div class="custom-dialog-title-row">
+          <span class="custom-dialog-icon" id="dialogIcon">🔔</span>
+          <h3 id="dialogTitle" class="custom-dialog-title">Aviso</h3>
+        </div>
+        <button class="btn-action" id="dialogCloseBtn" title="Cerrar">✕</button>
+      </div>
+      <div class="custom-dialog-body">
+        <p id="dialogMessage" class="custom-dialog-message"></p>
+      </div>
+      <div class="modal-footer custom-dialog-footer" id="dialogFooter">
+        <button type="button" class="btn-secondary" id="dialogCancelBtn">Cancelar</button>
+        <button type="button" class="btn" id="dialogConfirmBtn">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Contenedor Flotante de Tooltips Modernos (Reemplazo del tooltip nativo del OS) -->
   <div id="appTooltip" role="tooltip" aria-hidden="true"></div>
 

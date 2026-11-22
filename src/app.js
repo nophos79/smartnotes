@@ -302,6 +302,149 @@ class NotesApp {
     this.syncDot = document.getElementById('syncDot');
     this.syncStatusText = document.getElementById('syncStatusText');
     this.syncFolderText = document.getElementById('syncFolderText');
+
+    // Modal de Diálogo Personalizado (Reemplazo estético de alert y confirm)
+    this.customDialogModal = document.getElementById('customDialogModal');
+    this.dialogIcon = document.getElementById('dialogIcon');
+    this.dialogTitle = document.getElementById('dialogTitle');
+    this.dialogMessage = document.getElementById('dialogMessage');
+    this.dialogCloseBtn = document.getElementById('dialogCloseBtn');
+    this.dialogCancelBtn = document.getElementById('dialogCancelBtn');
+    this.dialogConfirmBtn = document.getElementById('dialogConfirmBtn');
+  }
+
+  /**
+   * Muestra un diálogo informativo o de aviso estilizado con la estética de la app.
+   * @param {Object} options
+   * @param {string} options.title - Título del diálogo
+   * @param {string} options.message - Mensaje explicativo
+   * @param {string} [options.icon='🔔'] - Icono emoji o distintivo
+   * @param {string} [options.confirmText='Aceptar'] - Texto del botón
+   * @returns {Promise<void>}
+   */
+  showAlert({ title = 'Aviso', message = '', icon = '🔔', confirmText = 'Aceptar' } = {}) {
+    return new Promise((resolve) => {
+      this.dialogIcon.textContent = icon;
+      this.dialogTitle.textContent = title;
+      this.dialogMessage.textContent = message;
+      this.dialogConfirmBtn.textContent = confirmText;
+      this.dialogConfirmBtn.className = 'btn';
+      this.dialogCancelBtn.style.display = 'none';
+      this.dialogCloseBtn.style.display = 'block';
+
+      this.customDialogModal.classList.add('active');
+      this.customDialogModal.setAttribute('aria-hidden', 'false');
+      this.dialogConfirmBtn.focus();
+
+      let resolved = false;
+      const cleanup = () => {
+        if (resolved) return;
+        resolved = true;
+        this.customDialogModal.classList.remove('active');
+        this.customDialogModal.setAttribute('aria-hidden', 'true');
+        this.dialogConfirmBtn.removeEventListener('click', onConfirm);
+        this.dialogCloseBtn.removeEventListener('click', onConfirm);
+        this.customDialogModal.removeEventListener('click', onBackdrop);
+        window.removeEventListener('keydown', onKey);
+        resolve();
+      };
+
+      const onConfirm = () => cleanup();
+      const onBackdrop = (e) => {
+        if (e.target === this.customDialogModal) cleanup();
+      };
+      const onKey = (e) => {
+        if (e.key === 'Escape' || e.key === 'Enter') {
+          e.preventDefault();
+          cleanup();
+        }
+      };
+
+      this.dialogConfirmBtn.addEventListener('click', onConfirm);
+      this.dialogCloseBtn.addEventListener('click', onConfirm);
+      this.customDialogModal.addEventListener('click', onBackdrop);
+      window.addEventListener('keydown', onKey);
+    });
+  }
+
+  /**
+   * Muestra un diálogo de confirmación interactivo estilizado con la estética de la app.
+   * @param {Object} options
+   * @param {string} options.title - Título del diálogo
+   * @param {string} options.message - Pregunta o confirmación
+   * @param {string} [options.icon='❓'] - Icono emoji
+   * @param {string} [options.confirmText='Aceptar'] - Texto del botón principal
+   * @param {string} [options.cancelText='Cancelar'] - Texto del botón cancelar
+   * @param {boolean} [options.isDanger=false] - Si la acción es destructiva
+   * @returns {Promise<boolean>}
+   */
+  showConfirm({
+    title = 'Confirmación',
+    message = '',
+    icon = '❓',
+    confirmText = 'Aceptar',
+    cancelText = 'Cancelar',
+    isDanger = false
+  } = {}) {
+    return new Promise((resolve) => {
+      this.dialogIcon.textContent = icon;
+      this.dialogTitle.textContent = title;
+      this.dialogMessage.textContent = message;
+      this.dialogConfirmBtn.textContent = confirmText;
+      this.dialogConfirmBtn.className = isDanger ? 'btn-danger' : 'btn';
+      this.dialogCancelBtn.textContent = cancelText;
+      this.dialogCancelBtn.style.display = 'block';
+      this.dialogCloseBtn.style.display = 'block';
+
+      this.customDialogModal.classList.add('active');
+      this.customDialogModal.setAttribute('aria-hidden', 'false');
+
+      // Foco predeterminado accesible
+      if (isDanger) {
+        this.dialogCancelBtn.focus();
+      } else {
+        this.dialogConfirmBtn.focus();
+      }
+
+      let resolved = false;
+      const cleanup = (value) => {
+        if (resolved) return;
+        resolved = true;
+        this.customDialogModal.classList.remove('active');
+        this.customDialogModal.setAttribute('aria-hidden', 'true');
+        this.dialogConfirmBtn.removeEventListener('click', onConfirm);
+        this.dialogCancelBtn.removeEventListener('click', onCancel);
+        this.dialogCloseBtn.removeEventListener('click', onCancel);
+        this.customDialogModal.removeEventListener('click', onBackdrop);
+        window.removeEventListener('keydown', onKey);
+        resolve(value);
+      };
+
+      const onConfirm = () => cleanup(true);
+      const onCancel = () => cleanup(false);
+      const onBackdrop = (e) => {
+        if (e.target === this.customDialogModal) cleanup(false);
+      };
+      const onKey = (e) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          cleanup(false);
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (document.activeElement === this.dialogCancelBtn) {
+            cleanup(false);
+          } else {
+            cleanup(true);
+          }
+        }
+      };
+
+      this.dialogConfirmBtn.addEventListener('click', onConfirm);
+      this.dialogCancelBtn.addEventListener('click', onCancel);
+      this.dialogCloseBtn.addEventListener('click', onCancel);
+      this.customDialogModal.addEventListener('click', onBackdrop);
+      window.addEventListener('keydown', onKey);
+    });
   }
 
   initTheme() {
@@ -650,12 +793,16 @@ class NotesApp {
     });
   }
 
-  deleteCategory(catId) {
+  async deleteCategory(catId) {
     const cat = this.categories.find((c) => c.id === catId);
     if (!cat) return;
 
     if (this.categories.length <= 1) {
-      alert('Debe existir al menos una categoría en el sistema.');
+      await this.showAlert({
+        title: 'Categoría Protegida',
+        message: 'Debe existir al menos una categoría en el sistema.',
+        icon: '⚠️'
+      });
       return;
     }
 
@@ -664,10 +811,19 @@ class NotesApp {
     ).length;
 
     const msg = countNotes > 0
-      ? `¿Eliminar la categoría "${cat.name}"? ${countNotes} nota(s) se reasignarán a la categoría general.`
-      : `¿Eliminar la categoría "${cat.name}"?`;
+      ? `¿Eliminar la categoría "${cat.name}"?\n${countNotes} nota(s) asociada(s) se reasignarán a la categoría general.`
+      : `¿Estás seguro de que deseas eliminar la categoría "${cat.name}"?`;
 
-    if (confirm(msg)) {
+    const confirmed = await this.showConfirm({
+      title: 'Eliminar Categoría',
+      message: msg,
+      icon: '🏷️',
+      confirmText: 'Eliminar Categoría',
+      cancelText: 'Cancelar',
+      isDanger: true
+    });
+
+    if (confirmed) {
       this.categories = this.categories.filter((c) => c.id !== catId);
       const fallbackCat = this.categories.find((c) => c.name.toLowerCase() === 'general') || this.categories[0];
 
@@ -793,7 +949,12 @@ class NotesApp {
 
   async handleAddNote() {
     if (!this.dirHandle) {
-      alert('Por favor selecciona primero tu carpeta de notas para poder guardar.');
+      await this.showAlert({
+        title: 'Carpeta Requerida',
+        message: 'Por favor selecciona primero tu carpeta de notas para poder guardar.',
+        icon: '📁',
+        confirmText: 'Seleccionar Carpeta'
+      });
       await this.selectFolder();
       return;
     }
@@ -923,7 +1084,11 @@ class NotesApp {
 
     const exists = this.categories.some((c) => c.name.toLowerCase() === name.toLowerCase());
     if (exists) {
-      alert('Ya existe una categoría con ese nombre.');
+      await this.showAlert({
+        title: 'Categoría Duplicada',
+        message: `Ya existe una categoría con el nombre "${name}".`,
+        icon: '⚠️'
+      });
       return;
     }
 
@@ -953,7 +1118,19 @@ class NotesApp {
   }
 
   async deleteNote(noteId) {
-    if (confirm('¿Deseas eliminar esta nota?')) {
+    const note = this.notes.find((n) => n.id === noteId);
+    const title = note ? `"${note.title}"` : 'esta nota';
+
+    const confirmed = await this.showConfirm({
+      title: 'Eliminar Nota',
+      message: `¿Estás seguro de que deseas eliminar permanentemente ${title}?`,
+      icon: '🗑️',
+      confirmText: 'Eliminar',
+      cancelText: 'Cancelar',
+      isDanger: true
+    });
+
+    if (confirmed) {
       this.notes = this.notes.filter((n) => n.id !== noteId);
       await this.saveToDirectory();
       this.renderSidebarCategories();
@@ -1002,7 +1179,11 @@ class NotesApp {
 
   async selectFolder() {
     if (!('showDirectoryPicker' in window)) {
-      alert('Tu navegador no soporta la selección nativa de carpetas (File System Access API). Te recomendamos usar Microsoft Edge o Google Chrome.');
+      await this.showAlert({
+        title: 'Navegador No Compatible',
+        message: 'Tu navegador actual no soporta la selección nativa de carpetas (File System Access API).\nTe recomendamos usar Microsoft Edge o Google Chrome.',
+        icon: '🌐'
+      });
       return;
     }
 
@@ -1038,7 +1219,11 @@ class NotesApp {
     } catch (err) {
       if (err.name !== 'AbortError') {
         console.error('Error al seleccionar carpeta:', err);
-        alert('No se pudo acceder a la carpeta seleccionada: ' + err.message);
+        await this.showAlert({
+          title: 'Error de Acceso a Carpeta',
+          message: 'No se pudo acceder a la carpeta seleccionada:\n' + err.message,
+          icon: '⚠️'
+        });
       }
     }
   }
@@ -1085,7 +1270,11 @@ class NotesApp {
       this.renderSidebarCategories();
     } catch (err) {
       console.error('Error al leer/crear notas.json en la carpeta:', err);
-      alert('Error accediendo a notas.json dentro de la carpeta: ' + err.message);
+      await this.showAlert({
+        title: 'Error en notas.json',
+        message: 'Ocurrió un error al acceder a notas.json dentro de la carpeta:\n' + err.message,
+        icon: '⚠️'
+      });
     }
   }
 
