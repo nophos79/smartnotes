@@ -93,3 +93,4 @@ Como usuario, quiero que mis tareas se guarden única y exclusivamente en un arc
 * **FR-079**: Favicon SVG oficial de SmartNotes en formato vectorial inline Data-URI y archivo estático `favicon.svg`.
 * **FR-080**: Limpieza y depuración estricta de dependencias locales obsoletas (`.bat`, servidores de prueba, handles IDB residuales).
 * **FR-081**: Botón de cambio de tema (Modo Claro / Modo Oscuro) optimizado con icono exclusivo (`🌙` / `☀️`) y reubicado en la barra superior derecha (`.topbar-right`), garantizando visibilidad inmediata y permanente en móvil y escritorio.
+* **FR-082**: Responsividad móvil absoluta sin scroll horizontal: erradicación de `100vw`, layout con contención estricta (`min-width: 0`), topbar flexible con selects al 100%, rejilla automática en 1 columna en smartphones y formulario fluido.

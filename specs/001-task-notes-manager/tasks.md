@@ -196,3 +196,12 @@
 - [x] **T98**: Rediseñar el botón con la clase `.theme-toggle-btn` en formato cuadrado redondeado (`38px x 38px`), conteniendo únicamente el símbolo (`🌙` / `☀️`) y tooltips modernos flotantes dinámicos.
 - [x] **T99**: Limpiar estilos obsoletos de `.sidebar-footer` y actualizar `src/app.js` con soporte para atributos accesibles (`aria-label`, `data-tooltip`).
 - [x] **T100**: Recompilar `SmartNotes.html` e `index.html` con `scripts/build.js`, validar sintaxis y desplegar en GitHub Pages.
+
+---
+
+## Phase 38: Solución Integral de Responsividad Móvil y Supresión de Desbordamiento Horizontal v9.6 (Completado)
+- [x] **T101**: Reemplazar `width: 100vw` en `.app-layout` por `width: 100%; max-width: 100%; overflow-x: hidden;` evitando que las barras de scroll generen ancho excesivo en navegadores móviles.
+- [x] **T102**: Añadir `min-width: 0; overflow-x: hidden;` en `.main-content` y habilitar flex wrap apilado en `.topbar` y `.topbar-right`.
+- [x] **T103**: Ocultar etiquetas fijas "Texto:" y "Ordenar por:" en pantallas pequeñas (< 850px / 600px) permitiendo que los selectores y el botón de tema encajen en el 100% del ancho sin recortes.
+- [x] **T104**: Configurar rejilla automática de 1 columna (`grid-template-columns: 1fr`) para smartphones (< 600px) y apilamiento vertical para los campos del formulario.
+- [x] **T105**: Recompilar ejecutables standalone `SmartNotes.html` e `index.html`, validar sintaxis y desplegar en GitHub Pages.
