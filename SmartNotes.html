@@ -3467,15 +3467,33 @@ class NotesApp {
   }
 
   async selectFolder() {
-    // 1. Si hay un permiso pendiente de reconexión previa:
+    // 1. Detección de protocolo file:// (restricción nativa de Chrome / Edge)
+    if (window.location.protocol === 'file:') {
+      await this.showAlert({
+        title: 'Restricción del Navegador en file://',
+        message: 'Google Chrome y Microsoft Edge bloquean por seguridad el acceso a carpetas del disco cuando se abre una página con "file://".\n\n👉 Para activar el guardado automático en tu carpeta de Google Drive, OneDrive o local, abre la aplicación ejecutando:\n\n"Iniciar_SmartNotes.bat"',
+        icon: '⚠️',
+        confirmText: 'Entendido'
+      });
+      return;
+    }
+
+    if (!('showDirectoryPicker' in window)) {
+      await this.showAlert({
+        title: 'Navegador No Compatible',
+        message: 'Tu navegador no soporta la selección de carpetas físicas (File System Access API).\nTe recomendamos usar Google Chrome o Microsoft Edge en http://localhost.',
+        icon: '🌐'
+      });
+      return;
+    }
+
+    // 2. Si hay un permiso pendiente de reconexión previa:
     if (this.pendingDirHandle) {
       try {
         const perm = await this.pendingDirHandle.requestPermission({ mode: 'readwrite' });
         if (perm === 'granted') {
           this.dirHandle = this.pendingDirHandle;
           this.pendingDirHandle = null;
-          this.fileHandle = null;
-          this.pendingFileHandle = null;
           this.updateSyncUI(true, this.dirHandle.name);
           await this.loadDataFromDirectory();
           this.render();
@@ -3486,112 +3504,29 @@ class NotesApp {
       }
     }
 
-    if (this.pendingFileHandle) {
-      try {
-        const perm = await this.pendingFileHandle.requestPermission({ mode: 'readwrite' });
-        if (perm === 'granted') {
-          this.fileHandle = this.pendingFileHandle;
-          this.pendingFileHandle = null;
-          this.dirHandle = null;
-          this.pendingDirHandle = null;
-          this.updateSyncUI(true, this.fileHandle.name);
-          await this.loadDataFromFileHandle();
-          this.render();
-          return;
-        }
-      } catch (e) {
-        console.warn('Fallo reconectando pendingFileHandle:', e);
+    // 3. Abrir selector nativo de carpetas con modo lectura/escritura
+    try {
+      const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+      if (!handle) return;
+
+      this.dirHandle = handle;
+      this.pendingDirHandle = null;
+
+      this.updateSyncUI(true, this.dirHandle.name);
+      await this.loadDataFromDirectory();
+      saveStoredDirHandle(handle).catch(() => {});
+      this.render();
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        // El usuario canceló o cerró la ventana de selección: silencioso
+        return;
       }
-    }
-
-    // 2. Intentar selector nativo de carpetas primero
-    let folderConnected = false;
-    if ('showDirectoryPicker' in window) {
-      try {
-        const handle = await window.showDirectoryPicker();
-        if (handle) {
-          folderConnected = true;
-          this.dirHandle = handle;
-          this.fileHandle = null;
-          this.pendingDirHandle = null;
-          this.pendingFileHandle = null;
-
-          // Inmediatamente reflejar en la barra lateral el nombre de la carpeta seleccionada
-          this.updateSyncUI(true, this.dirHandle.name);
-
-          // Solicitar permiso de lectura/escritura si es necesario
-          try {
-            if (handle.queryPermission) {
-              const q = await handle.queryPermission({ mode: 'readwrite' });
-              if (q !== 'granted' && handle.requestPermission) {
-                await handle.requestPermission({ mode: 'readwrite' });
-              }
-            }
-          } catch (pe) {
-            console.warn('No se pudo comprobar permiso dirHandle:', pe);
-          }
-
-          await this.loadDataFromDirectory();
-          saveStoredDirHandle(handle).catch(() => {});
-          removeStoredFileHandle().catch(() => {});
-          this.render();
-          return;
-        }
-      } catch (err) {
-        console.warn('showDirectoryPicker devolvió excepción o fue cancelado:', err);
-      }
-    }
-
-    // 3. Si showDirectoryPicker falló (por ejemplo por restricción de Chromium en file:// o oclusión de ventana),
-    // abrir directamente el selector de archivo notas.json en la carpeta elegida:
-    if (!folderConnected && ('showSaveFilePicker' in window || 'showOpenFilePicker' in window)) {
-      try {
-        let handle;
-        if ('showSaveFilePicker' in window) {
-          handle = await window.showSaveFilePicker({
-            suggestedName: 'notas.json',
-            types: [
-              {
-                description: 'Archivo de notas JSON',
-                accept: { 'application/json': ['.json'] }
-              }
-            ]
-          });
-        } else {
-          [handle] = await window.showOpenFilePicker({
-            types: [
-              {
-                description: 'Archivo de notas JSON',
-                accept: { 'application/json': ['.json'] }
-              }
-            ],
-            multiple: false
-          });
-        }
-
-        if (handle) {
-          this.fileHandle = handle;
-          this.dirHandle = null;
-          this.pendingDirHandle = null;
-          this.pendingFileHandle = null;
-
-          this.updateSyncUI(true, this.fileHandle.name);
-          await this.loadDataFromFileHandle();
-          saveStoredFileHandle(handle).catch(() => {});
-          removeStoredDirHandle().catch(() => {});
-          this.render();
-          return;
-        }
-      } catch (fileErr) {
-        if (fileErr.name !== 'AbortError') {
-          console.error('Error al vincular archivo notas.json:', fileErr);
-          await this.showAlert({
-            title: 'Error de Selección',
-            message: 'No se pudo vincular la carpeta o archivo:\n' + fileErr.message,
-            icon: '⚠️'
-          });
-        }
-      }
+      console.error('Error al seleccionar carpeta:', err);
+      await this.showAlert({
+        title: 'Error de Selección',
+        message: 'No se pudo acceder a la carpeta seleccionada:\n' + (err.message || err),
+        icon: '⚠️'
+      });
     }
   }
 
@@ -3875,18 +3810,36 @@ class NotesApp {
     this.updateStats();
 
     // Si no hay carpeta conectada o hay permiso pendiente, mostrar tarjeta explicativa directa
-    if (!this.dirHandle && !this.fileHandle) {
-      this.currentFilterTitle.innerHTML = `<span>Carpeta / Archivo de Notas</span>`;
+    if (!this.dirHandle) {
+      this.currentFilterTitle.innerHTML = `<span>Carpeta de Notas</span>`;
       this.currentFilterCount.textContent = '';
 
-      if (this.pendingDirHandle || this.pendingFileHandle) {
-        const pendingName = this.pendingDirHandle ? this.pendingDirHandle.name : (this.pendingFileHandle ? this.pendingFileHandle.name : '');
+      if (window.location.protocol === 'file:') {
+        this.notesGrid.innerHTML = `
+          <div class="folder-state-card">
+            <div class="folder-state-icon">⚠️</div>
+            <h3 class="folder-state-title">Modo Archivo Local (file://) Detectado</h3>
+            <p class="folder-state-desc">
+              Google Chrome y Microsoft Edge bloquean por seguridad el acceso directo a carpetas del disco cuando se abre un archivo como <code>file:///</code>.<br><br>
+              👉 <strong>Para guardar de forma automática y exclusiva en tu carpeta:</strong><br>
+              Ejecuta el archivo <strong><code>Iniciar_SmartNotes.bat</code></strong> en la carpeta del proyecto. Se abrirá en tu navegador con acceso total y seguro a tu carpeta de Google Drive, OneDrive o local.
+            </p>
+            <button class="folder-state-btn" id="selectFolderMainBtn">
+              <span>📁</span> Más Información / Seleccionar Carpeta
+            </button>
+          </div>
+        `;
+        const selBtn = document.getElementById('selectFolderMainBtn');
+        if (selBtn) {
+          selBtn.addEventListener('click', () => this.selectFolder());
+        }
+      } else if (this.pendingDirHandle) {
         this.notesGrid.innerHTML = `
           <div class="folder-state-card">
             <div class="folder-state-icon">🔒</div>
             <h3 class="folder-state-title">Permiso para acceder a tus notas</h3>
             <p class="folder-state-desc">
-              Tu ubicación vinculada es <strong>📁 ${this.escapeHTML(pendingName)}</strong>.<br>
+              Tu carpeta vinculada es <strong>📁 ${this.escapeHTML(this.pendingDirHandle.name)}</strong>.<br>
               Haz clic en el botón para reanudar el acceso y cargar tus notas guardadas en <code>notas.json</code>.
             </p>
             <button class="folder-state-btn" id="reconnectFolderMainBtn">
@@ -3902,12 +3855,12 @@ class NotesApp {
         this.notesGrid.innerHTML = `
           <div class="folder-state-card">
             <div class="folder-state-icon">📁</div>
-            <h3 class="folder-state-title">Selecciona tu carpeta o archivo de notas</h3>
+            <h3 class="folder-state-title">Selecciona tu carpeta de notas</h3>
             <p class="folder-state-desc">
               Tus tareas y notas se guardan de forma exclusiva en un archivo <code>notas.json</code> dentro de la carpeta que elijas (Google Drive, OneDrive o cualquier carpeta de tu equipo), sin almacenar nada en el navegador.
             </p>
             <button class="folder-state-btn" id="selectFolderMainBtn">
-              <span>📁</span> Seleccionar Carpeta o Archivo para Comenzar
+              <span>📁</span> Seleccionar Carpeta para Comenzar
             </button>
           </div>
         `;

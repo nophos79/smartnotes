@@ -154,3 +154,11 @@
 - [x] **T76**: Implementar preservación del gesto de usuario (`onConfirmAction`) en `showAlert` para evitar pérdida del token de activación transitorio requerido por la API de archivos en Chromium.
 - [x] **T77**: Incorporar soporte dual en IndexedDB y motor de persistencia para directorio (`dirHandle`) y archivo (`fileHandle`) con fallback transparente ante bloqueos de `file:///`.
 - [x] **T78**: Recompilar el ejecutable autocontenido `SmartNotes.html` y validar persistencia directa sin bloqueos ni pérdidas de selección.
+
+---
+
+## Phase 33: Supresión de Chaining Inválido y Lanzador Local Iniciar_SmartNotes.bat v8.4 (Completado)
+- [x] **T79**: Eliminar el encadenamiento inválido de `showSaveFilePicker` en el bloque `catch` de `showDirectoryPicker`, resolviendo el error `User activation required` / `Must be handling a user gesture to show a file picker`.
+- [x] **T80**: Crear el servidor local autónomo `scripts/server.js` y el lanzador de 1 clic `Iniciar_SmartNotes.bat` para ejecutar en `http://localhost:3000` con soporte 100% nativo de la File System Access API.
+- [x] **T81**: Añadir detección pedagógica de `window.location.protocol === 'file:'` en pantalla principal y alerta, guiando al usuario hacia `Iniciar_SmartNotes.bat`.
+- [x] **T82**: Recompilar el ejecutable `SmartNotes.html` y verificar funcionamiento sin errores.
