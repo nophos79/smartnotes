@@ -214,3 +214,12 @@
 - [x] **T108**: Generar los iconos PNG de alta resolución (`icon-192.png` y `icon-512.png` maskable) con la identidad de marca de SmartNotes.
 - [x] **T109**: Implementar el registro del Service Worker y el asistente de instalación interactivo `#pwaInstallBtn` en `src/app.js` (soporte `beforeinstallprompt` en Android y guía modal asistida en iOS Safari).
 - [x] **T110**: Recompilar `SmartNotes.html` e `index.html`, validar sintaxis y desplegar en GitHub Pages.
+
+---
+
+## Phase 40: Rediseño Cromático del Icono e Imagotipo Oficial v9.8 (Completado)
+- [x] **T111**: Diseñar el nuevo imagotipo vectorial SVG compuesto por gradiente vibrante Indigo-Violeta-Cian, silueta de libreta/notas con pliegue de página, checkmark dinámico de alta legibilidad y destello inteligente (*Smart Sparkle*).
+- [x] **T112**: Reemplazar el texto genérico `✓` en el sidebar por el nuevo imagotipo SVG vectorizado con microinteracción hover.
+- [x] **T113**: Actualizar `favicon.svg` y la etiqueta Data-URI en `<head>` para propagación inmediata en navegadores.
+- [x] **T114**: Regenerar los iconos rasterizados `icon-192.png` y `icon-512.png` para la pantalla de inicio en Android e iOS.
+- [x] **T115**: Recompilar ejecutables standalone `SmartNotes.html` e `index.html` con `scripts/build.js` y desplegar en GitHub Pages.
