@@ -236,3 +236,9 @@
 - [x] **T122**: Implementar caché local offline (`smartnotes_cached_notes`) para que al abrir y cerrar la app las notas se visualicen al instante sin demoras ni pantallas en blanco.
 - [x] **T123**: Configurar reconexión automática silenciosa (`prompt: ''`) al reabrir la app y diálogo de confirmación antes de cerrar sesión.
 - [x] **T124**: Recompilar `SmartNotes.html` e `index.html` con `scripts/build.js` y desplegar en producción.
+
+## Fase 43: Corrección y Edición Completa de Categorías con Refresco y Confirmación (v9.12)
+- [x] **T125**: Corregir error fatal en borrado de categorías eliminando la llamada a función inexistente `saveToDirectory()` y sustituyéndola por `await this.saveData()`.
+- [x] **T126**: Implementar edición completa inline de categorías (nombre y selector de color) con botón `✏️`, propagación en cascada a notas existentes y validación de duplicados.
+- [x] **T127**: Elevar capa z-index del diálogo de confirmación (`#customDialogModal` a 1200) para garantizar visibilidad y foco absoluto sobre el modal de categorías.
+- [x] **T128**: Recompilar standalone `SmartNotes.html` e `index.html`, y validar en producción.

@@ -120,6 +120,7 @@ class NotesApp {
     this.driveFileId = localStorage.getItem('smartnotes_gdrive_file_id') || null;
     this.driveUser = null;
     this.driveSaveTimeout = null;
+    this.editingCategoryId = null;
 
     // Restauración inmediata desde caché local para que al abrir la app nunca se vea vacía
     if (localStorage.getItem('smartnotes_gdrive_connected') === 'true') {
@@ -743,29 +744,184 @@ class NotesApp {
 
   renderCategoryList() {
     if (!this.categoryListContainer) return;
-    this.categoryListContainer.innerHTML = this.categories
-      .map(
-        (c) => `
-        <div class="category-item-row">
-          <div class="category-info">
-            <span class="color-dot" style="background: ${c.color};"></span>
-            <strong>${this.escapeHTML(c.name)}</strong>
-          </div>
-          ${
-            this.categories.length > 1
-              ? `<button class="btn-delete-cat" data-id="${c.id}" title="Eliminar categoría">🗑️</button>`
-              : '<span style="font-size:0.75rem; color:var(--text-muted);">(Única)</span>'
-          }
+
+    if (!this.categories || this.categories.length === 0) {
+      this.categoryListContainer.innerHTML = `
+        <div style="text-align: center; padding: 1rem; color: var(--text-muted); font-size: 0.88rem;">
+          No hay categorías definidas.
         </div>
-      `
-      )
+      `;
+      return;
+    }
+
+    const canDelete = this.categories.length > 1;
+
+    this.categoryListContainer.innerHTML = this.categories
+      .map((c) => {
+        const notesCount = this.notes.filter(
+          (n) => n.category && n.category.toLowerCase() === c.name.toLowerCase()
+        ).length;
+        const countLabel = `(${notesCount} ${notesCount === 1 ? 'nota' : 'notas'})`;
+
+        if (this.editingCategoryId === c.id) {
+          return `
+            <div class="category-item-row editing" id="cat-row-${c.id}">
+              <div class="category-edit-form">
+                <input type="color" class="cat-edit-color" id="editCatColor_${c.id}" value="${c.color || '#10b981'}" title="Color de la categoría">
+                <input type="text" class="cat-edit-name" id="editCatName_${c.id}" value="${this.escapeHTML(c.name)}" placeholder="Nombre de categoría" required autocomplete="off">
+                <div class="category-edit-actions">
+                  <button type="button" class="btn btn-sm btn-save-cat" data-id="${c.id}" title="Guardar cambios">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </button>
+                  <button type="button" class="btn-secondary btn-sm btn-cancel-edit-cat" data-id="${c.id}" title="Cancelar">
+                    ✕
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="category-item-row" id="cat-row-${c.id}">
+            <div class="category-info">
+              <span class="color-dot" style="background: ${c.color || 'var(--accent)'};"></span>
+              <strong class="category-name-text" title="${this.escapeHTML(c.name)}">${this.escapeHTML(c.name)}</strong>
+              <span class="category-count-badge">${countLabel}</span>
+            </div>
+            <div class="category-row-actions">
+              <button type="button" class="btn-action btn-edit-cat" data-id="${c.id}" title="Editar categoría">✏️</button>
+              ${
+                canDelete
+                  ? `<button type="button" class="btn-action btn-delete-cat" data-id="${c.id}" title="Eliminar categoría">🗑️</button>`
+                  : '<span class="cat-protected-badge" title="Categoría protegida (debe existir al menos una)">🔒</span>'
+              }
+            </div>
+          </div>
+        `;
+      })
       .join('');
 
+    // Listeners para iniciar edición
+    this.categoryListContainer.querySelectorAll('.btn-edit-cat').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.startEditCategory(btn.dataset.id);
+      });
+    });
+
+    // Listeners para guardar edición
+    this.categoryListContainer.querySelectorAll('.btn-save-cat').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.saveEditCategory(btn.dataset.id);
+      });
+    });
+
+    // Listeners para cancelar edición
+    this.categoryListContainer.querySelectorAll('.btn-cancel-edit-cat').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.editingCategoryId = null;
+        this.renderCategoryList();
+      });
+    });
+
+    // Atajos de teclado en input de edición
+    this.categoryListContainer.querySelectorAll('.cat-edit-name').forEach((input) => {
+      input.addEventListener('keydown', (e) => {
+        const catId = input.id.replace('editCatName_', '');
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          this.saveEditCategory(catId);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          this.editingCategoryId = null;
+          this.renderCategoryList();
+        }
+      });
+    });
+
+    // Listeners para eliminar categoría
     this.categoryListContainer.querySelectorAll('.btn-delete-cat').forEach((btn) => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
         this.deleteCategory(btn.dataset.id);
       });
     });
+  }
+
+  startEditCategory(catId) {
+    this.editingCategoryId = catId;
+    this.renderCategoryList();
+    const input = document.getElementById(`editCatName_${catId}`);
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  }
+
+  async saveEditCategory(catId) {
+    const cat = this.categories.find((c) => c.id === catId);
+    if (!cat) return;
+
+    const nameInput = document.getElementById(`editCatName_${catId}`);
+    const colorInput = document.getElementById(`editCatColor_${catId}`);
+    if (!nameInput) return;
+
+    const newName = nameInput.value.trim();
+    const newColor = colorInput ? colorInput.value : (cat.color || '#10b981');
+
+    if (!newName) {
+      await this.showAlert({
+        title: 'Nombre Requerido',
+        message: 'El nombre de la categoría no puede estar vacío.',
+        icon: '⚠️'
+      });
+      nameInput.focus();
+      return;
+    }
+
+    // Comprobar si existe otra categoría con el mismo nombre
+    const duplicate = this.categories.some(
+      (c) => c.id !== catId && c.name.toLowerCase() === newName.toLowerCase()
+    );
+    if (duplicate) {
+      await this.showAlert({
+        title: 'Categoría Duplicada',
+        message: `Ya existe otra categoría llamada "${newName}". Elige un nombre diferente.`,
+        icon: '⚠️'
+      });
+      nameInput.focus();
+      return;
+    }
+
+    const oldName = cat.name;
+    cat.name = newName;
+    cat.color = newColor;
+
+    // Si cambió el nombre, actualizar todas las notas asociadas
+    if (oldName.toLowerCase() !== newName.toLowerCase()) {
+      this.notes.forEach((n) => {
+        if (n.category && n.category.toLowerCase() === oldName.toLowerCase()) {
+          n.category = newName;
+        }
+      });
+
+      if (this.activeCategoryFilter && this.activeCategoryFilter.toLowerCase() === oldName.toLowerCase()) {
+        this.activeCategoryFilter = newName;
+      }
+    }
+
+    this.editingCategoryId = null;
+    await this.saveData();
+
+    this.populateCategoryOptions();
+    this.renderSidebarCategories();
+    this.renderCategoryList();
+    this.render();
   }
 
   async deleteCategory(catId) {
@@ -776,23 +932,28 @@ class NotesApp {
       await this.showAlert({
         title: 'Categoría Protegida',
         message: 'Debe existir al menos una categoría en el sistema.',
-        icon: '⚠️'
+        icon: '🔒'
       });
       return;
     }
 
     const countNotes = this.notes.filter(
-      (n) => n.category.toLowerCase() === cat.name.toLowerCase()
+      (n) => n.category && n.category.toLowerCase() === cat.name.toLowerCase()
     ).length;
 
+    const fallbackCat =
+      this.categories.find((c) => c.id !== catId && c.name.toLowerCase() === 'general') ||
+      this.categories.find((c) => c.id !== catId) ||
+      this.categories[0];
+
     const msg = countNotes > 0
-      ? `¿Eliminar la categoría "${cat.name}"?\n${countNotes} nota(s) asociada(s) se reasignarán a la categoría general.`
-      : `¿Estás seguro de que deseas eliminar la categoría "${cat.name}"?`;
+      ? `¿Eliminar la categoría "${cat.name}"?\n\n${countNotes} nota(s) asociada(s) se reasignarán automáticamente a la categoría "${fallbackCat.name}".`
+      : `¿Estás seguro de que deseas eliminar permanentemente la categoría "${cat.name}"?`;
 
     const confirmed = await this.showConfirm({
       title: 'Eliminar Categoría',
       message: msg,
-      icon: '🏷️',
+      icon: '🗑️',
       confirmText: 'Eliminar Categoría',
       cancelText: 'Cancelar',
       isDanger: true
@@ -800,19 +961,18 @@ class NotesApp {
 
     if (confirmed) {
       this.categories = this.categories.filter((c) => c.id !== catId);
-      const fallbackCat = this.categories.find((c) => c.name.toLowerCase() === 'general') || this.categories[0];
 
       this.notes.forEach((n) => {
-        if (n.category.toLowerCase() === cat.name.toLowerCase()) {
+        if (n.category && n.category.toLowerCase() === cat.name.toLowerCase()) {
           n.category = fallbackCat.name;
         }
       });
 
-      if (this.activeCategoryFilter.toLowerCase() === cat.name.toLowerCase()) {
+      if (this.activeCategoryFilter && this.activeCategoryFilter.toLowerCase() === cat.name.toLowerCase()) {
         this.activeCategoryFilter = 'all';
       }
 
-      this.saveToDirectory();
+      await this.saveData();
 
       this.populateCategoryOptions();
       this.renderSidebarCategories();
@@ -1141,19 +1301,23 @@ class NotesApp {
   }
 
   openCategoryModal() {
+    this.editingCategoryId = null;
     this.renderCategoryList();
     this.categoryModal.classList.add('active');
-    this.newCategoryName.focus();
+    setTimeout(() => {
+      if (this.newCategoryName) this.newCategoryName.focus();
+    }, 100);
   }
 
   closeCategoryModal() {
+    this.editingCategoryId = null;
     this.categoryModal.classList.remove('active');
     this.newCategoryForm.reset();
   }
 
   async handleAddCategory() {
     const name = this.newCategoryName.value.trim();
-    const color = this.newCategoryColor.value;
+    const color = this.newCategoryColor.value || '#10b981';
 
     if (!name) return;
 
@@ -1161,9 +1325,10 @@ class NotesApp {
     if (exists) {
       await this.showAlert({
         title: 'Categoría Duplicada',
-        message: `Ya existe una categoría con el nombre "${name}".`,
+        message: `Ya existe una categoría con el nombre "${name}". Elige otro nombre.`,
         icon: '⚠️'
       });
+      this.newCategoryName.focus();
       return;
     }
 
@@ -1179,7 +1344,8 @@ class NotesApp {
     this.populateCategoryOptions();
     this.renderSidebarCategories();
     this.renderCategoryList();
-    this.closeCategoryModal();
+    this.newCategoryForm.reset();
+    if (this.newCategoryColor) this.newCategoryColor.value = '#10b981';
     this.render();
   }
 

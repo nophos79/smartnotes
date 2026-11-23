@@ -343,10 +343,11 @@
         <button class="btn-action" id="closeCategoryModalBtn">✕</button>
       </div>
 
-      <!-- Lista de Categorías Existentes con Borrado -->
+      <!-- Lista de Categorías Existentes con Edición y Borrado -->
       <div>
-        <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; display: block;">
-          Categorías existentes:
+        <label style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; display: flex; justify-content: space-between; align-items: center;">
+          <span>Categorías existentes:</span>
+          <span style="font-size: 0.75rem; font-weight: normal; opacity: 0.8;">(✏️ editar · 🗑️ eliminar)</span>
         </label>
         <div class="category-list-container" id="categoryListContainer">
           <!-- Se puebla dinámicamente -->
@@ -362,7 +363,7 @@
         </div>
         <div>
           <label>Color distintivo:</label>
-          <input type="color" id="newCategoryColor" value="#38bdf8" style="height: 38px; width: 100%; cursor: pointer;">
+          <input type="color" id="newCategoryColor" value="#10b981" style="height: 38px; width: 100%; cursor: pointer;">
         </div>
         <div class="modal-footer">
           <button type="button" class="btn-secondary" id="cancelCategoryBtn">Cerrar</button>

@@ -1834,7 +1834,7 @@ body.light-theme .due-today {
 }
 
 .category-list-container {
-  max-height: 180px;
+  max-height: 250px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -1848,10 +1848,22 @@ body.light-theme .due-today {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.45rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   border-radius: 8px;
-  background: var(--input-bg);
+  background: var(--bg-card);
   border: 1px solid var(--border-color);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.category-item-row:hover {
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+.category-item-row.editing {
+  background: var(--bg-secondary);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+  padding: 0.4rem 0.6rem;
 }
 
 .category-info {
@@ -1859,6 +1871,21 @@ body.light-theme .due-today {
   align-items: center;
   gap: 0.6rem;
   font-size: 0.9rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.category-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-count-badge {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  white-space: nowrap;
 }
 
 .color-dot {
@@ -1869,19 +1896,97 @@ body.light-theme .due-today {
   flex-shrink: 0;
 }
 
-.btn-delete-cat {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
+.category-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
 }
 
-.btn-delete-cat:hover {
+.category-row-actions .btn-action {
+  font-size: 0.95rem;
+  padding: 0.25rem 0.45rem;
+  border-radius: 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.15s;
+}
+
+.category-row-actions .btn-action:hover {
+  color: var(--text-main);
+  background: var(--bg-hover);
+  border-color: var(--border-color);
+}
+
+.category-row-actions .btn-delete-cat:hover {
   color: #ef4444;
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.cat-protected-badge {
+  font-size: 0.82rem;
+  opacity: 0.5;
+  padding: 0.2rem;
+}
+
+/* Edición inline de categorías */
+.category-edit-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.cat-edit-color {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.cat-edit-name {
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  padding: 0.25rem 0.6rem !important;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text-main);
+  font-size: 0.88rem;
+  font-weight: 500;
+  outline: none;
+}
+
+.cat-edit-name:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.category-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
+.btn-sm {
+  padding: 0.3rem 0.65rem !important;
+  font-size: 0.82rem !important;
+  height: 34px !important;
+  border-radius: 6px !important;
+}
+
+/* Modal de confirmación siempre por encima de cualquier otro modal */
+#customDialogModal {
+  z-index: 1200 !important;
 }
 
 .empty-state {
