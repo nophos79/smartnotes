@@ -125,7 +125,17 @@ class NotesApp {
     // Restauración inmediata desde caché local para que al abrir la app nunca se vea vacía
     if (localStorage.getItem('smartnotes_gdrive_connected') === 'true') {
       try {
-        const cachedNotes = localStorage.getItem('smartnotes_cached_notes');
+        let cachedNotes = localStorage.getItem('smartnotes_cached_notes');
+        if (!cachedNotes) {
+          // Intentar rescatar de la última copia de seguridad local en caso de purga o fallo previo
+          const backup = localStorage.getItem('smartnotes_backup_latest');
+          if (backup) {
+            const parsedBackup = JSON.parse(backup);
+            if (parsedBackup && Array.isArray(parsedBackup.notes) && parsedBackup.notes.length) {
+              cachedNotes = JSON.stringify(parsedBackup.notes);
+            }
+          }
+        }
         if (cachedNotes) {
           const parsed = JSON.parse(cachedNotes);
           if (Array.isArray(parsed)) this.notes = parsed;
@@ -237,9 +247,21 @@ class NotesApp {
     this.connectDriveBtn = document.getElementById('connectDriveBtn');
     this.connectDriveBtnLabel = document.getElementById('connectDriveBtnLabel');
     this.disconnectDriveBtn = document.getElementById('disconnectDriveBtn');
+    this.driveConnectedActions = document.getElementById('driveConnectedActions');
+    this.manualSyncBtn = document.getElementById('manualSyncBtn');
+    this.openRecoveryBtn = document.getElementById('openRecoveryBtn');
+    this.topbarSyncBtn = document.getElementById('topbarSyncBtn');
+    this.topbarSyncIcon = document.getElementById('topbarSyncIcon');
+    this.topbarSyncBadge = document.getElementById('topbarSyncBadge');
     this.syncDot = document.getElementById('syncDot');
     this.syncStatusText = document.getElementById('syncStatusText');
     this.syncFolderText = document.getElementById('syncFolderText');
+
+    // Modal de Recuperación e Historial
+    this.recoveryModal = document.getElementById('recoveryModal');
+    this.recoveryListContainer = document.getElementById('recoveryListContainer');
+    this.closeRecoveryModalBtn = document.getElementById('closeRecoveryModalBtn');
+    this.cancelRecoveryBtn = document.getElementById('cancelRecoveryBtn');
 
     // Modal de Diálogo Personalizado (Reemplazo estético de alert y confirm)
     this.customDialogModal = document.getElementById('customDialogModal');
@@ -916,7 +938,7 @@ class NotesApp {
     }
 
     this.editingCategoryId = null;
-    await this.saveData();
+    await this.saveData({ immediate: true });
 
     this.populateCategoryOptions();
     this.renderSidebarCategories();
@@ -972,7 +994,7 @@ class NotesApp {
         this.activeCategoryFilter = 'all';
       }
 
-      await this.saveData();
+      await this.saveData({ immediate: true });
 
       this.populateCategoryOptions();
       this.renderSidebarCategories();
@@ -1051,9 +1073,42 @@ class NotesApp {
       this.handleAddCategory();
     });
 
-    // Sincronización Google Drive
+    // Sincronización Google Drive y Recuperación de Versiones
     if (this.connectDriveBtn) {
       this.connectDriveBtn.addEventListener('click', () => this.handleConnectGoogleDrive());
+    }
+    if (this.topbarSyncBtn) {
+      this.topbarSyncBtn.addEventListener('click', async () => {
+        if (!this.driveAccessToken) {
+          this.handleConnectGoogleDrive();
+        } else {
+          this.showSyncToast('Sincronizando con Google Drive...');
+          await this.syncWithGoogleDrive();
+        }
+      });
+    }
+    if (this.manualSyncBtn) {
+      this.manualSyncBtn.addEventListener('click', async () => {
+        this.showSyncToast('Sincronizando notas...');
+        await this.syncWithGoogleDrive();
+      });
+    }
+    if (this.openRecoveryBtn) {
+      this.openRecoveryBtn.addEventListener('click', () => {
+        this.openRecoveryModal();
+        if (window.innerWidth <= 850) this.toggleSidebar(false);
+      });
+    }
+    if (this.closeRecoveryModalBtn) {
+      this.closeRecoveryModalBtn.addEventListener('click', () => this.closeRecoveryModal());
+    }
+    if (this.cancelRecoveryBtn) {
+      this.cancelRecoveryBtn.addEventListener('click', () => this.closeRecoveryModal());
+    }
+    if (this.recoveryModal) {
+      this.recoveryModal.addEventListener('click', (e) => {
+        if (e.target === this.recoveryModal) this.closeRecoveryModal();
+      });
     }
     if (this.disconnectDriveBtn) {
       this.disconnectDriveBtn.addEventListener('click', async () => {
@@ -1201,6 +1256,7 @@ class NotesApp {
 
     if (!title) return;
 
+    const nowIso = new Date().toISOString();
     const newNote = {
       id: 'note-' + Date.now(),
       title,
@@ -1208,15 +1264,17 @@ class NotesApp {
       category,
       due_date: due_date || '',
       is_completed: false,
-      created_at: new Date().toISOString()
+      created_at: nowIso,
+      updated_at: nowIso,
+      sync_status: this.driveAccessToken ? 'pending' : 'local'
     };
 
     this.notes.unshift(newNote);
-    await this.saveData();
     this.newNoteForm.reset();
     this.toggleForm(false);
     this.renderSidebarCategories();
     this.render();
+    await this.saveData({ immediate: true });
   }
 
   openDetailModal(noteId) {
@@ -1293,11 +1351,13 @@ class NotesApp {
     note.content = this.editNoteContent.value.trim();
     note.category = this.editNoteCategory.value;
     note.due_date = this.editNoteDueDate.value || '';
+    note.updated_at = new Date().toISOString();
+    note.sync_status = this.driveAccessToken ? 'pending' : 'local';
 
-    await this.saveData();
     this.closeEditModal();
     this.renderSidebarCategories();
     this.render();
+    await this.saveData({ immediate: true });
   }
 
   openCategoryModal() {
@@ -1339,7 +1399,7 @@ class NotesApp {
     };
 
     this.categories.push(newCat);
-    await this.saveData();
+    await this.saveData({ immediate: true });
 
     this.populateCategoryOptions();
     this.renderSidebarCategories();
@@ -1353,8 +1413,10 @@ class NotesApp {
     const note = this.notes.find((n) => n.id === noteId);
     if (note) {
       note.is_completed = !note.is_completed;
-      await this.saveData();
+      note.updated_at = new Date().toISOString();
+      note.sync_status = this.driveAccessToken ? 'pending' : 'local';
       this.render();
+      await this.saveData({ immediate: true });
     }
   }
 
@@ -1373,9 +1435,9 @@ class NotesApp {
 
     if (confirmed) {
       this.notes = this.notes.filter((n) => n.id !== noteId);
-      await this.saveData();
       this.renderSidebarCategories();
       this.render();
+      await this.saveData({ immediate: true });
     }
   }
 
@@ -1572,11 +1634,19 @@ class NotesApp {
           if (content.trim()) {
             try {
               const parsed = JSON.parse(content);
+              let driveNotes = [];
+              let driveCategories = [];
               if (Array.isArray(parsed)) {
-                this.notes = parsed;
+                driveNotes = parsed;
               } else if (parsed && typeof parsed === 'object') {
-                if (Array.isArray(parsed.notes)) this.notes = parsed.notes;
-                if (Array.isArray(parsed.categories)) this.categories = parsed.categories;
+                if (Array.isArray(parsed.notes)) driveNotes = parsed.notes;
+                if (Array.isArray(parsed.categories)) driveCategories = parsed.categories;
+              }
+
+              // SMART MERGE BIDIRECCIONAL: Jamás sobreescribir notas locales a ciegas
+              this.notes = this.mergeNotes(this.notes, driveNotes);
+              if (driveCategories.length) {
+                this.categories = this.mergeCategories(this.categories, driveCategories);
               }
             } catch (pe) {
               console.warn('Formato inválido en Drive notas.json:', pe);
@@ -1622,7 +1692,14 @@ class NotesApp {
       this.renderSidebarCategories();
       this.cacheLocalData();
       this.updateGoogleSyncUI('connected');
+      this.updateSyncIndicators();
       this.render();
+
+      // Si tras el merge hay notas pendientes de subir a Drive, guardarlas de inmediato
+      const hasPending = this.notes.some((n) => n.sync_status === 'pending');
+      if (hasPending) {
+        await this.saveToGoogleDriveImmediate({ silentToast: true });
+      }
     } catch (err) {
       console.error('Error sincronizando con Google Drive:', err);
       if (localStorage.getItem('smartnotes_gdrive_connected') === 'true') {
@@ -1638,11 +1715,96 @@ class NotesApp {
     }
   }
 
+  /**
+   * Fusión inteligente bidireccional de notas.
+   * Garantiza que ninguna nota local se pierda si la copia en la nube es anterior o incompleta.
+   */
+  mergeNotes(localNotes, driveNotes) {
+    if (!Array.isArray(localNotes) || localNotes.length === 0) {
+      return (driveNotes || []).map((n) => ({ ...n, sync_status: 'synced' }));
+    }
+    if (!Array.isArray(driveNotes) || driveNotes.length === 0) {
+      return localNotes.map((n) => ({ ...n, sync_status: 'pending' }));
+    }
+
+    const driveMap = new Map();
+    driveNotes.forEach((n) => {
+      if (n && n.id) driveMap.set(n.id, n);
+    });
+
+    const localMap = new Map();
+    localNotes.forEach((n) => {
+      if (n && n.id) localMap.set(n.id, n);
+    });
+
+    const merged = [];
+
+    // Recorrer notas locales: si no están en Drive o son más recientes, preservarlas
+    localNotes.forEach((localNote) => {
+      const driveNote = driveMap.get(localNote.id);
+      if (!driveNote) {
+        // Creada localmente, pendiente de subir a Drive
+        merged.push({
+          ...localNote,
+          sync_status: 'pending'
+        });
+      } else {
+        const localTime = new Date(localNote.updated_at || localNote.created_at || 0).getTime();
+        const driveTime = new Date(driveNote.updated_at || driveNote.created_at || 0).getTime();
+
+        if (localTime > driveTime) {
+          merged.push({
+            ...localNote,
+            sync_status: 'pending'
+          });
+        } else {
+          merged.push({
+            ...driveNote,
+            sync_status: 'synced'
+          });
+        }
+      }
+    });
+
+    // Agregar notas que están en Drive pero no estaban en local
+    driveNotes.forEach((driveNote) => {
+      if (!localMap.has(driveNote.id)) {
+        merged.push({
+          ...driveNote,
+          sync_status: 'synced'
+        });
+      }
+    });
+
+    return merged;
+  }
+
+  mergeCategories(localCats, driveCats) {
+    const list = Array.isArray(localCats) ? [...localCats] : [...DEFAULT_CATEGORIES];
+    if (Array.isArray(driveCats)) {
+      driveCats.forEach((dc) => {
+        if (!list.some((lc) => lc.name.toLowerCase() === dc.name.toLowerCase())) {
+          list.push(dc);
+        }
+      });
+    }
+    return list;
+  }
+
   cacheLocalData() {
     try {
       if (localStorage.getItem('smartnotes_gdrive_connected') === 'true') {
+        const prev = localStorage.getItem('smartnotes_cached_notes');
+        if (prev) {
+          localStorage.setItem('smartnotes_backup_prev', prev);
+        }
         localStorage.setItem('smartnotes_cached_notes', JSON.stringify(this.notes));
         localStorage.setItem('smartnotes_cached_categories', JSON.stringify(this.categories));
+        localStorage.setItem('smartnotes_backup_latest', JSON.stringify({
+          timestamp: new Date().toISOString(),
+          notes: this.notes,
+          categories: this.categories
+        }));
       }
     } catch (e) {
       console.warn('Error guardando copia local en caché:', e);
@@ -1653,18 +1815,29 @@ class NotesApp {
     if (this.driveSaveTimeout) clearTimeout(this.driveSaveTimeout);
     this.updateGoogleSyncUI('saving');
     this.driveSaveTimeout = setTimeout(() => {
-      this.saveToGoogleDrive();
+      this.saveToGoogleDriveImmediate({ silentToast: false });
     }, 600);
   }
 
   async saveToGoogleDrive() {
-    if (!this.driveAccessToken || !this.driveFileId) return;
+    return await this.saveToGoogleDriveImmediate({ silentToast: false });
+  }
+
+  async saveToGoogleDriveImmediate(options = { silentToast: false }) {
+    if (!this.driveAccessToken || !this.driveFileId) return false;
+
+    this.updateGoogleSyncUI('saving');
+    if (this.topbarSyncIcon) this.topbarSyncIcon.textContent = '☁️⏳';
 
     try {
       const payload = {
         version: 1,
         last_synced: new Date().toISOString(),
-        notes: this.notes,
+        notes: this.notes.map((n) => {
+          const clean = { ...n };
+          delete clean.sync_status;
+          return clean;
+        }),
         categories: this.categories
       };
 
@@ -1680,23 +1853,92 @@ class NotesApp {
       if (!res.ok) {
         if (res.status === 401) {
           this.updateGoogleSyncUI('reconnect', 'Sesión expirada');
-          return;
+          this.showSyncToast('Sesión de Google expirada. Toca la nube para reconectar.', true);
+          this.updateSyncIndicators();
+          return false;
         }
         throw new Error('Error al guardar en Drive: ' + res.statusText);
       }
 
+      // Éxito: marcar todas las notas locales como 'synced'
+      this.notes.forEach((n) => {
+        n.sync_status = 'synced';
+      });
+      this.cacheLocalData();
       this.updateGoogleSyncUI('connected');
+      this.updateSyncIndicators();
+      this.render();
+
+      if (!options.silentToast) {
+        this.showSyncToast('✓ Notas sincronizadas con Google Drive');
+      }
+      return true;
     } catch (err) {
       console.warn('Error guardando en Google Drive:', err);
       this.updateGoogleSyncUI('connected', 'Pendiente de sincronizar');
+      this.showSyncToast('Guardado localmente. Pendiente de sincronizar con Drive.', true);
+      this.updateSyncIndicators();
+      return false;
     }
   }
 
-  async saveData() {
+  async saveData(options = {}) {
     this.cacheLocalData();
+    this.updateSyncIndicators();
     if (this.driveAccessToken && this.driveFileId) {
-      this.scheduleDriveSave();
+      if (options.immediate) {
+        return await this.saveToGoogleDriveImmediate(options);
+      } else {
+        this.scheduleDriveSave();
+      }
     }
+  }
+
+  updateSyncIndicators() {
+    const pendingCount = this.notes.filter((n) => n.sync_status === 'pending').length;
+
+    if (this.topbarSyncBadge) {
+      if (pendingCount > 0) {
+        this.topbarSyncBadge.textContent = pendingCount;
+        this.topbarSyncBadge.style.display = 'inline-block';
+      } else {
+        this.topbarSyncBadge.style.display = 'none';
+      }
+    }
+
+    if (this.topbarSyncBtn) {
+      this.topbarSyncBtn.classList.remove('synced', 'pending', 'error');
+      if (!this.driveAccessToken) {
+        this.topbarSyncBtn.title = 'Google Drive desconectado. Haz clic para conectar.';
+        if (this.topbarSyncIcon) this.topbarSyncIcon.textContent = '☁️';
+      } else if (pendingCount > 0) {
+        this.topbarSyncBtn.classList.add('pending');
+        this.topbarSyncBtn.title = `${pendingCount} ${pendingCount === 1 ? 'nota pendiente' : 'notas pendientes'} de sincronizar con Google Drive. Haz clic para sincronizar.`;
+        if (this.topbarSyncIcon) this.topbarSyncIcon.textContent = '☁️⏳';
+      } else {
+        this.topbarSyncBtn.classList.add('synced');
+        this.topbarSyncBtn.title = 'Todas las notas sincronizadas con Google Drive. Haz clic para refrescar.';
+        if (this.topbarSyncIcon) this.topbarSyncIcon.textContent = '☁️✓';
+      }
+    }
+  }
+
+  showSyncToast(message, isWarning = false) {
+    let toast = document.getElementById('syncToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'syncToast';
+      toast.className = 'sync-toast';
+      document.body.appendChild(toast);
+    }
+    toast.className = `sync-toast ${isWarning ? 'warning' : ''}`;
+    toast.innerHTML = isWarning ? `<span>⚠️</span> ${message}` : `<span>✓</span> ${message}`;
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    if (this._syncToastTimeout) clearTimeout(this._syncToastTimeout);
+    this._syncToastTimeout = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3800);
   }
 
   disconnectGoogleDrive() {
@@ -1714,6 +1956,7 @@ class NotesApp {
     } catch {}
     this.notes = [];
     this.updateGoogleSyncUI('disconnected');
+    this.updateSyncIndicators();
     this.render();
   }
 
@@ -1728,6 +1971,7 @@ class NotesApp {
       this.syncFolderText.title = `Conectado como ${userLabel}`;
       if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'none';
       if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'inline-flex';
+      if (this.driveConnectedActions) this.driveConnectedActions.style.display = 'flex';
     } else if (state === 'saving') {
       this.syncDot.className = 'sync-dot pending';
       this.syncStatusText.textContent = 'Guardando...';
@@ -1738,6 +1982,7 @@ class NotesApp {
       this.syncFolderText.textContent = extraText || 'Sincronizando notas...';
       if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'none';
       if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'none';
+      if (this.driveConnectedActions) this.driveConnectedActions.style.display = 'none';
     } else if (state === 'reconnect') {
       this.syncDot.className = 'sync-dot pending';
       this.syncStatusText.textContent = 'Reconectar';
@@ -1746,6 +1991,7 @@ class NotesApp {
       if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'flex';
       if (this.connectDriveBtnLabel) this.connectDriveBtnLabel.textContent = 'Reconectar con Google';
       if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'inline-flex';
+      if (this.driveConnectedActions) this.driveConnectedActions.style.display = 'flex';
     } else {
       // disconnected
       this.syncDot.className = 'sync-dot';
@@ -1754,6 +2000,186 @@ class NotesApp {
       if (this.connectDriveBtn) this.connectDriveBtn.style.display = 'flex';
       if (this.connectDriveBtnLabel) this.connectDriveBtnLabel.textContent = 'Conectar con Google';
       if (this.disconnectDriveBtn) this.disconnectDriveBtn.style.display = 'none';
+      if (this.driveConnectedActions) this.driveConnectedActions.style.display = 'none';
+    }
+
+    this.updateSyncIndicators();
+  }
+
+  // --- Modal de Recuperación de Versiones e Historial ---
+  async openRecoveryModal() {
+    this.recoveryModal.classList.add('active');
+    this.recoveryModal.setAttribute('aria-hidden', 'false');
+    this.recoveryListContainer.innerHTML = `
+      <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+        <span style="font-size: 1.5rem; display: block; margin-bottom: 0.5rem;">⏳</span>
+        Buscando versiones e historial en Google Drive y almacenamiento local...
+      </div>
+    `;
+
+    const recoveryOptions = [];
+
+    // 1. Copias de seguridad locales
+    try {
+      const backupLatestStr = localStorage.getItem('smartnotes_backup_latest');
+      if (backupLatestStr) {
+        const backupLatest = JSON.parse(backupLatestStr);
+        if (backupLatest && Array.isArray(backupLatest.notes) && backupLatest.notes.length) {
+          recoveryOptions.push({
+            type: 'local',
+            label: `💾 Copia Local Reciente (${backupLatest.notes.length} notas)`,
+            date: backupLatest.timestamp ? new Date(backupLatest.timestamp).toLocaleString() : 'Reciente',
+            notes: backupLatest.notes,
+            categories: backupLatest.categories || []
+          });
+        }
+      }
+
+      const backupPrevStr = localStorage.getItem('smartnotes_backup_prev');
+      if (backupPrevStr) {
+        const parsedPrev = JSON.parse(backupPrevStr);
+        if (Array.isArray(parsedPrev) && parsedPrev.length) {
+          recoveryOptions.push({
+            type: 'local',
+            label: `💾 Copia Local Previa (${parsedPrev.length} notas)`,
+            date: 'Sesión anterior',
+            notes: parsedPrev,
+            categories: []
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Error leyendo backups locales:', e);
+    }
+
+    // 2. Revisiones de Google Drive (API v3)
+    if (this.driveAccessToken && this.driveFileId) {
+      try {
+        const revRes = await fetch(
+          `https://www.googleapis.com/drive/v3/files/${this.driveFileId}/revisions?fields=revisions(id,modifiedTime,size)&pageSize=10`,
+          { headers: { Authorization: `Bearer ${this.driveAccessToken}` } }
+        );
+        if (revRes.ok) {
+          const revData = await revRes.json();
+          if (revData.revisions && revData.revisions.length) {
+            const sortedRevs = [...revData.revisions].reverse();
+            sortedRevs.forEach((rev, idx) => {
+              const dateStr = rev.modifiedTime ? new Date(rev.modifiedTime).toLocaleString() : `Revisión ${rev.id}`;
+              const sizeKb = rev.size ? `${(rev.size / 1024).toFixed(1)} KB` : '';
+              recoveryOptions.push({
+                type: 'drive_revision',
+                revisionId: rev.id,
+                label: `☁️ Versión en Drive ${idx === 0 ? '(Última subida)' : `(#${sortedRevs.length - idx})`}`,
+                date: `${dateStr} ${sizeKb ? `• ${sizeKb}` : ''}`
+              });
+            });
+          }
+        }
+      } catch (e) {
+        console.warn('Error obteniendo revisiones de Drive:', e);
+      }
+    }
+
+    if (recoveryOptions.length === 0) {
+      this.recoveryListContainer.innerHTML = `
+        <div style="text-align: center; padding: 1.5rem; color: var(--text-muted);">
+          No se encontraron versiones históricas disponibles en este momento.
+        </div>
+      `;
+      return;
+    }
+
+    this.recoveryListContainer.innerHTML = recoveryOptions
+      .map(
+        (opt, idx) => `
+        <div class="recovery-item" style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.75rem 1rem; border-radius: 8px;">
+          <div>
+            <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">${this.escapeHTML(opt.label)}</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">${this.escapeHTML(opt.date)}</div>
+          </div>
+          <button class="btn btn-restore-opt" data-opt-idx="${idx}" style="font-size: 0.8rem; padding: 0.35rem 0.75rem;">
+            Restaurar
+          </button>
+        </div>
+      `
+      )
+      .join('');
+
+    this.recoveryListContainer.querySelectorAll('.btn-restore-opt').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const idx = parseInt(btn.dataset.optIdx, 10);
+        const selected = recoveryOptions[idx];
+        await this.handleRestoreOption(selected);
+      });
+    });
+  }
+
+  closeRecoveryModal() {
+    this.recoveryModal.classList.remove('active');
+    this.recoveryModal.setAttribute('aria-hidden', 'true');
+  }
+
+  async handleRestoreOption(option) {
+    if (!option) return;
+
+    try {
+      let notesToRestore = [];
+      let categoriesToRestore = [];
+
+      if (option.type === 'local') {
+        notesToRestore = option.notes || [];
+        categoriesToRestore = option.categories || [];
+      } else if (option.type === 'drive_revision') {
+        this.showSyncToast('Descargando versión histórica de Google Drive...');
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files/${this.driveFileId}/revisions/${option.revisionId}?alt=media`, {
+          headers: { Authorization: `Bearer ${this.driveAccessToken}` }
+        });
+        if (!res.ok) throw new Error('No se pudo descargar la revisión: ' + res.statusText);
+        const text = await res.text();
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) {
+          notesToRestore = parsed;
+        } else if (parsed && typeof parsed === 'object') {
+          if (Array.isArray(parsed.notes)) notesToRestore = parsed.notes;
+          if (Array.isArray(parsed.categories)) categoriesToRestore = parsed.categories;
+        }
+      }
+
+      if (!notesToRestore.length) {
+        await this.showAlert({
+          title: 'Versión Vacía',
+          message: 'Esta versión histórica no contenía notas para restaurar.',
+          icon: 'ℹ️'
+        });
+        return;
+      }
+
+      // Fusión inteligente: las notas actuales se preservan y las de la versión se recuperan
+      this.notes = this.mergeNotes(this.notes, notesToRestore);
+      if (categoriesToRestore.length) {
+        this.categories = this.mergeCategories(this.categories, categoriesToRestore);
+      }
+
+      this.closeRecoveryModal();
+      this.populateCategoryOptions();
+      this.renderSidebarCategories();
+      this.cacheLocalData();
+      this.render();
+
+      await this.saveData({ immediate: true });
+
+      await this.showAlert({
+        title: '¡Notas Recuperadas!',
+        message: `Se han restaurado y fusionado con éxito las notas de "${option.label}". Tus notas están ahora a salvo y sincronizadas.`,
+        icon: '🎉'
+      });
+    } catch (err) {
+      console.error('Error restaurando versión:', err);
+      await this.showAlert({
+        title: 'Error de Recuperación',
+        message: 'No se pudo restaurar esta versión:\n' + err.message,
+        icon: '⚠️'
+      });
     }
   }
 
@@ -2029,6 +2455,15 @@ class NotesApp {
         const dueListHtml = dueDateHtml ? `<span class="note-due-list-wrap">${dueDateHtml}</span>` : '';
         const dueGridHtml = dueDateHtml ? `<div class="note-due-grid-wrap">${dueDateHtml}</div>` : '';
 
+        let syncBadgeHtml = '';
+        if (note.sync_status === 'pending') {
+          syncBadgeHtml = `<span class="sync-badge-pill pending" title="Guardada en este dispositivo, pendiente de sincronizar con Google Drive">☁️⏳ Pendiente</span>`;
+        } else if (note.sync_status === 'error') {
+          syncBadgeHtml = `<span class="sync-badge-pill error" title="Error de sincronización con Google Drive. Toca la nube para reintentar">☁️⚠️ Error</span>`;
+        } else if (note.sync_status === 'synced') {
+          syncBadgeHtml = `<span class="sync-badge-pill synced" title="Sincronizada con Google Drive">☁️✓ En la nube</span>`;
+        }
+
         return `
           <div class="note-card ${completedClass}" data-id="${note.id}">
             <div class="note-header">
@@ -2054,6 +2489,8 @@ class NotesApp {
                     ${this.escapeHTML(note.content || 'Sin descripción adicional.')}
                   </span>
                 </div>
+                <!-- Insignia de sincronización en modo fila única -->
+                ${syncBadgeHtml ? `<span class="note-sync-row-wrap">${syncBadgeHtml}</span>` : ''}
               </div>
               <!-- Fecha visible arriba a la derecha en cuadrícula normal -->
               ${dueGridHtml}
@@ -2067,6 +2504,7 @@ class NotesApp {
                 <span class="badge note-badge-card" style="background: ${catColor}22; color: ${catColor}; border: 1px solid ${catColor}44;">
                   ${this.escapeHTML(note.category)}
                 </span>
+                ${syncBadgeHtml}
               </div>
               <div class="card-actions">
                 <button class="btn-action btn-detail" title="Ver detalle completo">
@@ -2144,6 +2582,8 @@ class NotesApp {
         });
       }
     });
+
+    this.updateSyncIndicators();
   }
 }
 

@@ -242,3 +242,8 @@
 - [x] **T126**: Implementar edición completa inline de categorías (nombre y selector de color) con botón `✏️`, propagación en cascada a notas existentes y validación de duplicados.
 - [x] **T127**: Elevar capa z-index del diálogo de confirmación (`#customDialogModal` a 1200) para garantizar visibilidad y foco absoluto sobre el modal de categorías.
 - [x] **T128**: Recompilar standalone `SmartNotes.html` e `index.html`, y validar en producción.
+
+## Fase 44: Smart Merge Bidireccional, Control de Sincronización por Nota y Recuperación Histórica de Google Drive (v9.13)
+- [x] **T129**: Implementar Smart Merge bidireccional (`mergeNotes`, `mergeCategories`) que preserva notas locales creadas durante desconexiones o sesiones expiradas y previene sobreescrituras ciegas por copias remotas obsoletas.
+- [x] **T130**: Incorporar guardado inmediato verificado (`saveToGoogleDriveImmediate`) con toasts de confirmación, botón e indicador de sincronización en topbar con contador de notas pendientes (`#topbarSyncBtn`, `#topbarSyncBadge`) e insignias visuales por nota (`☁️✓` sincronizada, `☁️⏳` pendiente, `☁️⚠️` error).
+- [x] **T131**: Implementar modal de recuperación e historial (`#recoveryModal`) con soporte para Google Drive Revisions API v3 y copias de seguridad locales rotativas (`smartnotes_backup_latest`, `smartnotes_backup_prev`).
